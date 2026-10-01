@@ -1,10 +1,11 @@
 extends Node3D
-## Entry point. Until the citadel exists (M3) this boots the M1 render spike.
+## Entry point: opens straight into the citadel (GDD §1).
 ##
 ## User args (after `--`):
+##   --scene=spike                              M1 render spike instead of the game
 ##   --quality=cinematic|balanced|performance   presentation preset
-##   --<setting>=<value>                        override one preset setting, e.g.
-##                                              --ssil=false --render_scale=0.6 --upscaler=fsr2
+##   --<setting>=<value>                        override one preset setting
+##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
 
@@ -12,29 +13,50 @@ const RenderSpike := preload("res://src/spike/render_spike.gd")
 
 
 func _ready() -> void:
+	if Cli.get_str("scene") == "spike":
+		_boot_spike()
+		return
+	var game := Game.new()
+	add_child(game)
+	if Cli.has("quality"):
+		var preset := Quality.from_name(Cli.get_str("quality"))
+		game.set_quality(preset)
+		Quality.apply(preset, get_viewport(), game.world.env, game.world.sun, _overrides(preset))
+	if Cli.has("autoplay"):
+		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
+		game.choose_build(&"")
+	if Cli.has("speed"):
+		game.speed = int(Cli.get_str("speed"))
+	_attach_tools(func(view: String) -> void: game.camera.preset(StringName(view), true))
+
+
+func _boot_spike() -> void:
 	var world := RenderSpike.new()
 	add_child(world)
 	var preset := Quality.from_name(Cli.get_str("quality", "balanced"))
-	Quality.apply(preset, get_viewport(), world.env, world.sun, _quality_overrides(preset))
+	Quality.apply(preset, get_viewport(), world.env, world.sun, _overrides(preset))
+	_attach_tools(world.set_view)
 
+
+func _attach_tools(set_view: Callable) -> void:
 	if Cli.has("shot"):
 		var shot := Shot.new()
 		shot.prefix = Cli.get_str("shot")
-		shot.views = Cli.get_str("views", "overview").split(",")
-		shot.set_view = world.set_view
+		shot.views = Cli.get_str("views", "full").split(",")
+		shot.settle_frames = int(Cli.get_str("settle", "90"))
+		shot.set_view = set_view
 		add_child(shot)
 	elif Cli.has("bench"):
-		world.set_view(Cli.get_str("view", "overview"))
 		var bench := Bench.new()
 		bench.duration = Cli.get_float("bench", 20.0)
 		bench.out_path = Cli.get_str("bench-out")
-		bench.label = "%s %s" % [Quality.NAMES[preset], Cli.get_str("upscaler", "")]
+		bench.label = Cli.get_str("quality", "balanced")
 		add_child(bench)
 
 
 ## Any preset key given on the command line overrides that key, cast to the
 ## preset's own type. Used by the benchmark to price each effect separately.
-func _quality_overrides(preset: Quality.Preset) -> Dictionary:
+func _overrides(preset: Quality.Preset) -> Dictionary:
 	var out := {}
 	var defaults := Quality.settings(preset)
 	for key in defaults:

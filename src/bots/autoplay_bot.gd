@@ -1,7 +1,8 @@
+class_name AutoplayBot
 extends RefCounted
 ## Plays a GameSim headless with a fixed strategy, the way a player would:
 ## a serpentine maze of 1-tile walls built from the portal side, then
-## upgrades and fusions. Used by tests/bots/run_balance.gd.
+## upgrades and fusions. Used by the balance runs and by --autoplay.
 
 const WALL_ROWS: Array[int] = [3, 7, 11, 15, 19, 23]
 const DECIDE_EVERY := 1.0

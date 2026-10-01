@@ -2,7 +2,7 @@ extends SceneTree
 ## Headless balance run: every strategy × mode, prints a markdown table.
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
 
-const Bot := preload("res://tests/bots/balance_bot.gd")
+const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
 	[&"smart", false],
 	[&"smart", true],

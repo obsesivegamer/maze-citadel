@@ -23,4 +23,7 @@ echo "== unit tests"
 "$GODOT" --headless --path . --script res://tests/run_tests.gd 2>&1 | tee /dev/stderr \
   | grep -qE "^[0-9]+ passed, 0 failed$"
 
+echo "== smoke (headless game, autoplay)"
+tools/smoke.sh
+
 echo "check: OK"
