@@ -154,11 +154,15 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - **Gate:** app opens directly into this frame · first frame under 5 s · preset screenshots match the GDD §1 checklist · Balanced ≥ 60 fps · **independent review #1**
 
 ### M4 — Mazing core (≈2–3 h)
-- [ ] Grid, flow field, anti-block, green/red ghost + thunk, placement dust
-- [ ] Sell for 75% (`X` / right-click), live path redraw
-- [ ] Fixed-step sim, ×1/×2/×3, pause
-- [ ] Grunts walk the maze; leak → lives, gate flash, horn, loop back; defeat screen with stats
-- [ ] Tests: flow field, anti-block (creep-occupied tiles, diagonal squeeze), refunds, leak loop; 1,000-placement fuzz never blocks
+- [x] Grid, flow field, anti-block (sim side, `src/sim/`)
+- [ ] Green/red ghost + thunk, placement dust
+- [x] Sell for 75% (sim side)
+- [ ] `X` / right-click sell, live dotted-path redraw
+- [x] Fixed-step 30 Hz sim (×1/×2/×3 = steps per frame)
+- [ ] Speed and pause controls
+- [x] Grunts walk the maze and reroute; leaks cost lives and loop back; defeat at 0 lives (sim side)
+- [ ] Gate flash, horn, defeat screen with stats
+- [x] Tests: flow field, anti-block (creep-occupied tiles, diagonal squeeze, trapping), refunds, leak loop, 1,000-placement fuzz
 - **Gate:** tests green · scripted "8-archer zig-zag" scenario captured
 
 ### M5 — Towers and damage (≈4–5 h · 4 workers, one per family)
