@@ -1,0 +1,13 @@
+# Godot
+.godot/
+*.translation
+export_credentials.cfg
+
+# Build output
+/build/
+/dist/
+/captures/
+
+# OS / editor
+.DS_Store
+*.tmp
