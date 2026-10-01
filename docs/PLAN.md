@@ -1,6 +1,6 @@
 # Maze Citadel — Build Plan
 
-**Status:** M0 (plan) done · **Next:** M1, toolchain and delivery spike (≈1.5 h)
+**Status:** M1 in progress: everything that runs without a window is done; benchmarks and the launch test wait for a screen slot (§7a). Working on M2 and the M4 sim core meanwhile.
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 
@@ -16,7 +16,7 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps. Yo
 
 | Option | Verdict |
 |---|---|
-| **Godot 4.7** | **Chosen.** Real-time GI, volumetric fog, SSR, decals, GPU particles and HDR output are built in. Everything is text and code, so every change can be written, tested headless and captured to screenshots without an editor. Exports a universal macOS `.app` / `.dmg` in one command. |
+| **Godot 4.7** | **Chosen.** Real-time GI, volumetric fog, SSR, decals, GPU particles and HDR output are built in. Everything is text and code, so every change can be written, tested headless and captured to screenshots without an editor. Exports a macOS `.app` / `.dmg` in one command. |
 | Unreal 5 / Unity | Best raw fidelity, but content is built in a GUI editor. Builds can't be driven or checked reliably from the command line. |
 | Three.js WebGPU + Electron | Fastest iteration (the Tower of Babel stack). Every effect (GI, fog volumes, decals, shadow quality) would be hand-built, and it ends at lower fidelity. |
 | Bevy (Rust) | Good renderer, but the engine API changes each release, compiles are slow, and the UI tooling is thin. |
@@ -44,9 +44,9 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps. Yo
 3. Double-click. The citadel loads straight into the build phase.
 
 **Details:**
-- **Universal binary** (Apple Silicon + Intel), all assets packed inside the app, no installs, no terminal.
+- **Apple Silicon (arm64) build**, all assets packed inside the app, no installs, no terminal.
 - **Signing:** the build is ad-hoc signed. A build made on this Mac opens with a double-click.
-- **Downloaded from GitHub:** a `.dmg` downloaded from a GitHub Release gets macOS's "unidentified developer" prompt once (right-click → Open). Removing that prompt needs Apple notarization, which needs a paid Apple Developer account (decision 3 below). The export script will notarize automatically if those credentials are ever added.
+- **Downloaded from GitHub:** a `.dmg` downloaded from a GitHub Release gets macOS's "unidentified developer" prompt once (right-click → Open). Accepted: no notarization (decision 3).
 - **Every milestone from M1 on** publishes the `.dmg` to a GitHub Release, so the one-click build is proven continuously, not just at the end.
 
 ## 4. Requirements
@@ -57,7 +57,7 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps. Yo
 |---|---|
 | Tested on | MacBook Air 13" M3 (Mac15,12), 8-core CPU, 8-core GPU, 16 GB, macOS 26.6.2 (25G83), 2560 × 1664 Retina |
 | Supported | Apple Silicon Macs on recent macOS (exact minimum confirmed in M1) |
-| Intel | The universal binary includes an Intel slice. It is **not tested**: no Intel Mac is available. |
+| Intel | Not built. The app targets this M3 only (decision 8). |
 
 This is the entry-level M3 GPU in a fanless laptop. Performance is measured here, including a 10-minute soak to catch thermal throttling.
 
@@ -130,11 +130,13 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - **Gate:** you approve the plan
 
 ### M1 — Toolchain and delivery spike (≈1.5 h)
-- [ ] Install Godot 4.7.2, export templates, git-lfs, gdtoolkit
-- [ ] Project skeleton (folders above), Forward+ on Metal
-- [ ] Test scene: terrain, sun, sky, SDFGI, volumetric fog, a few CC0 props, 30 animated dummies
-- [ ] `tools/` scripts: check, capture, bench, export (universal `.app` + `.dmg`)
-- [ ] Confirm: Metal backend active, upscaler options, shader precompile at export, HDR output, macOS minimum
+- [x] Install Godot 4.7.2, export templates, git-lfs, gdtoolkit
+- [x] Project skeleton, Forward+ on Metal
+- [x] Test scene: terrain, sun, sky, SDFGI, volumetric fog, decals, particles, MultiMesh pines, 24 moving creeps
+- [x] `tools/` scripts: check, capture, bench, export (arm64 `.app` + `.dmg`, 91 MB / 43 MB)
+- [x] Confirmed: Metal driver, MetalFX temporal + spatial, HDR output API, macOS 13+ minimum; exported app boots headless
+- [x] First Balanced ablation ([perf.md](perf.md)): SSIL dropped from Balanced, MetalFX chosen over FSR2
+- [ ] Screen slot: all presets, uncapped headroom, shader precompile check, double-click launch
 - **Gate:** check green · capture reviewed · exported app opens by double-click · test-scene fps logged per preset
 
 ### M2 — Art and audio sourcing (≈2–3 h · 4 workers: creeps / towers+props / environment / audio)
@@ -195,6 +197,20 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 
 **Total:** ≈ 23–31 agent hours across several sessions. The board state lives in this file: each milestone's boxes get checked as they land.
 
+## 7a. Screen-time slots
+
+Captures and benchmarks open a game window, and benchmarks need it frontmost: macOS throttles background windows, which makes their numbers meaningless. Jeremy uses this Mac, so all windowed work is batched into slots he hands over. `tools/capture.sh` and `tools/bench.sh` refuse to run without `ALLOW_WINDOW=1`.
+
+| Slot | When | Length | What runs |
+|---|---|---|---|
+| A | Now (finishes M1) | 20 min | 3 presets, uncapped headroom, upscaler check, double-click launch of the `.dmg` |
+| B | End of M3 | 25 min | First-frame captures from every preset camera, Balanced fps, launch test |
+| C | End of M5 | 20 min | Tower showcase capture, 30 towers vs 24 creeps bench |
+| D | M8 | 45 min | 10-minute thermal soak per preset, final tuning reruns |
+| E | M9 | 30 min | Bot plays to wave 40 at ×3 in the exported app, computer-use smoke test of every control |
+
+Between slots, all work is headless: logic, tests, balance bots, asset import, export.
+
 ## 8. Risks
 
 | Risk | Plan |
@@ -205,12 +221,14 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 | I can't hear the audio | Automated checks: every event maps to a file, loudness normalized by script; you do one listening pass at M7 |
 | Parallel workers collide | Each worker owns separate files in its own worktree; one integrator merges and runs the gate |
 
-## 9. Decisions made (change any before M1)
+## 9. Decisions (confirmed 2026-10-01)
 
 1. **Engine:** Godot 4.7.2 Forward+ on Metal, typed GDScript.
 2. **Repo:** new private GitHub repo `maze-citadel`, nested in `3d/claude/towerdefense` and hidden from the `3d` repo via its local exclude file.
-3. **Notarization:** skipped (ad-hoc signed). If you have an Apple Developer account, say so and the export script will notarize.
+3. **Notarization:** none (ad-hoc signed). No Apple Developer account; the one-time unidentified-developer prompt is fine.
 4. **12 towers** = 10 buildable + 2 Epic fusions (Frost Wyrm, Doom Cannon); 2 more Epics are stretch.
 5. **Archer at 25 g** so 220 g buys an 8-tower opener (GDD §4).
 6. **Leaked creeps loop** back to the portal, cost lives on every pass and pay no bounty.
 7. **Pathing:** 1-tile towers on a 20 × 28 grid; 8-way movement, no corner squeezing.
+8. **Target:** arm64 only, for this MacBook Air M3. No Intel or universal build.
+9. **Agents:** workflows and subagents allowed, never more than 4 running at once combined.

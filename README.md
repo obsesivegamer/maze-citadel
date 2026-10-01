@@ -9,4 +9,4 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps (El
 
 ## Running it
 
-From M1 on, each milestone publishes a universal `MazeCitadel.dmg` under GitHub Releases. Open it and double-click the app. No installs.
+From M1 on, each milestone publishes an Apple Silicon `MazeCitadel.dmg` under GitHub Releases. Open it and double-click the app. No installs.
