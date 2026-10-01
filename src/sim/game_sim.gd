@@ -91,6 +91,17 @@ func tower_at(tile: Vector2i) -> SimTower:
 # --- Building ---------------------------------------------------------------
 
 
+## The tile under each ground creep's centre.
+func creep_center_tiles() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for c in creeps:
+		if c.alive and not c.flying:
+			var t := Grid.tile_at(c.pos)
+			if not t in out:
+				out.append(t)
+	return out
+
+
 ## Tiles touched by any ground creep's body; towers can't go there.
 func creep_tiles() -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
@@ -105,7 +116,7 @@ func creep_tiles() -> Array[Vector2i]:
 
 
 func check_build(tile: Vector2i, id: StringName) -> Placement.Result:
-	var result := Placement.check(grid, tile, creep_tiles())
+	var result := Placement.check(grid, tile, creep_tiles(), creep_center_tiles())
 	if result == Placement.Result.OK and gold < TowerDefs.build_cost(id):
 		return Placement.Result.NO_GOLD
 	return result
@@ -400,15 +411,15 @@ func _heal_around(priestess: SimCreep) -> void:
 
 
 func _tick_poison(c: SimCreep) -> void:
-	if c.poison.is_empty():
-		return
-	var total := 0.0
 	for i in range(c.poison.size() - 1, -1, -1):
-		total += c.poison[i].x * DT
+		_apply_dot(c, c.poison[i].x * DT, c.poison_src[i])
+		# Death or a Ghoul going down clears the stacks under this loop.
+		if not c.targetable():
+			return
 		c.poison[i].y -= DT
 		if c.poison[i].y <= 0.0:
 			c.poison.remove_at(i)
-	_apply_dot(c, total, null)
+			c.poison_src.remove_at(i)
 
 
 func _move(c: SimCreep) -> void:
@@ -526,6 +537,7 @@ func _on_zero_hp(c: SimCreep, t: SimTower) -> void:
 		c.revive_time = GHOUL_REVIVE_TIME
 		c.hp = 0.0
 		c.poison.clear()
+		c.poison_src.clear()
 		c.slow = 0.0
 		events.append({"type": &"downed", "id": c.id})
 		return
@@ -680,8 +692,10 @@ func _on_direct_hit(p: SimProjectile, c: SimCreep) -> void:
 			dps *= Damage.element_mult(TowerDefs.stat(t.id, "element"), c.element)
 			dps *= 1.0 + p.aura
 			c.poison.append(Vector2(dps, TowerDefs.stat(t.id, "poison_time", lvl)))
+			c.poison_src.append(t)
 			if c.poison.size() > TowerDefs.stat(t.id, "poison_stacks", lvl):
 				c.poison.remove_at(0)
+				c.poison_src.remove_at(0)
 		&"runesmith":
 			if affectable(c):
 				c.shred = minf(c.shred + TowerDefs.stat(t.id, "shred", lvl), SHRED_MAX)

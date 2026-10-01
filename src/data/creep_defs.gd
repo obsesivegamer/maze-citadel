@@ -6,7 +6,7 @@ const CREEPS := {
 	&"grunt": {"name": "Grunt", "class": &"light", "armor": 1, "speed": 3.0, "hp": 1.0},
 	&"wolf_rider": {"name": "Wolf Rider", "class": &"light", "armor": 0, "speed": 5.0, "hp": 0.65},
 	&"footman":
-	{"name": "Shield Footman", "class": &"armored", "armor": 6, "speed": 2.6, "hp": 1.3},
+	{"name": "Shield Footman", "class": &"armored", "armor": 4, "speed": 2.6, "hp": 1.3},
 	&"priestess": {"name": "Priestess", "class": &"light", "armor": 0, "speed": 2.8, "hp": 0.9},
 	&"harpy":
 	{"name": "Harpy", "class": &"air", "armor": 1, "speed": 3.4, "hp": 0.8, "flying": true},

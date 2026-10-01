@@ -7,12 +7,12 @@ extends RefCounted
 const WAVES: Array[Dictionary] = [
 	# 1-9: one mechanic each
 	{"element": &"flame", "groups": [[&"grunt", 10]]},
-	{"element": &"verdant", "groups": [[&"wolf_rider", 14]]},
-	{"element": &"stone", "groups": [[&"footman", 10]]},
+	{"element": &"dark", "groups": [[&"wolf_rider", 14]]},
+	{"element": &"verdant", "groups": [[&"footman", 10]]},
 	{"element": &"aqua", "groups": [[&"grunt", 10], [&"priestess", 3]]},
 	{"element": &"light", "groups": [[&"harpy", 12]]},
 	{"element": &"dark", "groups": [[&"ghoul", 14]]},
-	{"element": &"stone", "groups": [[&"steam_tank", 8]]},
+	{"element": &"flame", "groups": [[&"steam_tank", 8]]},
 	{"element": &"flame", "groups": [[&"wolf_rider", 12], [&"grunt", 8]]},
 	{"element": &"aqua", "groups": [[&"footman", 12], [&"priestess", 4]]},
 	{"element": &"flame", "groups": [[&"grunt", 8], [&"ogre", 1]]},

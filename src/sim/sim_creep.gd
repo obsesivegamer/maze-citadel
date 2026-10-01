@@ -28,6 +28,8 @@ var slow_time := 0.0
 var root_time := 0.0
 ## Poison stacks: x = damage per second after multipliers, y = seconds left.
 var poison: Array[Vector2] = []
+## The tower behind each poison stack, for damage and kill credit.
+var poison_src: Array[SimTower] = []
 var shred := 0.0
 var shred_time := 0.0
 var immune_time := 0.0

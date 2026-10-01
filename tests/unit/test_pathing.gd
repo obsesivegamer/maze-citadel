@@ -80,8 +80,18 @@ func test_placement_refuses_trapping_a_creep() -> void:
 	for t in [Vector2i(0, 14), Vector2i(1, 14), Vector2i(2, 15), Vector2i(0, 16), Vector2i(1, 16)]:
 		grid.set_blocked(t, true)
 	var creep: Array[Vector2i] = [Vector2i(0, 15)]
-	check_eq(Placement.check(grid, Vector2i(1, 15), creep), R.TRAPS_CREEP, "sealing the pocket")
-	check_eq(Placement.check(grid, Vector2i(1, 15), []), R.OK, "fine when empty")
+	check_eq(Placement.check(grid, Vector2i(1, 15), [], creep), R.TRAPS_CREEP, "sealing the pocket")
+	check_eq(Placement.check(grid, Vector2i(1, 15), [], []), R.OK, "fine when empty")
+
+
+func test_creep_brushing_a_tower_corner_does_not_freeze_building() -> void:
+	var grid := Grid.new()
+	grid.set_blocked(Vector2i(5, 5), true)
+	# The creep's body overlaps the tower tile; its centre is on open ground.
+	var body: Array[Vector2i] = [Vector2i(5, 5), Vector2i(6, 5), Vector2i(5, 6), Vector2i(6, 6)]
+	var centre: Array[Vector2i] = [Vector2i(6, 6)]
+	check_eq(Placement.check(grid, Vector2i(12, 20), body, centre), R.OK, "far build allowed")
+	check_eq(Placement.check(grid, Vector2i(6, 5), body, centre), R.CREEP_ON_TILE, "body tile")
 
 
 func test_fuzz_never_disconnects_portal() -> void:

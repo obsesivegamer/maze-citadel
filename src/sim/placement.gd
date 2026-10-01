@@ -15,14 +15,23 @@ enum Result {
 }
 
 
-static func check(grid: Grid, tile: Vector2i, creep_tiles: Array[Vector2i]) -> Result:
+## `body_tiles`: every tile a creep's body overlaps (no tower may go there).
+## `center_tiles`: the tile under each creep's centre; each must still reach
+## the gate. Bodies can brush a tower's corner, so only centres count for
+## trapping; otherwise one creep grazing a tower would forbid every build.
+static func check(
+	grid: Grid,
+	tile: Vector2i,
+	body_tiles: Array[Vector2i],
+	center_tiles: Array[Vector2i] = [],
+) -> Result:
 	if not Grid.in_bounds(tile):
 		return Result.OUT_OF_BOUNDS
 	if Grid.is_reserved(tile):
 		return Result.RESERVED
 	if grid.is_blocked(tile):
 		return Result.OCCUPIED
-	if tile in creep_tiles:
+	if tile in body_tiles:
 		return Result.CREEP_ON_TILE
 	grid.set_blocked(tile, true)
 	var field := FlowField.new()
@@ -30,8 +39,8 @@ static func check(grid: Grid, tile: Vector2i, creep_tiles: Array[Vector2i]) -> R
 	grid.set_blocked(tile, false)
 	if not Grid.SPAWN_TILES.any(field.reachable):
 		return Result.BLOCKS_PATH
-	for c in creep_tiles:
-		if Grid.in_bounds(c) and not field.reachable(c):
+	for c in center_tiles:
+		if grid.is_walkable(c) and not field.reachable(c):
 			return Result.TRAPS_CREEP
 	return Result.OK
 
