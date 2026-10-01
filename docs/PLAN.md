@@ -1,6 +1,6 @@
 # Maze Citadel — Build Plan
 
-**Status:** M1 in progress: everything that runs without a window is done; benchmarks and the launch test wait for a screen slot (§7a). Working on M2 and the M4 sim core meanwhile.
+**Status (2026-10-01):** all headless work through M6 is done, and the game runs end to end with placeholder visuals. Four parallel workers are building the presentation (world, units+FX, UI+camera, audio). Waiting on screen slot A (M1 benchmarks) and slot B (M3 visuals).
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 
@@ -149,38 +149,38 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - **Gate:** gallery capture reviewed · license check passes with zero unlisted files
 
 ### M3 — The citadel, first frame (≈3–4 h)
-- [ ] Board: plateau, cliffs, outer walls, banners, pines, red portal (volumetric), blue gate, village, river, watermill
-- [ ] RTS camera: damped orbit/pan/zoom, trackpad gestures, presets, `R` hero view
-- [ ] HUD shell: gold 220, lives 20, wave 1 preview (10 Grunts), 12 cards, builder selected
-- [ ] Straight dotted path portal → gate
+- [ ] Board: plateau, cliffs, outer walls, banners, pines, red portal (volumetric), blue gate, village, river, watermill (world worker)
+- [x] RTS camera: damped orbit/pan/zoom, trackpad gestures, presets, `R` hero view, boss tracking
+- [x] HUD shell: gold 220, lives 20, wave preview, 12 cards, builder selected at launch (styling: UI worker)
+- [x] Dotted path portal → gate, redrawn live
 - **Gate:** app opens directly into this frame · first frame under 5 s · preset screenshots match the GDD §1 checklist · Balanced ≥ 60 fps · **independent review #1**
 
 ### M4 — Mazing core (≈2–3 h)
 - [x] Grid, flow field, anti-block (sim side, `src/sim/`)
-- [ ] Green/red ghost + thunk, placement dust
+- [x] Green/red ghost with refusal wobble + thunk sound (dust: FX worker)
 - [x] Sell for 75% (sim side)
-- [ ] `X` / right-click sell, live dotted-path redraw
+- [x] `X` / right-click sell, live dotted-path redraw
 - [x] Fixed-step 30 Hz sim (×1/×2/×3 = steps per frame)
-- [ ] Speed and pause controls
+- [x] Speed ×1/×2/×3 and pause
 - [x] Grunts walk the maze and reroute; leaks cost lives and loop back; defeat at 0 lives (sim side)
-- [ ] Gate flash, horn, defeat screen with stats
+- [x] Horn and defeat screen with stats (gate flash: world worker)
 - [x] Tests: flow field, anti-block (creep-occupied tiles, diagonal squeeze, trapping), refunds, leak loop, 1,000-placement fuzz
 - **Gate:** tests green · scripted "8-archer zig-zag" scenario captured
 
 ### M5 — Towers and damage (≈4–5 h · 4 workers, one per family)
-- [ ] Tower data tables, L1→L3 upgrades, targeting, pooled projectiles
-- [ ] Damage model: attack × armor class × element wheel × armor/shred × aura
-- [ ] 10 buildable towers with distinct models and attack FX; Bard aura; Runesmith shred
-- [ ] Epic fusion: Frost Wyrm, Doom Cannon
-- [ ] Range ring only on hover/select; colored damage numbers
+- [x] Tower data tables, L1→L3 upgrades, targeting, projectiles (sim)
+- [x] Damage model: attack × armor class × element wheel × armor/shred × aura (tested cell by cell)
+- [x] Bard aura, Runesmith shred, all tower kinds (sim); [ ] distinct models and attack FX (units worker)
+- [x] Epic fusion: Frost Wyrm, Doom Cannon (sim + input)
+- [x] Range ring only on ghost/hover/select; colored damage numbers
 - **Gate:** a unit test for every damage-table cell · tower showcase capture · 30 towers vs 24 creeps ≥ 60 fps Balanced
 
 ### M6 — Creeps, 40 waves, economy, modes (≈3–4 h)
-- [ ] 9 creep types + Felhound summons, each with its mechanic and HP bar
-- [ ] 40-wave table, Infinite generator, 3 s announcement (class, element, skull)
-- [ ] Bounty 6–22, interest 2% per 15 s capped at 20, Normal/Hard/Infinite
-- [ ] Victory/defeat screens, score, best-wave save
-- [ ] Balance bots: smart mazer, archer-spam (no counters), no-anti-air
+- [x] 9 creep types + Felhound summons with their mechanics (sim); [ ] models and HP bars (units worker)
+- [x] 40-wave table, Infinite generator, 3 s announcement (class, element, skull)
+- [x] Bounty 6–22, interest 2% per 15 s capped at 20, Normal/Hard/Infinite
+- [x] Victory/defeat screens, score, best-wave save
+- [x] Balance bots: smart mazer, archer-spam (no counters), no-anti-air ([balance.md](balance.md))
 - **Gate:** smart bot clears Normal with ≥ 10 lives · no-anti-air bot dies at the Harpy waves · Hard is beatable but tight · mechanic tests (revive, immune, heal, aura, summons, interest cap) · **independent review #2** · tagged "feature complete"
 
 ### M7 — Juice, world life, audio (≈4–5 h · 4 workers: VFX / world / audio / UI polish)
