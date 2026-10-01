@@ -3,9 +3,47 @@ extends SceneTree
 ## Exits 0 when all pass, 1 otherwise.
 
 
+## Script errors abort a test function without raising, so they are caught
+## here and turned into failures instead of silently passing.
+class ErrorCatcher:
+	extends Logger
+	var errors: PackedStringArray = []
+	var _mutex := Mutex.new()
+
+	func _log_error(
+		function: String,
+		file: String,
+		line: int,
+		code: String,
+		rationale: String,
+		_editor_notify: bool,
+		error_type: int,
+		_script_backtraces: Array[ScriptBacktrace],
+	) -> void:
+		if error_type == ERROR_TYPE_WARNING:
+			return
+		_mutex.lock()
+		errors.append(
+			"%s:%d %s %s" % [file.get_file(), line, function, rationale if rationale else code]
+		)
+		_mutex.unlock()
+
+	func _log_message(_message: String, _error: bool) -> void:
+		pass
+
+	func take() -> PackedStringArray:
+		_mutex.lock()
+		var out := errors
+		errors = []
+		_mutex.unlock()
+		return out
+
+
 func _initialize() -> void:
 	var passed := 0
 	var failed := 0
+	var catcher := ErrorCatcher.new()
+	OS.add_logger(catcher)
 	for path in _files("res://tests/unit", "test_", ".gd"):
 		var script: GDScript = load(path)
 		if script == null or not script.can_instantiate():
@@ -17,7 +55,10 @@ func _initialize() -> void:
 			if not test_name.begins_with("test_"):
 				continue
 			var case: RefCounted = script.new()
+			catcher.take()
 			case.call(test_name)
+			for err in catcher.take():
+				case.failures.append("engine error: " + err)
 			if case.failures.is_empty():
 				passed += 1
 			else:

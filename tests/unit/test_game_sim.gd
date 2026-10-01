@@ -14,7 +14,7 @@ func test_first_frame_state() -> void:
 	check_eq(sim.lives, 20, "lives")
 	check_eq(sim.phase, GameSim.Phase.BUILD, "phase")
 	check_eq(WaveDefs.spawn_list(1).size(), 10, "wave 1 size")
-	check(WaveDefs.spawn_list(1).all(func(t: StringName) -> bool: return t == &"grunt"), "grunts")
+	check(WaveDefs.spawn_list(1).all(func(e: Array) -> bool: return e[0] == &"grunt"), "grunts")
 
 
 func test_opener_buys_eight_archers() -> void:

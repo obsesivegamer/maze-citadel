@@ -20,3 +20,37 @@ var bounty := 0
 ## Set on the first leak: the creep loops back to the portal and pays nothing.
 var leaked := false
 var alive := true
+## Path left to the gate in metres; lower means closer (towers target lowest).
+var progress := INF
+
+var slow := 0.0
+var slow_time := 0.0
+var root_time := 0.0
+## Poison stacks: x = damage per second after multipliers, y = seconds left.
+var poison: Array[Vector2] = []
+var shred := 0.0
+var shred_time := 0.0
+var immune_time := 0.0
+## Per-type ability timer: Steam Tank immunity, Priestess heal, Dreadlord summon.
+var ability_timer := 0.0
+var revived := false
+## Seconds until a downed Ghoul stands back up; > 0 means down and untargetable.
+var revive_time := 0.0
+var aura_armor := 0.0
+var aura_haste := 0.0
+var dot_accum := 0.0
+var dot_timer := 0.0
+
+
+func targetable() -> bool:
+	return alive and revive_time <= 0.0
+
+
+func effective_armor() -> float:
+	return armor + aura_armor - shred
+
+
+func effective_speed() -> float:
+	if root_time > 0.0 or revive_time > 0.0:
+		return 0.0
+	return speed * (1.0 - slow) * (1.0 + aura_haste)
