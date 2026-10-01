@@ -1,0 +1,8 @@
+Pack: wind1
+Author: Luke.RUSTLTD
+Source page: https://opengameart.org/content/wind1
+Downloaded from: https://opengameart.org/sites/default/files/wind1.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): five 1 minute long synthesized wind sounds created using PureData Props to Andy Farnell for his awesome tutorial . (they are all unique but basically sound the same to humans take your pick) (they should be loopable also) www.rustltd.com

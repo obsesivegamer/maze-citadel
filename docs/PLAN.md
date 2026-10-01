@@ -140,10 +140,12 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - **Gate:** check green · capture reviewed · exported app opens by double-click · test-scene fps logged per preset
 
 ### M2 — Art and audio sourcing (≈2–3 h · 4 workers: creeps / towers+props / environment / audio)
-- [ ] Download CC0 packs; record every file in `assets/CREDITS.md`
+- [x] Download free packs (CC0, plus CC-BY audio with credits): 17 characters, 526 environment models, 47 textures, 137 sounds (85 MB)
+- [x] `tools/check_assets.py` license gate in `check.sh`; `assets/CREDITS.md` generated
+- [x] Headless import clean (775 files, 0 warnings); music and ambience loop
 - [ ] Stylized WC3 material: saturated toon-PBR, rim light, team-color mask, distance outline for creeps
 - [ ] Gallery scene: every creep with walk/hit/death, tower parts, props, under final lighting
-- [ ] Gap list, with a procedural build plan for each missing model
+- [x] Gap list: Steam Tank → mech + steam FX; Gryphon → scaled eagle; Wolf Rider → orc on wolf; Felhound → fel-tinted wolf; no free medieval horn or spoken "wave" (uses "Round")
 - **Gate:** gallery capture reviewed · license check passes with zero unlisted files
 
 ### M3 — The citadel, first frame (≈3–4 h)

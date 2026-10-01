@@ -1,0 +1,9 @@
+Pack: Crossbow Shot
+Author: spookymodem
+Source page: https://opengameart.org/content/crossbow-shot
+Downloaded from: https://opengameart.org/sites/default/files/Crossbow%20Shot.wav
+Retrieved: 2026-10-01
+License used here: CC-BY-3.0 (https://creativecommons.org/licenses/by/3.0/)
+Attribution REQUIRED: credit the author above, the work title, the source page and the license in the game's credits.
+License(s) listed on the OpenGameArt page: CC-BY 3.0
+Page description (excerpt): A crossbow bolt being shot and hitting it's mark.

@@ -1,0 +1,9 @@
+Pack: alien invaders tower defense assets (voice over files)
+Author: Tim Rockk
+Source page: https://opengameart.org/content/alien-invaders-tower-defense-assets
+Downloaded from: https://opengameart.org/sites/default/files/all_tower_defense_audio_files1.zip
+Retrieved: 2026-10-01
+License used here: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Attribution REQUIRED: credit the author above, the work title, the source page and the license in the game's credits.
+License(s) listed on the OpenGameArt page: CC-BY 4.0
+Page description (excerpt): collection of tower defense assets in OBJ format made with google sketch up -raw and untextured contains 9 different alien invaders, similar style/race - they could hover/rotate or waver along (or a combination of all 3) 3 turrets - 1 barrel, 2 barrel and 3 barrels (these could be canon, machine gun and or lazer) - but they could also be used as upgrades start with the 1 barrel, upgrade to 2 and then 3 (or you could color code them to whatever weapon they are) - turrets rotate on there set locations and fire at oncoming alien attackers. Bonus lightning tower to be used for more fire power as an upgrade the power crystal could be the aliens target - the crystal could hover above base or rotate, aliens could drain its power (idea was to give the crystal a value eg 20 power cells , once all power cells have been drained from the aliens touch the game is over) after each wave if there is still 1 power cell remaining you have remained victorious over the aliens. this is an ideal asset pack for someone making there first game or first tower defense. if you do use it please send my a link to your game in action . # tower defense voice over audio files included

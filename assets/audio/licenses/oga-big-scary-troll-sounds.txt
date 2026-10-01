@@ -1,0 +1,8 @@
+Pack: Big scary troll sounds
+Author: Darsycho
+Source page: https://opengameart.org/content/big-scary-troll-sounds
+Downloaded from: https://opengameart.org/sites/default/files/troll-roars_0.ogg
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Troll sounds I did for Mortila , a mod for Hexen.

@@ -1,0 +1,8 @@
+Pack: 3 dark magic spells
+Author: qubodup
+Source page: https://opengameart.org/content/3-dark-magic-spells
+Downloaded from: https://opengameart.org/sites/default/files/dark_magic.7z
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Playing around with Audacity produces this for example.

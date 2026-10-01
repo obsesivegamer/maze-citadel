@@ -1,0 +1,8 @@
+Pack: 100 CC0 SFX
+Author: rubberduck
+Source page: https://opengameart.org/content/100-cc0-sfx
+Downloaded from: https://opengameart.org/sites/default/files/100-CC0-SFX_0.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): my first sound effect pack ever including 100 effects, recorded with an android device... Note: the preview does not contain all sounds includes: 3x bell 4x dishes 2x door squeak 4x door close 1x door open 1x explosion 5x glass 2x "gong" sound 4x hit sound 2x key open 3x machine loop 12x metal 2x microwave door close / open 2x noise 7x other 4x paper 2x "plop" sound 2x pot 2x shot 7x slam 2x splash 9x spring 2x switch 2x toilet flushing 5x tools 5x weird 1x wooden door open 3x wooden effect

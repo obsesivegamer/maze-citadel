@@ -11,6 +11,10 @@ if grep -E "SCRIPT ERROR|Parse Error|^ERROR|USER ERROR" <<<"$log"; then
   echo "import reported errors"; exit 1
 fi
 
+echo "== asset licenses"
+python3 tools/check_assets.py | tail -1
+python3 tools/check_assets.py >/dev/null
+
 echo "== lint"
 gdlint src tests
 gdformat --check src tests

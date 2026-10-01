@@ -1,0 +1,8 @@
+Pack: 80 CC0 RPG SFX
+Author: rubberduck
+Source page: https://opengameart.org/content/80-cc0-rpg-sfx
+Downloaded from: https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): I created 80 sound effects for fantasy / rpg games including: 3x blade 4x book / page flip 3x chain 22x creature (die, hurt, misc, monster, roar, slime) 21x item (coins, gem, misc, stone, wood) 3x lock 3x metal 3x misc 9x spell (regular, fire) 4x stones 5x wood

@@ -1,0 +1,8 @@
+Pack: Wolf Monster Sound
+Author: CaveboyTup
+Source page: https://opengameart.org/content/wolf-monster-sound
+Downloaded from: https://opengameart.org/sites/default/files/wolf_monster_6.mp3
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): The cry of a fantasy RPG wolf monster. Sounds abit like howling or growling. But it's actually a horse snorting sound modified in Audacity to sound wolf-like. :3

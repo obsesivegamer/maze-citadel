@@ -1,0 +1,8 @@
+Pack: 80 CC0 creture SFX #2
+Author: rubberduck
+Source page: https://opengameart.org/content/80-cc0-creture-sfx-2
+Downloaded from: https://opengameart.org/sites/default/files/80-CC0-creature-sfx-2.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): I made an extension pack of my older creature sfx pack . It includes these sound effects: 6x alien 5x attack 1x breath 9x bug 4x die 4x grunt 8x human 13x misc 13x monster 3x roar 8x slime 1x snore 1x stomp 4x weird The file names don't begin from 1 to make it work better with the first pack (for example the first pack has alien_01 to alien_06 sounds and the second pack has alien_07 to alien_12 sounds)

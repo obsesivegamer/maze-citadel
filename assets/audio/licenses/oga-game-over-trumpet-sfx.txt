@@ -1,0 +1,8 @@
+Pack: Game Over Trumpet SFX
+Author: 0new4y
+Source page: https://opengameart.org/content/game-over-trumpet-sfx
+Downloaded from: https://opengameart.org/sites/default/files/losetrumpet.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Simple trumpet sound for a negative event (game over, lose, etc) The sound was made using Bosca Ceoil. The .ceol file is in the zip provided below. Alternatively, you can just download the sound file directly Cheers~

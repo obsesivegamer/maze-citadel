@@ -1,0 +1,17 @@
+8 handpainted style textures / 2K handpainted style textures / handpainted rock textures
+Author: rubberduck
+Page: https://opengameart.org/content/8-handpainted-style-textures
+      https://opengameart.org/content/2k-handpainted-style-textures
+      https://opengameart.org/content/handpainted-rock-textures
+Posted: 2018-03-14 / 2018-04-26 / 2019-03-22
+
+License: Creative Commons Zero (CC0 1.0 Universal), as listed on the OpenGameArt page(s).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files downloaded 2026-10-01 from:
+  https://opengameart.org/sites/default/files/handpainted-style-textures-3_0.zip
+  https://opengameart.org/sites/default/files/handpainted-style-textures.zip
+  https://opengameart.org/sites/default/files/hptex_pack_4_1k.zip
+
+This file was written by the asset curator from the OpenGameArt listing; the upload has no license file of its own.
+Changes: converted to JPEG, downscaled to at most 1024 px.

@@ -1,0 +1,8 @@
+Pack: 80 CC0 creature SFX
+Author: rubberduck
+Source page: https://opengameart.org/content/80-cc0-creature-sfx
+Downloaded from: https://opengameart.org/sites/default/files/80-CC0-creature-SFX_0.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): i created 80 creature sound effects including: 6x alien 2x barking 1x breath 4x bug 2x burble 2x burp 3x cough 10x cute 4x eat 5x grunt 1x howl 5x hurt 9x misc 7x monster 1x nose sound 1x ooh sound 3x roar 2x scream 1x snore 3x spit 3x troll 5x weird

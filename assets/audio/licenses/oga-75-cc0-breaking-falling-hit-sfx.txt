@@ -1,0 +1,8 @@
+Pack: 75 CC0 breaking / falling / hit sfx
+Author: rubberduck
+Source page: https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx
+Downloaded from: https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): i made 75 breaking, falling and hit sounds

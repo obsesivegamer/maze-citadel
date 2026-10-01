@@ -1,0 +1,5 @@
+Pack: Generated in this repo (Python stdlib additive synthesis + ffmpeg echo)
+Author: Maze Citadel (generated)
+Retrieved: 2026-10-01
+License: generated (this repo) - released as CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Additive brass-horn synthesis in Python (stdlib), room echo added with ffmpeg aecho. No third-party audio.

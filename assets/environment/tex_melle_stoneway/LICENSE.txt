@@ -1,0 +1,15 @@
+handpainted stone way-texture
+Author: MELLE (Melissa Krautheim)
+Page: https://opengameart.org/content/handpainted-stone-way-texture
+Posted: Saturday, November 3, 2018
+
+License: Creative Commons Zero (CC0 1.0 Universal), as listed on the OpenGameArt page(s).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files downloaded 2026-10-01 from:
+  https://opengameart.org/sites/default/files/dirt-texture.png
+  https://opengameart.org/sites/default/files/stone%20way-%20texture.png
+  https://opengameart.org/sites/default/files/stone%20way2-%20texture.png
+
+This file was written by the asset curator from the OpenGameArt listing; the upload has no license file of its own.
+Changes: converted to JPEG, downscaled to at most 1024 px.

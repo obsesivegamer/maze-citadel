@@ -1,0 +1,9 @@
+Pack: 11 male human pain/death sounds
+Author: Michel Baradari (published by qubodup)
+Source page: https://opengameart.org/content/11-male-human-paindeath-sounds
+Downloaded from: https://opengameart.org/sites/default/files/michelbaradari-human.7z
+Retrieved: 2026-10-01
+License used here: CC-BY-3.0 (https://creativecommons.org/licenses/by/3.0/)
+Attribution REQUIRED: credit the author above, the work title, the source page and the license in the game's credits.
+License(s) listed on the OpenGameArt page: CC-BY 3.0
+Page description (excerpt): Published <a href=" http://www.cubeengine.com/forum.php4?action=display_thread&thread_id=2164 ">here</a>.

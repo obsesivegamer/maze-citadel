@@ -1,0 +1,8 @@
+Pack: 100 CC0 metal and wood SFX
+Author: rubberduck
+Source page: https://opengameart.org/content/100-cc0-metal-and-wood-sfx
+Downloaded from: https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): This sfx pack contains 100 metal and wood sounds including: metal: metal door opening, hammer sound, keys, lock open and close, hit, sheets, falling, spring, slam, misc and tools wood: breaking, door closing, cracking, falling, wood hammer, hit, misc, slam and squeaking wood Note: the preview does not contain all sound effects.

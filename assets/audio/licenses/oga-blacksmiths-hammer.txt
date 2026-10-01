@@ -1,0 +1,8 @@
+Pack: Blacksmith's Hammer
+Author: VishwaJai
+Source page: https://opengameart.org/content/blacksmiths-hammer
+Downloaded from: https://opengameart.org/sites/default/files/blacksmithhammer.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): The sound of a hammer hitting an anvil, perfect for that smithy you know you need, but can't quite ever find a realistic sound for. This is a mid-sized anvil, about 45 pounds (Austrian 20), common throughout Europe and England, and perfect for armories and blacksmiths who do repair. And it's free. Only on OGA.

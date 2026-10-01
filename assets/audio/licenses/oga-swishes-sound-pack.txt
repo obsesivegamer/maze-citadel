@@ -1,0 +1,8 @@
+Pack: Swishes Sound Pack
+Author: artisticdude
+Source page: https://opengameart.org/content/swishes-sound-pack
+Downloaded from: https://opengameart.org/sites/default/files/swishes.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): 13 'swish' sound effects (4 lighter ones and 9 heavier ones) in the .wav format, created for the FOSS RPG Summoning Wars.

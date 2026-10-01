@@ -1,0 +1,8 @@
+Pack: Dog Snarl Grunt Grumble
+Author: qubodup
+Source page: https://opengameart.org/content/dog-snarl-grunt-grumble
+Downloaded from: https://opengameart.org/sites/default/files/dog_0.7z
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Playing with the dog. Source file seen here: http://www.freesound.org/people/qubodup/sounds/122183/

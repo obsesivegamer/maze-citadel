@@ -1,0 +1,17 @@
+Pack: Bat Screeches
+Author: AntumDeluge (from recording by polymorpheva)
+Source page: https://opengameart.org/content/bat-screeches
+Downloaded from: https://opengameart.org/sites/default/files/bat.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Description: Bat screeches. Extracted from recording by polymorpheva with background noise removed. Details: Format: FLAC (lossless) OGG/Vorbis Bit rate (OGG): 96k Sample rate: 44100Hz Channels: 1 Licensing: Creative Commons Zero (CC0) Canonical link: https://opengameart.org/node/132771
+
+----- README.txt (copied verbatim from the pack) -----
+Bat screeches.
+
+Licensing:
+  - Creative Commons Zero (CC0)
+
+Source:
+  - By polymorpheva: https://freesound.org/s/104205/

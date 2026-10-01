@@ -1,0 +1,14 @@
+Hand Painted Grass
+Author: PamNawi
+Page: https://opengameart.org/content/hand-painted-grass
+Posted: Wednesday, July 8, 2020
+
+License: Creative Commons Zero (CC0 1.0 Universal), as listed on the OpenGameArt page(s).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files downloaded 2026-10-01 from:
+  https://opengameart.org/sites/default/files/grass_48.png
+  https://opengameart.org/sites/default/files/grass_49.png
+
+This file was written by the asset curator from the OpenGameArt listing; the upload has no license file of its own.
+Changes: converted to JPEG, downscaled to at most 1024 px.

@@ -1,0 +1,8 @@
+Pack: Ice spells
+Author: bart
+Source page: https://opengameart.org/content/ice-spells
+Downloaded from: https://opengameart.org/sites/default/files/icespells.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Here are some ice spell sounds I put together from this sound by Stephan at pdsounds . Tools used: Audacity

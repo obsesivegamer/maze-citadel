@@ -1,0 +1,8 @@
+Pack: Muffled Distant Explosion
+Author: NenadSimic
+Source page: https://opengameart.org/content/muffled-distant-explosion
+Downloaded from: https://opengameart.org/sites/default/files/NenadSimic%20-%20Muffled%20Distant%20Explosion.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): A low pitched log drum hit with delayed reverberation, for that natural reflection of sound heard after a loud bang in the distance.

@@ -1,0 +1,16 @@
+4 hand-painted ground textures
+Author: Drummyfish
+Page: https://opengameart.org/content/4-hand-painted-ground-textures
+Posted: Saturday, May 5, 2018
+
+License: Creative Commons Zero (CC0 1.0 Universal), as listed on the OpenGameArt page(s).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files downloaded 2026-10-01 from:
+  https://opengameart.org/sites/default/files/dirt_9.png
+  https://opengameart.org/sites/default/files/grass_34.png
+  https://opengameart.org/sites/default/files/pavement_1.png
+  https://opengameart.org/sites/default/files/sand_8.png
+
+This file was written by the asset curator from the OpenGameArt listing; the upload has no license file of its own.
+Changes: converted to JPEG, downscaled to at most 1024 px.

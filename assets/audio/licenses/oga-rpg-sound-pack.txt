@@ -1,0 +1,8 @@
+Pack: RPG Sound Pack
+Author: artisticdude
+Source page: https://opengameart.org/content/rpg-sound-pack
+Downloaded from: https://opengameart.org/sites/default/files/rpg_sound_pack.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): A compilation of all my sound effect work for the past couple months. While I created them specifically with RPGs in mind (such as Summoning Wars and FLARE, should either of those projects have a use for any of these), I'm sure there are much broader uses for at least a few of these. 95 files, all in the .wav format A list of the sound effects in this pack: Battle Sounds -2 Spell sounds -3 'swoosh' weapon swing sounds -5 'sword unsheathe/clash' sounds Inventory Sounds: -light armor -beads -bottle -3 'bubble' sounds -2 'chainmail' sounds -heavy cloth -lighter cloth -3 'coin toss' sounds -ringing metal -3 'small' metal sounds -'small' wood sound Interface Sounds: -6 interface sounds NPC Sounds: -3 beetle sounds -15 guttural beast sounds -5 giant sounds -15 shade sounds -10 slime sounds -5 ogre sounds (similar to giant, only a bit less forceful) -1 wolfman sound Misc Sounds: -7 misc sounds of no particular description (...) World Sounds: -1 open creaky door sound

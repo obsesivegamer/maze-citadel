@@ -1,0 +1,40 @@
+Pack: Kenney Voiceover Pack
+Author: Kenney (kenney.nl); male voice Jeffrey M. Smith
+Source page: https://kenney.nl/assets/voiceover-pack
+Downloaded from: https://kenney.nl/media/pages/assets/voiceover-pack/3f7f168698-1677589897/kenney_voiceover-pack.zip
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+
+----- License.txt (copied verbatim from the pack) -----
+Voiceover Pack #1
+
+	by  Kenney Vleugels (Kenney.nl)
+
+			------------------------------
+
+	License (Creative Commons Zero, CC0)
+	http://creativecommons.org/publicdomain/zero/1.0/
+
+	You may use these assets in personal and commercial projects.
+	Credit (Kenney or www.kenney.nl) would be nice but is not mandatory.
+
+			------------------------------
+
+	Donate:   http://support.kenney.nl
+	Request:  http://request.kenney.nl
+
+	Follow on Twitter for updates:
+	@KenneyNL
+
+----- Credits.txt (copied verbatim from the pack) -----
+# Male voice:
+
+	Jeffrey M. Smith
+	http://fiverr.com/jeffreymsmith
+
+			------------------------------
+
+	# Female voice:
+
+	Giselle
+	http://fiverr.com/easymedia

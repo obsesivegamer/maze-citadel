@@ -1,0 +1,8 @@
+Pack: Ambient Bird Sounds
+Author: isaiah658
+Source page: https://opengameart.org/content/ambient-bird-sounds
+Downloaded from: https://opengameart.org/sites/default/files/birds-isaiah658_0.ogg
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): I recently discovered that the microphone on my camera is actually pretty good for recording ambient sounds. I still had to heavily clean up the the audio with Audacity. If you need individual bird chirps you could cut up the audio into what parts you want. Enjoy!

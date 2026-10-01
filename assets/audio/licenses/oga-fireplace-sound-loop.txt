@@ -1,0 +1,8 @@
+Pack: Fireplace Sound loop
+Author: PagDev
+Source page: https://opengameart.org/content/fireplace-sound-loop
+Downloaded from: https://opengameart.org/sites/default/files/fire.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): Wood-Burning on Fireplace Sound Effect loop

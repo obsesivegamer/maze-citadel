@@ -1,0 +1,8 @@
+Pack: Park ambiences
+Author: Thimras
+Source page: https://opengameart.org/content/park-ambiences
+Downloaded from: https://opengameart.org/sites/default/files/park_ambience_birds.wav ; https://opengameart.org/sites/default/files/park_ambience_river.wav
+Retrieved: 2026-10-01
+License used here: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+License(s) listed on the OpenGameArt page: CC0
+Page description (excerpt): 3 recordings of ambience in different parts of a public park. One is close to a copse of trees, featuring birds chattering before the rain. The second is a recording of a small river with water falling over a low step, with some bird calls and frogs and other wildlife. The third is recorded in an open field with more intense wind. All recordings were made in a public park in Adelaide, South Australia, in winter. All files are recorded at 48kHz. To keep the filesize under 100mb, the two largest recordings have a bit depth of 16 bit. The park_ambience_wind file has a bit depth of 24 bit.
