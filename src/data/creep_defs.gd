@@ -12,14 +12,14 @@ const CREEPS := {
 	{"name": "Harpy", "class": &"air", "armor": 1, "speed": 3.4, "hp": 0.8, "flying": true},
 	&"ghoul": {"name": "Ghoul", "class": &"light", "armor": 2, "speed": 3.2, "hp": 1.0},
 	&"steam_tank":
-	{"name": "Steam Tank", "class": &"armored", "armor": 10, "speed": 2.2, "hp": 2.4},
-	&"ogre": {"name": "Ogre Boss", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 20.0},
-	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 60.0},
+	{"name": "Steam Tank", "class": &"armored", "armor": 10, "speed": 2.2, "hp": 2.1},
+	&"ogre": {"name": "Ogre Boss", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
+	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 32.0},
 	&"felhound": {"name": "Felhound", "class": &"light", "armor": 2, "speed": 4.0, "hp": 0.6},
 }
 
 const BASE_HP := 60.0
-const HP_GROWTH := 1.12
+const HP_GROWTH := 1.105
 
 
 static func max_hp(type: StringName, wave: int, mode_mult := 1.0) -> float:

@@ -93,7 +93,7 @@ damage = base
 
 | Attack ↓ / Class → | Light | Armored | Air | Boss |
 |---|---|---|---|---|
-| Pierce (Alliance) | **150%** | 60% | **175%** | 80% |
+| Pierce (Alliance) | **150%** | 50% | **175%** | 70% |
 | Siege (Horde) | 100% | **175%** | cannot hit | 100% |
 | Magic (Elven) | 100% | 125% | 100% | 75% |
 | Poison (Forsaken) | 100% | 100% | 100% | 100%, ignores armor |
@@ -139,8 +139,8 @@ Every creep element has exactly one counter family. Each wave announces its elem
 
 | Key | Tower | Family | Cost L1 / +L2 / +L3 | Attack · Element | Air? | L1 stats | Signature |
 |---|---|---|---|---|---|---|---|
-| 1 | Archer Tower | Alliance | 25 / +15 / +35 | Pierce · Light | ✓ | 9 dmg, 0.6 s, 9 m | Cheap maze filler. L3 fires 2 arrows. |
-| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Flame | — | 30 splash r2.2, 1.5 s, 10 m | Arcing shells, craters (6 s), small shake |
+| 1 | Archer Tower | Alliance | 25 / +15 / +35 | Pierce · Light | ✓ | 9 dmg, 0.6 s, 9 m (L2 15, L3 24) | Cheap maze filler. L3 fires 2 arrows. |
+| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Flame | — | 30 splash r2.2, 1.5 s, 10 m (L2 60, L3 110) | Arcing shells, craters (6 s), small shake |
 | 3 | Frost Spire | Elven | 50 / +40 / +70 | Magic · Aqua | ✓ | 8 dmg, 1.0 s, 9 m | 35% slow for 2 s. L2 splash slow r1.5. L3 frost ring every 3rd shot. |
 | 4 | Plague Cauldron | Forsaken | 45 / +35 / +65 | Poison · Dark | ✓ | 6 dps × 5 s per stack, 1.2 s, 8.5 m | Stacks ×5, ignores armor, halves healing |
 | 5 | Bard's Pavilion | Support | 80 / +60 / +90 | — | — | Aura r7 m | +15% damage (L2 +20%, L3 +25% and +10% attack speed). Highest aura wins. |
@@ -158,19 +158,19 @@ Every creep element has exactly one counter family. Each wave announces its elem
 
 ## 8. Creeps
 
-`HP(wave) = 60 × 1.12^(wave − 1) × type multiplier × mode multiplier` → about 166 at wave 10, 517 at 20, 1600 at 30, 4980 at 40 (before type multiplier).
+`HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × mode multiplier` → about 147 at wave 10, 400 at 20, 1086 at 30, 2950 at 40 (before type multiplier). Tuned by the balance bots; see [balance.md](balance.md).
 
 | Creep | Class | Armor | Speed m/s | HP × | Mechanic |
 |---|---|---|---|---|---|
 | Grunt | Light | 1 | 3.0 | 1.0 | Baseline |
 | Wolf Rider | Light | 0 | 5.0 | 0.65 | Fast |
-| Shield Footman | Armored | 6 | 2.6 | 1.3 | High armor; raises shield when hit |
+| Shield Footman | Armored | 4 | 2.6 | 1.3 | High armor; raises shield when hit |
 | Priestess | Light | 0 | 2.8 | 0.9 | Heals allies within 5 m for 4% max HP every 2 s |
 | Harpy | Air | 1 | 3.4 | 0.8 | Flies straight, ignores maze; air-capable towers only |
 | Ghoul | Light | 2 | 3.2 | 1.0 | Revives once after 1.5 s at ⅓ HP; bounty on final death |
-| Steam Tank | Armored | 10 | 2.2 | 2.4 | Every 6 s: immune for 1.5 s (steam shroud) |
-| Ogre Boss | Boss | 8 | 2.0 | 20 | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
-| Dreadlord | Boss | 12 | 1.8 | 60 | Summons 3 Felhounds every 10 s. Leak −2. |
+| Steam Tank | Armored | 10 | 2.2 | 2.1 | Every 6 s: immune for 1.5 s (steam shroud) |
+| Ogre Boss | Boss | 8 | 2.0 | 12 | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
+| Dreadlord | Boss | 12 | 1.8 | 32 | Summons 3 Felhounds every 10 s. Leak −2. |
 | Felhound (summon) | Light | 2 | 4.0 | 0.6 | Dreadlord summon, Dark element |
 
 Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom-out, and walk / hit / death animations.
@@ -191,12 +191,12 @@ Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom
 | Wave | Creeps | Element | Teaches |
 |---|---|---|---|
 | 1 | 10 Grunts | Flame | Mazing basics |
-| 2 | 14 Wolf Riders | Verdant | Speed |
-| 3 | 10 Shield Footmen | Stone | Armor, Siege bonus |
+| 2 | 14 Wolf Riders | Dark | Speed |
+| 3 | 8 Shield Footmen | Verdant | Armor, Siege bonus |
 | 4 | 10 Grunts + 3 Priestesses | Aqua | Healers, Poison counter |
 | 5 | 12 Harpies | Light | Air, anti-air towers |
 | 6 | 14 Ghouls | Dark | Revive |
-| 7 | 8 Steam Tanks | Stone | Immunity windows |
+| 7 | 4 Grunts + 6 Steam Tanks | Flame | Immunity windows |
 | 8 | 12 Wolf Riders + 8 Grunts | Flame | Mixed speeds |
 | 9 | 12 Footmen + 4 Priestesses | Aqua | Armor + heal |
 | 10 | Ogre Chieftain + 8 Grunts | Flame | Boss aura, −2 leak |

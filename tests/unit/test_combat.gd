@@ -27,7 +27,7 @@ func _place(sim: GameSim, tile: Vector2i, id: StringName, level := 1) -> SimTowe
 
 func test_attack_vs_class_table_matches_gdd() -> void:
 	var expected := {
-		&"pierce": [1.5, 0.6, 1.75, 0.8],
+		&"pierce": [1.5, 0.5, 1.75, 0.7],
 		&"siege": [1.0, 1.75, 0.0, 1.0],
 		&"magic": [1.0, 1.25, 1.0, 0.75],
 		&"poison": [1.0, 1.0, 1.0, 1.0],
@@ -63,7 +63,7 @@ func test_armor_curve() -> void:
 ## a wrong table or wheel in the code can't agree with itself.
 func test_every_tower_counter_cell_is_applied() -> void:
 	var class_table := {
-		&"pierce": [1.5, 0.6, 1.75, 0.8],
+		&"pierce": [1.5, 0.5, 1.75, 0.7],
 		&"siege": [1.0, 1.75, 0.0, 1.0],
 		&"magic": [1.0, 1.25, 1.0, 0.75],
 		&"poison": [1.0, 1.0, 1.0, 1.0],

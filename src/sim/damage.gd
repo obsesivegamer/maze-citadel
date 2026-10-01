@@ -3,7 +3,7 @@ extends RefCounted
 ## Damage model (GDD §6): base × attack-vs-class × element wheel × armor × aura.
 
 const ATTACK_VS_CLASS := {
-	&"pierce": {&"light": 1.5, &"armored": 0.6, &"air": 1.75, &"boss": 0.8},
+	&"pierce": {&"light": 1.5, &"armored": 0.5, &"air": 1.75, &"boss": 0.7},
 	&"siege": {&"light": 1.0, &"armored": 1.75, &"air": 0.0, &"boss": 1.0},
 	&"magic": {&"light": 1.0, &"armored": 1.25, &"air": 1.0, &"boss": 0.75},
 	&"poison": {&"light": 1.0, &"armored": 1.0, &"air": 1.0, &"boss": 1.0},

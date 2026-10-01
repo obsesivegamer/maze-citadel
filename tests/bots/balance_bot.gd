@@ -171,7 +171,8 @@ func _counter_pick(slot: int) -> StringName:
 		2:
 			options = [&"plague"] if heals else [&"archer"]
 		_:
-			options = [&"bard"] if sim.wave >= 8 and slot % 12 == 3 else [&"archer"]
+			var bard := sim.wave >= 8 and slot % 12 == 3
+			options = [&"bard"] if bard else CLASS_COUNTER[main_class]
 	if classes.has(&"air") and slot % 4 == 0:
 		options = CLASS_COUNTER[&"air"]
 	# The best option that's affordable now; otherwise save for the cheapest.
