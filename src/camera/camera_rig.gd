@@ -46,7 +46,6 @@ func setup(game: Game) -> void:
 	add_child(camera)
 	camera.make_current()
 	preset(&"full", true)
-	game.sim_event.connect(_on_sim_event)
 
 
 func preset(preset_name: StringName, snap := false) -> void:
@@ -64,6 +63,7 @@ func preset(preset_name: StringName, snap := false) -> void:
 		_apply()
 
 
+## Fx decides when to shake; the rig only renders it.
 func add_shake(amount: float) -> void:
 	_shake = minf(_shake + amount, 1.5)
 
@@ -74,14 +74,6 @@ func screen_to_ground(screen_pos: Vector2) -> Variant:
 	var origin := camera.project_ray_origin(screen_pos)
 	var dir := camera.project_ray_normal(screen_pos)
 	return Plane(Vector3.UP, Coords.PLATEAU_TOP).intersects_ray(origin, dir)
-
-
-func _on_sim_event(e: Dictionary) -> void:
-	match e.type:
-		&"shell_landed":
-			add_shake(0.08 if e.tower == &"cannon" else 0.25)
-		&"leaked":
-			add_shake(0.15)
 
 
 func _unhandled_input(event: InputEvent) -> void:

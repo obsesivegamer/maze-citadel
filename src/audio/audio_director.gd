@@ -112,6 +112,23 @@ func play(id: StringName, volume_db := 0.0) -> void:
 	p.play()
 
 
+## UI feedback sounds (clicks, hovers) for the HUD.
+func play_ui(id: StringName) -> void:
+	play(id, -8.0)
+
+
+## Linear 0..1 volume for one of BUSES, saved as a setting.
+func set_volume(bus: StringName, linear: float) -> void:
+	AudioServer.set_bus_volume_db(
+		AudioServer.get_bus_index(bus), linear_to_db(maxf(linear, 0.0001))
+	)
+	Save.set_setting("volume_" + String(bus).to_lower(), linear)
+
+
+func volume(bus: StringName) -> float:
+	return Save.setting("volume_" + String(bus).to_lower(), 1.0)
+
+
 func _set_music(id: StringName) -> void:
 	if id == _music_id or not _streams.has(id):
 		return

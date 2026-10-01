@@ -8,8 +8,8 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
-ALLOWED = {"CC0-1.0", "CC-BY-3.0", "CC-BY-4.0", "generated"}
-ATTRIBUTION = {"CC-BY-3.0", "CC-BY-4.0"}
+ALLOWED = {"CC0-1.0", "CC-BY-3.0", "CC-BY-4.0", "OFL-1.1", "generated"}
+ATTRIBUTION = {"CC-BY-3.0", "CC-BY-4.0", "OFL-1.1"}
 SKIP_SUFFIXES = {".import", ".md"}
 SKIP_NAMES = {"MANIFEST.json", ".gdignore", ".DS_Store"}
 

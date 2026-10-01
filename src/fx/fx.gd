@@ -54,6 +54,10 @@ func _on_sim_event(e: Dictionary) -> void:
 				_pop(
 					Coords.to_world(c.pos, 3.0), str(roundi(e.amount)), Color(0.5, 1.0, 0.4), false
 				)
+		&"shell_landed":
+			_game.camera.add_shake(0.08 if e.tower == &"cannon" else 0.25)
+		&"leaked":
+			_game.camera.add_shake(0.15)
 		&"died":
 			if e.bounty > 0:
 				_pop(Coords.to_world(e.pos, 2.5), "+%d" % e.bounty, Color(1.0, 0.85, 0.2), true)
