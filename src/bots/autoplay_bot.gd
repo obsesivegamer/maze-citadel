@@ -42,6 +42,8 @@ const CLASS_COUNTER := {
 	&"light": [&"archer"],
 	&"boss": [&"runesmith", &"cannon"],
 }
+## What a player saves up for when a boss is coming: armor shred and siege.
+const BOSS_PREP: Array[StringName] = [&"runesmith", &"demolisher", &"cannon"]
 const UPGRADE_PRIORITY := {
 	&"smart":
 	[
@@ -68,11 +70,18 @@ var skip_reasons := {}
 var _next_slot := 0
 var _skipped: Array[Vector2i] = []
 var _timer := 0.0
+## Seed 0 plays the plain plan; other seeds jitter timing, wall order and
+## tower picks so balance runs sample several players, not one trajectory.
+var _rng: RandomNumberGenerator
 
 
-func _init(p_sim: GameSim, p_strategy: StringName) -> void:
+func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 	sim = p_sim
 	strategy = p_strategy
+	if p_seed != 0:
+		_rng = RandomNumberGenerator.new()
+		_rng.seed = p_seed
+		_timer = _rng.randf() * DECIDE_EVERY
 	for i in WALL_ROWS.size():
 		var gap := Grid.COLS - 1 if i % 2 == 0 else 0
 		# Build each wall from the middle outwards: the opening towers sit on the
@@ -87,7 +96,7 @@ func _init(p_sim: GameSim, p_strategy: StringName) -> void:
 func step() -> void:
 	_timer -= GameSim.DT
 	if _timer <= 0.0:
-		_timer = DECIDE_EVERY
+		_timer = DECIDE_EVERY * (_rng.randf_range(0.6, 1.4) if _rng else 1.0)
 		_decide()
 	sim.step()
 
@@ -134,6 +143,8 @@ func _slot_nearest_route() -> Vector2i:
 		var d := INF
 		for p in route:
 			d = minf(d, c.distance_squared_to(p))
+		if _rng:
+			d *= _rng.randf_range(1.0, 1.5)
 		if d < best_d:
 			best_d = d
 			best = tile
@@ -151,7 +162,9 @@ func _pattern_at(slot: int) -> StringName:
 ## element counter and the armor-class counter, with cheap archers as filler
 ## and support towers once the economy allows.
 func _counter_pick(slot: int) -> StringName:
-	var w := clampi(sim.wave + (1 if sim.phase == GameSim.Phase.BUILD else 0), 1, 40)
+	# Once the current wave is all on the field, the towers it meets are
+	# mostly built; plan for the one after.
+	var w := clampi(sim.wave + (0 if sim.spawning() else 1), 1, 40)
 	var entries := WaveDefs.spawn_list(w)
 	var element: StringName = entries[0][1]
 	var classes := {}
@@ -176,6 +189,18 @@ func _counter_pick(slot: int) -> StringName:
 			options = [&"bard"] if bard else CLASS_COUNTER[main_class]
 	if classes.has(&"air") and slot % 4 == 0:
 		options = CLASS_COUNTER[&"air"]
+	# A player who sees armor, air or a boss in the next two waves and owns
+	# almost nothing that answers it buys the answer first, saving up if need be.
+	var threats := {}
+	for e in entries + WaveDefs.spawn_list(mini(w + 1, 40)):
+		threats[CreepDefs.CREEPS[e[0]].class] = true
+	for cls in [&"air", &"armored", &"boss"]:
+		if threats.has(cls) and _count(CLASS_COUNTER[cls]) < 2:
+			options = CLASS_COUNTER[cls]
+			break
+	if _rng and options.size() > 1 and _rng.randf() < 0.3:
+		options = options.duplicate()
+		options.reverse()
 	# The best option that's affordable now; otherwise save for the cheapest.
 	for id in options:
 		if sim.gold >= TowerDefs.build_cost(id):
@@ -187,8 +212,21 @@ func _counter_pick(slot: int) -> StringName:
 	return cheapest
 
 
+func _count(ids: Array) -> int:
+	var n := 0
+	for t in sim.towers.values():
+		if t.id in ids:
+			n += 1
+	return n
+
+
 func _upgrade_one(reserve: int) -> void:
-	for id in UPGRADE_PRIORITY[strategy]:
+	var order: Array = UPGRADE_PRIORITY[strategy]
+	# With a boss coming next, a player stops topping up archers and saves for
+	# the boss counters until those are maxed.
+	if strategy == &"smart" and _boss_ahead() and _upgradable(BOSS_PREP):
+		order = BOSS_PREP
+	for id in order:
 		for tile in plan:
 			var t := sim.tower_at(tile)
 			if t == null or t.id != id or t.level >= t.max_level():
@@ -217,3 +255,16 @@ func _try_fuse() -> void:
 		if sim.fuse(ready[0], ready[1]):
 			# Re-fill the freed wall tile so the maze stays long.
 			_next_slot = mini(_next_slot, plan.find(ready[1]))
+
+
+## A boss in the wave being planned for (the next one, as in _counter_pick).
+func _boss_ahead() -> bool:
+	var w := maxi(sim.wave + (0 if sim.spawning() else 1), 1)
+	return WaveDefs.has_boss(w)
+
+
+func _upgradable(ids: Array) -> bool:
+	for t in sim.towers.values():
+		if t.id in ids and t.level < t.max_level():
+			return true
+	return false

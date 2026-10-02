@@ -72,7 +72,7 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Mode | Change |
 |---|---|
 | Normal | Base values |
-| Hard | Creep HP +30%, bounty +20% |
+| Hard | Creep HP +10% on wave 1 rising to +40% on wave 40; no bounty bonus |
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. |
 | Twists | From wave 11, most waves carry one random creep ability (below). Combines with Hard and Infinite. Score × 1.1. |
 
@@ -189,8 +189,8 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | Harpy | Air | 1 | 3.4 | 0.8 | Flies straight, ignores maze; air-capable towers only |
 | Ghoul | Light | 2 | 3.2 | 1.0 | Revives once after 1.5 s at ⅓ HP; bounty on final death |
 | Steam Tank | Armored | 10 | 2.2 | 2.1 | Every 6 s: immune for 1.5 s (steam shroud) |
-| Ogre Boss | Boss | 8 | 2.0 | 12 | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
-| Dreadlord | Boss | 12 | 1.8 | 32 | Summons 3 Felhounds every 10 s. Leak −2. |
+| Ogre Boss | Boss | 8 | 2.0 | 12 (×2.2 on wave 10, ×3.2 on wave 20, ×0.9 on wave 30) | Aura r6 m: escorts +3 armor, +10% speed (not other bosses). Leak −2. |
+| Dreadlord | Boss | 12 | 1.8 | 27 | Summons 3 Felhounds every 10 s. Leak −2. |
 | Felhound (summon) | Light | 2 | 4.0 | 0.6 | Dreadlord summon, Dark element |
 
 Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom-out, and walk / hit / death animations.
@@ -269,7 +269,7 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 
 | Setting | Cinematic | Balanced (default) | Performance |
 |---|---|---|---|
-| 3D render scale (upscaled) | 0.85 | 0.7 | 0.5 |
+| 3D render scale (upscaled) | 0.85 | 0.5 (MetalFX temporal) | 0.5 (MetalFX spatial) |
 | Global illumination | SDFGI | SSIL | Off |
 | Shadows | 4096, soft, 4 cascades | 2048, 3 cascades | 1024, 2 cascades |
 | Volumetric fog | High | Low | Off |

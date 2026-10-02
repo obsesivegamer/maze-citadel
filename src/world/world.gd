@@ -50,8 +50,8 @@ func _on_sim_event(e: Dictionary) -> void:
 			_crowd.celebrate()
 
 
-func _on_quality_changed(preset: Quality.Preset) -> void:
-	var s := Quality.settings(preset)
+func _on_quality_changed(_preset: Quality.Preset) -> void:
+	var s := _game.quality_settings
 	_nature.set_density(s.foliage)
 	_crowd.set_density(s.crowd)
 	_portal.set_particle_scale(s.particles)

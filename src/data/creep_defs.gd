@@ -14,7 +14,7 @@ const CREEPS := {
 	&"steam_tank":
 	{"name": "Steam Tank", "class": &"armored", "armor": 10, "speed": 2.2, "hp": 2.1},
 	&"ogre": {"name": "Ogre Boss", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
-	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 32.0},
+	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 27.0},
 	&"felhound": {"name": "Felhound", "class": &"light", "armor": 2, "speed": 4.0, "hp": 0.6},
 }
 
@@ -22,8 +22,13 @@ const BASE_HP := 60.0
 const HP_GROWTH := 1.105
 
 
+## Boss HP also takes the wave's own `boss_hp` scale (WaveDefs), so each boss
+## wave can be tuned as the peak of its stretch.
 static func max_hp(type: StringName, wave: int, mode_mult := 1.0) -> float:
-	return BASE_HP * pow(HP_GROWTH, wave - 1) * CREEPS[type].hp * mode_mult
+	var hp: float = BASE_HP * pow(HP_GROWTH, wave - 1) * CREEPS[type].hp * mode_mult
+	if is_boss(type):
+		hp *= WaveDefs.row(wave).get("boss_hp", 1.0)
+	return hp
 
 
 static func bounty(wave: int) -> int:

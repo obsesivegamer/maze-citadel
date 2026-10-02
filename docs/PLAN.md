@@ -1,10 +1,10 @@
 # Maze Citadel — Build Plan
 
-**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Open item: performance (Balanced below 60 fps).
+**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Performance pass done: Balanced holds 60 fps in the wave-24 battle at render scale 0.5 (63.4 fps, 1% low 60; [perf.md](perf.md)). Open items: an on-screen look at 0.5 and the 10-minute thermal soak.
 
 ### Resume here
 
-1. **M8 performance pass (headless first, then a 45-min screen slot D):** Balanced is at 54 fps idle and 34 fps in the wave-24 battle (target 60). Suspects: triangle count (1.6 M in battle incl. shadows), render scale, shadow cascades. Rebalance Cinematic (SDFGI/SSR add little). Bench on a cool machine, 3 repeats each ([perf.md](perf.md)).
+1. **M8 performance pass (headless first, then a 45-min screen slot D):** Balanced now measures 63.4 fps in the wave-24 battle at render scale 0.5 (was 49.7 at 0.7 on a cool machine; slot 1's 34 was heat). The GPU is fill-bound; render scale was the only lever that reached 60. Rebalance Cinematic (SDFGI/SSR add little). Bench on a cool machine, 3 repeats each ([perf.md](perf.md)).
 2. M7 juice tuning from the slot-1 screenshots (`docs/screens/m3-*.jpg`), M9 asset pruning + v1.0.
 
 Game rules, numbers and content: [GDD.md](GDD.md).

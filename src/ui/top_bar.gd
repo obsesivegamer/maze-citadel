@@ -134,7 +134,7 @@ func _build_right() -> void:
 	p.add_child(row)
 	var group := ButtonGroup.new()
 	_normal = _segment("Normal", "Normal: base creep HP and bounty", group)
-	_hard = _segment("Hard", "Hard: creeps +30% HP, bounty +20%, score ×1.3", group)
+	_hard = _segment("Hard", "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3", group)
 	_infinite = UiKit.icon_button(
 		_game, &"infinity", "Infinite: waves continue after 40", BUTTON_PX, true
 	)
