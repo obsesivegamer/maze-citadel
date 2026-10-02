@@ -175,9 +175,11 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: tools/notarize.sh dist/MazeCitadel-*.dmg
 
+      # No LAUNCH_CHECK here: GitHub's virtual Macs lack GPU features the
+      # Forward+ renderer needs (R32_Uint atomic images) and the windowed game
+      # crashes there. Run it on a real Mac: LAUNCH_CHECK=1 ALLOW_WINDOW=1.
       - name: Verify the .dmg
         env:
-          LAUNCH_CHECK: soft
           REQUIRE_NOTARIZED: ${{ env.HAS_SIGNING == 'true' && env.HAS_NOTARY == 'true' && '1' || '0' }}
         run: tools/verify_dmg.sh dist/MazeCitadel-*.dmg
 
@@ -198,7 +200,6 @@ jobs:
               ("Signature", i["signature"]),
               ("Notarized", "yes, ticket stapled" if i["notarized"] else "no"),
               ("Headless run from the .dmg", f"{i['smoke']['frames']} frames, {i['smoke']['seconds']} s, no errors"),
-              ("Window launch", i["launch_check"]),
               ("Godot", i["godot"]),
           ]
           for k, v in rows:
@@ -215,8 +216,6 @@ jobs:
             dist/*.dmg
             dist/*.sha256
             dist/build-info.json
-            dist/launch-full.png
-            dist/launch.log
 
       - name: Remove the signing keychain
         if: always() && env.HAS_SIGNING == 'true'

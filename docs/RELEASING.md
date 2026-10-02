@@ -31,7 +31,7 @@ tools/export.sh && tools/verify_dmg.sh
 | Bundle | macOS 15 | bundle id, app version equals `project.godot`, arm64-only binary, minimum macOS |
 | Signature | macOS 15 | `codesign --verify --deep --strict`; Gatekeeper and stapled ticket when notarized (required once notarization secrets exist) |
 | Game | macOS 15 | the exported game runs 5400 frames headless with the autoplay bot, straight from the mounted image, with no script or engine errors |
-| Window | macOS 15 | opens a real window and saves `launch-full.png` to the run's artifact (reported, not required: CI Macs may lack a GPU) |
+| Window | your Mac only | `LAUNCH_CHECK=1 ALLOW_WINDOW=1 tools/verify_dmg.sh` opens the game in a real window and saves `dist/launch-full.png`. GitHub's virtual Macs lack GPU features the renderer needs, so CI skips this |
 
 ## Download site
 
@@ -71,5 +71,5 @@ With the two certificate secrets the build is signed with your Developer ID and 
 
 ## Costs
 
-- **Actions minutes:** on a private repo, macOS minutes count ten times against the plan's monthly Actions quota (GitHub Free includes 2,000). Public repos run free.
+- **Actions minutes:** the Mac job takes about 4 minutes and the Linux gate under 1. On a private repo macOS minutes count ten times against the plan's monthly Actions quota (GitHub Free includes 2,000), so one release costs about 40 of them. Public repos run free.
 - **Git LFS bandwidth:** the runs cache LFS objects, so only new or changed assets are downloaded.
