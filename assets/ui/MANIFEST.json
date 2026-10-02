@@ -1,0 +1,29 @@
+[
+  {
+    "file": "assets/ui/fonts/Cinzel-Variable.ttf",
+    "role": "heading font (titles, banners, card captions); variable weight 400-900",
+    "pack": "Cinzel",
+    "author": "Natanael Gama, The Cinzel Project Authors",
+    "source_url": "https://github.com/google/fonts/blob/main/ofl/cinzel/Cinzel%5Bwght%5D.ttf",
+    "license": "OFL-1.1",
+    "license_file": "assets/ui/fonts/OFL-Cinzel.txt"
+  },
+  {
+    "file": "assets/ui/fonts/FiraSans-Medium.ttf",
+    "role": "body font (labels, tooltips, hints)",
+    "pack": "Fira Sans",
+    "author": "Carrois Apostrophe, The Mozilla Foundation and Telefonica S.A.",
+    "source_url": "https://github.com/google/fonts/blob/main/ofl/firasans/FiraSans-Medium.ttf",
+    "license": "OFL-1.1",
+    "license_file": "assets/ui/fonts/OFL-FiraSans.txt"
+  },
+  {
+    "file": "assets/ui/fonts/FiraSans-Bold.ttf",
+    "role": "number font (gold, lives, costs; tabular figures)",
+    "pack": "Fira Sans",
+    "author": "Carrois Apostrophe, The Mozilla Foundation and Telefonica S.A.",
+    "source_url": "https://github.com/google/fonts/blob/main/ofl/firasans/FiraSans-Bold.ttf",
+    "license": "OFL-1.1",
+    "license_file": "assets/ui/fonts/OFL-FiraSans.txt"
+  }
+]
