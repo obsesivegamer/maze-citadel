@@ -59,7 +59,7 @@ The Alliance and Forsaken Epics (Sunfire Ballista, Plague Necropolis) and Twists
 
 Seed 0 lives lost per wave on Hard + Twists: {7: 1, 10: 2, 21: 1, 27: 2, 30: 4, 38: 5, 40: 6}.
 
-On the Fallen Rampart (second map, PR #5, run on a trial merge of both branches): Normal 17.5 lives, Normal + Twists 17.2 (13–20); Hard 3.8 (2–5), Hard + Twists 0/4 wins, two of them lost by wave 27–28. Wave 21 and waves 26–28 cost 3–12 lives each.
+On the Fallen Rampart (second map, PR #5, run on a trial merge of both branches): Normal 17.5 lives, Normal + Twists 17.2 (13–20); Hard 3.8 (2–5), Hard + Twists 0/4 wins, two of them lost by wave 27–28. Wave 21 costs 3–8 lives in every game, and waves 26–28 up to 6 each.
 
 Tried on both maps to soften Hard + Twists, and dropped:
 
@@ -70,7 +70,7 @@ Tried on both maps to soften Hard + Twists, and dropped:
 | Twisted creeps pay +25% bounty | 19.5 / 10.0, 4/4 | 20.0 / 8.2, 4/4 |
 | Twisted creeps pay +10% bounty | 20.0 / 7.2, 4/4 | 19.5 / 0.8, 2/4 |
 
-A softer Undying moved nothing: the twisted waves that leak on Hard leak under any twist. Bounty overshoots as it did for Hard itself: even +10% makes Twists easier than no twists on the Citadel, while Rampart Hard still loses half its games.
+A softer Undying moved nothing: waves 21 and 26–28 leaked as much as before. Bounty overshoots as it did for Hard itself: even +10% makes Twists easier than no twists on the Citadel, while Rampart Hard still loses half its games.
 
 ## Late bosses (2026-10-02)
 
