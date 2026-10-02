@@ -37,7 +37,8 @@ func setup(game: Game) -> void:
 	_impacts.setup()
 	game.sim_event.connect(_on_sim_event)
 	game.quality_changed.connect(
-		func(p: Quality.Preset) -> void: _impacts.set_quality_ratio(Quality.settings(p).particles)
+		func(_p: Quality.Preset) -> void:
+			_impacts.set_quality_ratio(game.quality_settings.particles)
 	)
 
 

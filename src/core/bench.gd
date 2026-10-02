@@ -7,6 +7,8 @@ var duration := 20.0
 var warmup := 4.0
 var out_path := ""
 var label := ""
+## The quality values the run used, overrides included, echoed in the report.
+var settings := {}
 var max_wait_for_focus := 30.0
 
 var _elapsed := 0.0
@@ -93,6 +95,7 @@ func _finish() -> void:
 		"hdr_max_nits": DisplayServer.window_get_hdr_output_max_luminance(),
 		"godot": Engine.get_version_info().string,
 		"vsync_mode": DisplayServer.window_get_vsync_mode(),
+		"settings": settings,
 	}
 	var text := JSON.stringify(report, "  ")
 	print(text)

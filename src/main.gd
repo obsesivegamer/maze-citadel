@@ -21,8 +21,8 @@ func _ready() -> void:
 	add_child(game)
 	if Cli.has("quality"):
 		var preset := Quality.from_name(Cli.get_str("quality"))
+		game.quality_overrides = _overrides(preset)
 		game.set_quality(preset)
-		Quality.apply(preset, get_viewport(), game.world.env, game.world.sun, _overrides(preset))
 	if Cli.has("autoplay"):
 		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
 		game.choose_build(&"")
@@ -30,18 +30,21 @@ func _ready() -> void:
 		game.speed = int(Cli.get_str("speed"))
 	if Cli.has("warp-wave"):
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
-	_attach_tools(func(view: String) -> void: game.camera.preset(StringName(view), true))
+	_attach_tools(
+		func(view: String) -> void: game.camera.preset(StringName(view), true),
+		game.quality_settings
+	)
 
 
 func _boot_spike() -> void:
 	var world := RenderSpike.new()
 	add_child(world)
 	var preset := Quality.from_name(Cli.get_str("quality", "balanced"))
-	Quality.apply(preset, get_viewport(), world.env, world.sun, _overrides(preset))
-	_attach_tools(world.set_view)
+	var settings := Quality.apply(preset, get_viewport(), world.env, world.sun, _overrides(preset))
+	_attach_tools(world.set_view, settings)
 
 
-func _attach_tools(set_view: Callable) -> void:
+func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
 	if Cli.has("shot"):
 		var shot := Shot.new()
 		shot.prefix = Cli.get_str("shot")
@@ -54,6 +57,7 @@ func _attach_tools(set_view: Callable) -> void:
 		bench.duration = Cli.get_float("bench", 20.0)
 		bench.out_path = Cli.get_str("bench-out")
 		bench.label = Cli.get_str("quality", "balanced")
+		bench.settings = settings
 		add_child(bench)
 
 
