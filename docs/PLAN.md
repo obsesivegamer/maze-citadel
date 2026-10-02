@@ -1,6 +1,17 @@
 # Maze Citadel — Build Plan
 
-**Status (2026-10-01):** all headless work through M6 is done, and the game runs end to end with placeholder visuals. Four parallel workers are building the presentation (world, units+FX, UI+camera, audio). Waiting on screen slot A (M1 benchmarks) and slot B (M3 visuals).
+**Status (checkpoint 2026-10-01):** all headless work through M6 is done and the game runs end to end with placeholder visuals on `main`. The presentation pass was stopped mid-way (usage limit); its work is saved, unmerged, on four branches. Screen slots A+B (45 min) still pending.
+
+### Resume here
+
+1. Each branch below is WIP and has **not** passed `tools/check.sh`. For each: check it out (worktrees live under `.claude/worktrees/`), run the gate, finish the listed gap, then merge into `main`.
+   - `wip/world`: terrain, citadel, portal, nature, village, path, shaders. Missing: crowd (peasants, sheep, birds, gryphons), `ambience_points()`.
+   - `wip/units-fx`: creep and tower visuals, projectiles, FX (~3k lines). Was refreshing the class cache; status of the remaining FX unknown.
+   - `wip/ui`: theme, fonts/icons, top bar, cards, tooltips (~3k lines). Was starting the floating tower plaque.
+   - ~~`wip/audio`~~ merged 2026-10-02 (gate + 18000-frame smoke green).
+2. Merge order: audio → ui → units-fx → world; after each merge run `tools/check.sh` and `tools/smoke.sh 18000`.
+3. Wire `BuildController.set_ghost_model(TowerVisuals.build(id, level))` once ui and units-fx are both in.
+4. Ask Jeremy for the 45-minute screen slot (A+B): `ALLOW_WINDOW=1 tools/bench.sh`, `tools/capture.sh`, double-click launch of the `.dmg`.
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 
