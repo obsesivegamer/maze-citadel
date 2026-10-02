@@ -269,11 +269,11 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 
 | Setting | Cinematic | Balanced (default) | Performance |
 |---|---|---|---|
-| 3D render scale (upscaled) | 0.85 | 0.5 (MetalFX temporal) | 0.5 (MetalFX spatial) |
-| Global illumination | SDFGI | SSIL | Off |
-| Shadows | 4096, soft, 4 cascades | 2048, 3 cascades | 1024, 2 cascades |
+| 3D render scale (upscaled) | 0.7 (MetalFX temporal) | 0.5 (MetalFX temporal) | 0.5 (MetalFX spatial) |
+| Global illumination | Off (SDFGI cost 2× for little visible gain) | Off | Off |
+| Shadows | 4096, soft, 4 cascades | 2048, 4 cascades | 1024, 2 cascades |
 | Volumetric fog | High | Low | Off |
-| Screen-space reflections | On | Off | Off |
+| Screen-space reflections | Off (little visible gain) | Off | Off |
 | SSAO | High | Medium | Off |
 | Particles | 100% | 70% | 40% |
 | Ambient crowd (villagers, sheep, birds) | 100% | 70% | 35% |

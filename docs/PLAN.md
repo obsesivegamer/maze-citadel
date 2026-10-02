@@ -4,7 +4,7 @@
 
 ### Resume here
 
-1. **M8 performance pass (headless first, then a 45-min screen slot D):** Balanced now measures 63.4 fps in the wave-24 battle at render scale 0.5 (was 49.7 at 0.7 on a cool machine; slot 1's 34 was heat). The GPU is fill-bound; render scale was the only lever that reached 60. Rebalance Cinematic (SDFGI/SSR add little). Bench on a cool machine, 3 repeats each ([perf.md](perf.md)).
+1. **Screen slot D (~25 min, Mac cool and plugged in): `ALLOW_WINDOW=1 tools/slot_d.sh`.** It finishes M8: launch time of the dev build and of an app exported with the shader baker (windowed export), the rebalanced Cinematic (SDFGI/SSR off, render scale 0.7) in the wave-24 battle ×3 with a Balanced control, and a 10-minute Balanced soak with per-30 s fps. Then record the results in [perf.md](perf.md).
 2. M7 juice tuning from the slot-1 screenshots (`docs/screens/m3-*.jpg`), M9 asset pruning + v1.0.
 
 Game rules, numbers and content: [GDD.md](GDD.md).

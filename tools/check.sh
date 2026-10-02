@@ -15,6 +15,10 @@ echo "== asset licenses"
 python3 tools/check_assets.py | tail -1
 python3 tools/check_assets.py >/dev/null
 
+echo "== perf matrix tools"
+python3 tools/test_perf_matrix.py 2>&1 | tail -1
+tools/perf_matrix.sh --dry-run tools/perf_configs/renderer.txt >/dev/null
+
 echo "== lint"
 gdlint src tests
 gdformat --check src tests
