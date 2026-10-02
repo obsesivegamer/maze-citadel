@@ -4,11 +4,10 @@
 
 ### Resume here
 
-1. **Screen slot A+B with Jeremy (45 min)** — the next step; nothing below it should start before.
-   - `ALLOW_WINDOW=1 tools/capture.sh captures/m3 full,portal,gate` at each preset; review against GDD §1 and fix what looks wrong.
-   - `ALLOW_WINDOW=1 BENCH_TAG=m3 tools/bench.sh 20` (window must stay frontmost).
-   - Export with `tools/export.sh` and double-click `dist/MazeCitadel.app` to confirm one-click launch.
-2. Then M7 (no-placeholder audit, juice tuning from the captures), M8 (perf soak), M9 (prune unused assets from the export, README, v1.0 release).
+1. **Screen slot A+B with Jeremy (45 min)**: the next step; nothing below it should start before.
+   - `ALLOW_WINDOW=1 tools/slot.sh` (~15 min, unattended): launch + wave-24 battle captures (3 views × 3 presets), idle + battle benchmarks, export, open-the-app launch check.
+   - Review the captures against GDD §1/§12 and fix what looks wrong; re-capture the fixes in the same slot.
+2. Then M7 (juice tuning from the captures; the no-placeholder audit is now tests/unit/test_coverage.gd), M8 (perf soak), M9 (prune unused assets from the export, README, v1.0 release).
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 
