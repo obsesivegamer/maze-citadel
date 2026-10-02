@@ -229,8 +229,8 @@ const TOWERS := {
 		"crater_time": 5.0,
 		"crater_radius": 2.5,
 	},
-	## A lance that flies on past its target across the whole board, hitting
-	## every creep it passes once (no pierce limit).
+	## A lance that flies on 40 m past the tower (the board's full width),
+	## hitting every creep it passes once (no pierce limit).
 	&"sunfire_ballista":
 	{
 		"name": "Epic Sunfire Ballista",

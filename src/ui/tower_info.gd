@@ -53,7 +53,7 @@ const BLURBS := {
 	&"shadow": "Drops poison clouds that ignore armor; up to 3 at once.",
 	&"frost_wyrm": "Breath cone slows 50%; every 5th breath freezes for 1 s.",
 	&"doom_cannon": "Massive splash and a molten crater.",
-	&"sunfire_ballista": "A lance that crosses the whole board, hitting every creep in its line.",
+	&"sunfire_ballista": "A 40 m lance that hits every creep in its line.",
 	&"plague_necropolis":
 	"Plagues creeps that aren't infected yet. Infected creeps spread it when they fall.",
 }
