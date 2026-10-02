@@ -14,3 +14,6 @@ export_credentials.cfg
 
 # Agent worktrees
 /.claude/
+
+# Temporary engine overrides written by tools/perf_matrix.sh
+/override.cfg
