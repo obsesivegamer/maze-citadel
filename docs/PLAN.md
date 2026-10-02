@@ -6,7 +6,7 @@
 
 1. Each branch below is WIP and has **not** passed `tools/check.sh`. For each: check it out (worktrees live under `.claude/worktrees/`), run the gate, finish the listed gap, then merge into `main`.
    - `wip/world`: terrain, citadel, portal, nature, village, path, shaders. Missing: crowd (peasants, sheep, birds, gryphons), `ambience_points()`.
-   - `wip/units-fx`: creep and tower visuals, projectiles, FX (~3k lines). Was refreshing the class cache; status of the remaining FX unknown.
+   - ~~`wip/units-fx`~~ merged 2026-10-02: creep/tower/projectile visuals plus ImpactFx (explosions, scorch, fire, clouds, novas, flourishes).
    - ~~`wip/ui`~~ merged 2026-10-02: HUD composed, plaque finished, fuse partner rings, boss-tracking toggle.
    - ~~`wip/audio`~~ merged 2026-10-02 (gate + 18000-frame smoke green).
 2. Merge order: audio → ui → units-fx → world; after each merge run `tools/check.sh` and `tools/smoke.sh 18000`.
