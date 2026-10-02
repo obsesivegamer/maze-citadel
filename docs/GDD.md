@@ -169,8 +169,8 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | Harpy | Air | 1 | 3.4 | 0.8 | Flies straight, ignores maze; air-capable towers only |
 | Ghoul | Light | 2 | 3.2 | 1.0 | Revives once after 1.5 s at ⅓ HP; bounty on final death |
 | Steam Tank | Armored | 10 | 2.2 | 2.1 | Every 6 s: immune for 1.5 s (steam shroud) |
-| Ogre Boss | Boss | 8 | 2.0 | 12 (×2.2 on wave 10, ×3.2 on wave 20) | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
-| Dreadlord | Boss | 12 | 1.8 | 32 | Summons 3 Felhounds every 10 s. Leak −2. |
+| Ogre Boss | Boss | 8 | 2.0 | 12 (×2.2 on wave 10, ×3.2 on wave 20, ×0.9 on wave 30) | Aura r6 m: escorts +3 armor, +10% speed (not other bosses). Leak −2. |
+| Dreadlord | Boss | 12 | 1.8 | 27 | Summons 3 Felhounds every 10 s. Leak −2. |
 | Felhound (summon) | Light | 2 | 4.0 | 0.6 | Dreadlord summon, Dark element |
 
 Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom-out, and walk / hit / death animations.

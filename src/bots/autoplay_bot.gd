@@ -42,6 +42,8 @@ const CLASS_COUNTER := {
 	&"light": [&"archer"],
 	&"boss": [&"runesmith", &"cannon"],
 }
+## What a player saves up for when a boss is coming: armor shred and siege.
+const BOSS_PREP: Array[StringName] = [&"runesmith", &"demolisher", &"cannon"]
 const UPGRADE_PRIORITY := {
 	&"smart":
 	[
@@ -219,7 +221,12 @@ func _count(ids: Array) -> int:
 
 
 func _upgrade_one(reserve: int) -> void:
-	for id in UPGRADE_PRIORITY[strategy]:
+	var order: Array = UPGRADE_PRIORITY[strategy]
+	# With a boss coming next, a player stops topping up archers and saves for
+	# the boss counters until those are maxed.
+	if strategy == &"smart" and _boss_ahead() and _upgradable(BOSS_PREP):
+		order = BOSS_PREP
+	for id in order:
 		for tile in plan:
 			var t := sim.tower_at(tile)
 			if t == null or t.id != id or t.level >= t.max_level():
@@ -241,3 +248,16 @@ func _try_fuse() -> void:
 		if ready.size() >= 2 and sim.fuse(ready[0], ready[1]):
 			# Re-fill the freed wall tile so the maze stays long.
 			_next_slot = mini(_next_slot, plan.find(ready[1]))
+
+
+## A boss in the wave being planned for (the next one, as in _counter_pick).
+func _boss_ahead() -> bool:
+	var w := maxi(sim.wave + (0 if sim.spawning() else 1), 1)
+	return WaveDefs.has_boss(w)
+
+
+func _upgradable(ids: Array) -> bool:
+	for t in sim.towers.values():
+		if t.id in ids and t.level < t.max_level():
+			return true
+	return false

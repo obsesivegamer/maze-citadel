@@ -3,9 +3,9 @@ extends RefCounted
 ## Wave table (GDD §9). Groups spawn in order; a group may carry its own
 ## element (waves 31-39 mix two), otherwise the wave's element applies.
 ## Infinite mode repeats waves 31-39 with extra HP (see GameSim).
-## `boss_hp` scales the boss's HP on that wave (CreepDefs.max_hp): the lone
-## Ogres on 10 and 20 are made the peak of their stretch, while the twin Ogres
-## on 30 and the Dreadlord use the type multiplier as is.
+## `boss_hp` scales the boss's HP on that wave (CreepDefs.max_hp), so each
+## boss wave is the peak of its stretch without being a sure leak: the lone
+## Ogres on 10 and 20 get more, the twin Ogres on 30 slightly less.
 
 const WAVES: Array[Dictionary] = [
 	# 1-9: one mechanic each
@@ -40,7 +40,7 @@ const WAVES: Array[Dictionary] = [
 	{"element": &"aqua", "groups": [[&"footman", 14], [&"priestess", 6]]},
 	{"element": &"verdant", "groups": [[&"steam_tank", 12], [&"priestess", 4]]},
 	{"element": &"light", "groups": [[&"wolf_rider", 16], [&"steam_tank", 6]]},
-	{"element": &"stone", "groups": [[&"steam_tank", 6], [&"ogre", 2]]},
+	{"element": &"stone", "groups": [[&"steam_tank", 6], [&"ogre", 2]], "boss_hp": 0.9},
 	# 31-39: mixed pressure, two elements
 	{"element": &"aqua", "groups": [[&"grunt", 10], [&"harpy", 10, &"flame"]]},
 	{

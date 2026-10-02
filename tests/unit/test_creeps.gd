@@ -84,11 +84,15 @@ func test_ogre_aura_buffs_escorts() -> void:
 	var sim := _sim_with(&"ogre", Grid.center(Vector2i(10, 10)), &"flame", 10)
 	var near := sim.spawn_creep(&"grunt", &"flame", 10, Grid.center(Vector2i(11, 10)))
 	var far := sim.spawn_creep(&"grunt", &"flame", 10, Grid.center(Vector2i(1, 25)))
+	var twin := sim.spawn_creep(&"ogre", &"flame", 10, Grid.center(Vector2i(9, 10)))
 	near.speed = 0.0
 	far.speed = 0.0
+	twin.speed = 0.0
 	sim.step()
 	check_eq(near.aura_armor, 3.0, "escort +3 armor")
 	check_eq(far.aura_armor, 0.0, "out of range")
+	check_eq(twin.aura_armor, 0.0, "bosses don't buff each other")
+	check_eq(twin.aura_haste, 0.0, "no boss haste either")
 
 
 func test_dreadlord_summons_felhounds() -> void:
@@ -142,5 +146,7 @@ func test_boss_waves_scale_their_boss() -> void:
 	var base := 60.0 * pow(CreepDefs.HP_GROWTH, 9) * CreepDefs.CREEPS[&"ogre"].hp
 	check_near(CreepDefs.max_hp(&"ogre", 10), base * 2.2, 1e-2, "wave 10 Ogre ×2.2")
 	check_near(CreepDefs.max_hp(&"grunt", 10), base / 12.0, 1e-2, "escorts unscaled")
+	var ogre30 := 60.0 * pow(CreepDefs.HP_GROWTH, 29) * CreepDefs.CREEPS[&"ogre"].hp
+	check_near(CreepDefs.max_hp(&"ogre", 30), ogre30 * 0.9, 1e-2, "wave 30 Ogres ×0.9")
 	var dread := 60.0 * pow(CreepDefs.HP_GROWTH, 39) * CreepDefs.CREEPS[&"dreadlord"].hp
 	check_near(CreepDefs.max_hp(&"dreadlord", 40), dread, 1e-2, "Dreadlord as listed")

@@ -4,7 +4,7 @@ Bots play full games headless: `godot --headless --path . --script res://tests/b
 
 | Bot | Plays like |
 |---|---|
-| smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold; fuses Epics |
+| smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 
@@ -17,25 +17,40 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 
 | Target | Status |
 |---|---|
-| smart clears Normal with ≥ 10 lives | Met: 4/4 wins, 11.8 lives on average (11–14) |
+| smart clears Normal with ≥ 10 lives | Met: 4/4 wins, 19.0 lives on average (18–20) |
 | archers-only fails without counters | Met: dies at wave 38 |
 | no-anti-air dies at the Harpy waves | Met: dies at wave 5 |
-| Hard is beatable but tight | Met: 4/4 wins with 3.8 lives (2–6) and 8 close calls per game, against 11.8 lives and 3 close calls on Normal |
+| Hard is beatable but tight | Met: 4/4 wins with 5.0 lives (2–7) and 8.2 close calls per game, against 19.0 lives and 2 close calls on Normal |
+| Boss waves are the peak of their stretch, not a sure leak | Normal: met, every boss dies on its first pass in almost every game, the late ones near the gate. Hard: the wave-30 and wave-40 bosses still leak against the bot in most games, with far less HP left than before ([Late bosses](#late-bosses-2026-10-02)) |
 
 ## Latest run (2026-10-02)
 
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |
 |---|---|---|---|---|---|---|
-| smart | normal | 4/4 | 11.8, 11–14 | 3.0 | 54% / 60% / 100% / 100% | – |
-| smart | hard | 4/4 | 3.8, 2–6 | 8.0 | 100% / 75% / 100% / 100% | – |
+| smart | normal | 4/4 | 19.0, 18–20 | 2.0 | 54% / 60% / 98% / 88% | – |
+| smart | hard | 4/4 | 5.0, 2–7 | 8.2 | 100% / 75% / 100% / 100% | – |
 | archers | normal | 0/4 | 0.0, 0–0 | 7.0 | 100% / 54% / 100% / – | w38, w38, w38, w38 |
 | no_air | normal | 0/4 | 0.0, 0–0 | 4.0 | – / – / – / – | w5, w5, w5, w5 |
 
-Lives lost per wave (seed 0): smart/normal {30: 4, 40: 5} · smart/hard {7: 1, 10: 2, 30: 4, 38: 6, 40: 5} · archers {7: 1, 10: 2, 26: 1, 28: 1, 30: 9, 33: 4, 38: 2} · no_air {1: 8, 2: 6, 4: 2, 5: 4}
+Lives lost per wave (seed 0): smart/normal {} · smart/hard {7: 1, 10: 2, 30: 4, 38: 4, 40: 3} · archers {7: 1, 10: 2, 26: 1, 28: 1, 30: 6, 33: 4, 38: 5} · no_air {1: 8, 2: 6, 4: 2, 5: 4}
 
 Seeds barely change the archers and no_air games: those bots have one tower to pick, so only timing and wall order vary.
 
-Still open: on both modes the twin Ogres (wave 30) and the Dreadlord (wave 40) always leak against the smart bot. Wave 30 is Stone, which halves the Light archers that make up most of its maze, so it is an element exam the bot can't adapt to once the maze is full (it never sells). Worth checking in a playtest before tuning further.
+## Late bosses (2026-10-02)
+
+The twin Ogres on wave 30 and the Dreadlord on wave 40 leaked in every game on both modes, so the last two boss waves were a fixed toll rather than a fight. When they reached the gate on their first pass (seeds 0–3), the Ogres still had 10–48% of their HP on Normal and 46–63% on Hard, and the Dreadlord 5–10% on Normal and 37–40% on Hard. Three changes:
+
+1. **The twin Ogres no longer buff each other.** The Ogre aura (+3 armor, +10% speed) is meant for escorts, but on wave 30 each Ogre walked inside the other's aura, so both had 11 armor instead of 8 and moved 10% faster. Bosses are now outside the aura. On its own this got the first Ogre killed at about 88% of the route on Normal.
+2. **The smart bot saves for boss counters.** When the next wave has a boss it stops topping up archers and spends only on Runesmith, Demolisher and Cannon upgrades until those are maxed, as a player would after reading the boss banner. Before, it skipped any upgrade it couldn't afford yet, so cheap archer upgrades took every coin and its Runesmiths were still level 1 at wave 30.
+3. **A little less boss HP:** the wave-30 Ogres take `boss_hp` ×0.9, and the Dreadlord goes from ×32 to ×27.
+
+Result: on Normal the late bosses die on their first pass near the gate (the Ogres after 83–98% of the route, the Dreadlord after 87–90%). In two games of four one Ogre slipped through with 1–7% of its HP left. On Hard they mostly still leak, but with much less left: the Ogres with 12–56% of their HP (one died at 98% of the route) and the Dreadlord with 26–29%. Hard stays tight at 5.0 lives (it was 3.8), and the late bosses are still where it bites.
+
+Tried and dropped:
+
+- **Saving for boss counters two waves ahead instead of one.** It starved the wave-38 defence on Hard, which fell to 2.8 lives with one game won on its last life.
+- **Selling archers for one Runesmith per wall before a boss wave.** It barely moved the Dreadlord (35% left on Hard instead of 38%). Towers fire at the creep nearest the gate, so the Runesmiths spent their shred on the Felhounds and Ghouls running ahead of the boss.
+- **Fewer Felhound summons** (every 15 s instead of 10, or none while 6 are alive). The cap never triggered, and slower summons left Hard's Dreadlord where it was (34–37% left). On Hard the wall is the Dreadlord's own +40% HP: a maze that kills it near the gate on Normal can't stop it on Hard, and cutting it enough for Hard would make Normal's finale a walkover.
 
 ## How Hard was made harder (2026-10-02)
 
@@ -62,3 +77,5 @@ The lone Ogres on waves 10 and 20 were pushovers (they walked 35% and 24% of the
 | Archer damage 9/17/30 → 9/15/24; Cannon 30/55/95 → 30/60/110 | Upgraded archers were the most gold-efficient damage in the game |
 | Hard bounty +20% → none; Hard HP +30% → +10% rising to +40% by wave 40 | The bounty bonus cancelled the HP; a flat +30% without it broke the opening |
 | Ogre ×2.2 HP on wave 10, ×3.2 on wave 20 | The lone Ogres were the easiest waves of their stretch |
+| Ogre aura no longer reaches other bosses | Wave 30's twin Ogres armored and hastened each other |
+| Wave-30 Ogres ×0.9 HP; Dreadlord ×32 → ×27 | The last two bosses leaked in every game on both modes |

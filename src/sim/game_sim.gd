@@ -363,11 +363,12 @@ func _update_auras_on_creeps() -> void:
 	for c in creeps:
 		c.aura_armor = 0.0
 		c.aura_haste = 0.0
+	# The aura is for escorts: wave 30's twin Ogres don't armor each other.
 	for ogre in creeps:
 		if ogre.type != &"ogre" or not ogre.targetable():
 			continue
 		for c in creeps:
-			if c != ogre and c.pos.distance_to(ogre.pos) <= OGRE_AURA_RADIUS:
+			if not c.boss and c.pos.distance_to(ogre.pos) <= OGRE_AURA_RADIUS:
 				c.aura_armor = OGRE_AURA_ARMOR
 				c.aura_haste = OGRE_AURA_HASTE
 
