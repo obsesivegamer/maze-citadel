@@ -9,7 +9,7 @@ Machine: MacBook Air M3 (8-core GPU, 16 GB), macOS 26.6.2, Godot 4.7.2 on Metal,
 - Only runs inside an agreed screen-time slot: the bench window must be **frontmost**.
 - macOS throttles unfocused windows. Unfocused runs reported 100–145 fps for the same scene that measures ~51 fps focused. The bench now only counts frames while the window has focus and records `focused` in its JSON.
 - Metal's GPU timer query returns 0, so cost is measured by toggling one setting at a time.
-- Focused runs cap at 60 fps (display refresh). Runtime vsync-off is wired in but not yet verified, so "60" means "at least 60".
+- Vsync-off works: the 2026-10-02 pass ran with `vsync_mode` 0 and averaged 62.6–64.4 fps focused, above the 60 Hz refresh. 1% lows at exactly 60.0 suggest some frames are still paced to the display, so a 60.0 low means "at least 60".
 
 ## M1 render spike, Balanced preset (2026-10-01, preliminary)
 
@@ -73,14 +73,14 @@ Balanced only, 20 s per run, focused window (every run `focused=true`), vsync of
 | SSAO off | 18.7 | 53.3 (53.3–53.4) | 52.4 | −1.4 |
 | volumetric fog off | 19.7 | 50.8 (50.7–50.8) | 50.0 | −0.4 |
 | shadows 1024, 2 cascades | 20.0 | 49.9 (49.9–49.9) | 49.1 | −0.1 |
-| foliage 0.5 | 20.1 | 49.7 (49.6–49.7) | 48.5 | 0 |
-| crowd 0.35 | 20.1 | 49.8 (49.8–49.8) | 49.1 | 0 |
+| foliage 0.5 | *not applied* | | | (override ignored, see note) |
+| crowd 0.35 | *not applied* | | | (override ignored, see note) |
 
 **Fix: Balanced render scale 0.7 → 0.5** (MetalFX temporal upscaling stays), confirmed with 3 more battle runs: 15.8 ms, **63.4 fps (62.6–64.4), 1% low 60.0**, 2,314 draw calls, 1.37 M primitives, 955 MB video memory. This meets the PLAN target (60 fps average, 1% low ≥ 50).
 
 Findings:
 1. Runs were stable this time: every repeat landed within ±1 fps. Slot 1's 33.7 fps battle did not reproduce. Battle primitives also dropped from 1.59 M to 1.37 M after the slot 1 fixes, but heat is the likelier cause of the old number.
-2. The GPU is fill-bound at 2940 × 1782. Render scale is the only lever that reaches 60. Shadow resolution, fog, foliage and crowd are each worth ≤ 0.4 ms. SSAO is the next-biggest single cost (1.4 ms).
-3. The foliage and crowd overrides did not change draw calls or primitives at all. Either the density isn't reapplied after the warp, or those meshes are a small share of the cost. Worth a headless check before relying on those settings.
+2. The GPU is fill-bound at 2940 × 1782. Render scale is the only lever that reaches 60. Shadow resolution and fog are each worth ≤ 0.4 ms. SSAO is the next-biggest single cost (1.4 ms).
+3. The foliage and crowd rows are not measurements: those runs stayed at the control's 1,369,181 primitives. `World._on_quality_changed` re-reads `Quality.settings(preset)` and drops the bench overrides, so Balanced kept foliage 0.8 and crowd 0.7. PR #3 makes the overrides apply and measures them headless (foliage 0.5 ≈ −2% triangles, crowd 0.35 ≈ −0.5%).
 4. Each 1% low at render scale 0.5 is exactly 60.0, which suggests the display's frame pacing still caps some frames even with vsync off (see "How to measure").
 5. Still to do: check on screen that 0.5 with MetalFX temporal looks acceptable on the Retina display. Balanced and Performance now share a render scale; they still differ in upscaler, SSAO, fog, shadows and density. Also still owed: the 10-minute thermal soak.
