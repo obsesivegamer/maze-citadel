@@ -15,8 +15,18 @@ static func _file() -> ConfigFile:
 	return _cfg
 
 
-static func mode_key(hard: bool, infinite: bool) -> String:
-	return ("hard" if hard else "normal") + ("_infinite" if infinite else "")
+## "normal", "hard_twists", "normal_infinite", "hard_twists_infinite", ...
+## Runs without twists keep the keys they had before Twists mode existed.
+static func mode_key(hard: bool, infinite: bool, twists := false) -> String:
+	return (
+		("hard" if hard else "normal")
+		+ ("_twists" if twists else "")
+		+ ("_infinite" if infinite else "")
+	)
+
+
+static func sim_key(sim: GameSim) -> String:
+	return mode_key(sim.hard, sim.infinite, sim.twists)
 
 
 static func best_wave(mode: String) -> int:

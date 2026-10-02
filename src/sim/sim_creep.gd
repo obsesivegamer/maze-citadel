@@ -36,6 +36,9 @@ var immune_time := 0.0
 ## Per-type ability timer: Steam Tank immunity, Priestess heal, Dreadlord summon.
 var ability_timer := 0.0
 var revived := false
+## Twists mode ability (WaveTwists), or &"".
+var twist: StringName = &""
+var second_wind_used := false
 ## Seconds until a downed Ghoul stands back up; > 0 means down and untargetable.
 var revive_time := 0.0
 var aura_armor := 0.0

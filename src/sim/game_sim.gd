@@ -45,6 +45,10 @@ var lives := START_LIVES
 var phase := Phase.BUILD
 var hard := false
 var infinite := false
+## Twists mode (WaveTwists): random creep abilities from wave 11, dealt from
+## `twist_seed`. Set both before wave 1.
+var twists := false
+var twist_seed := 0
 ## Last wave started; 0 before wave 1.
 var wave := 0
 ## Seconds until the next wave starts on its own; -1 while one is running.
@@ -63,6 +67,9 @@ var _by_id := {}
 var _spawn_queue: Array = []
 var _spawn_timer := 0.0
 var _next_id := 1
+var _twist_plan := {}
+var _twist_plan_to := 0
+var _twist_plan_seed := 0
 
 
 func _init() -> void:
@@ -77,7 +84,18 @@ func drain_events() -> Array[Dictionary]:
 
 func score() -> int:
 	var s := 10 * kills + 500 * lives + gold
-	return roundi(s * (1.3 if hard else 1.0))
+	return roundi(s * (1.3 if hard else 1.0) * (WaveTwists.SCORE_MULT if twists else 1.0))
+
+
+## The twist on wave `w`, or &"" (none, or Twists mode is off).
+func twist_for(w: int) -> StringName:
+	if not twists:
+		return &""
+	if w > _twist_plan_to or twist_seed != _twist_plan_seed:
+		_twist_plan_to = maxi(w, WaveDefs.count()) + 40
+		_twist_plan_seed = twist_seed
+		_twist_plan = WaveTwists.plan(twist_seed, _twist_plan_to)
+	return _twist_plan.get(w, &"")
 
 
 func creep(id: int) -> SimCreep:
@@ -292,7 +310,11 @@ func _spawn() -> void:
 		return
 	var entry: Array = _spawn_queue.pop_front()
 	var c := spawn_creep(entry[0], entry[1], entry[2], Grid.SPAWN_POINT)
-	_spawn_timer = FAST_SPAWN_INTERVAL if c.speed >= 4.5 else SPAWN_INTERVAL
+	# Spacing follows the creep type, not a Swift creep's boosted speed.
+	var fast: bool = CreepDefs.CREEPS[c.type].speed >= 4.5
+	_spawn_timer = FAST_SPAWN_INTERVAL if fast else SPAWN_INTERVAL
+	if c.twist == &"stampede":
+		_spawn_timer *= WaveTwists.STAMPEDE_SPAWN
 
 
 func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> SimCreep:
@@ -318,6 +340,8 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	var bounty_mult := HARD_BOUNTY if hard else 1.0
 	var boss_mult := 25 if type == &"dreadlord" else (10 if c.boss else 1)
 	c.bounty = roundi(CreepDefs.bounty(w) * boss_mult * bounty_mult)
+	if not c.boss:
+		_apply_twist(c, twist_for(w))
 	match type:
 		&"steam_tank":
 			c.ability_timer = TANK_IMMUNE_PERIOD
@@ -329,6 +353,15 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	_by_id[c.id] = c
 	events.append({"type": &"spawned", "id": c.id, "creep": type})
 	return c
+
+
+func _apply_twist(c: SimCreep, twist: StringName) -> void:
+	c.twist = twist
+	match twist:
+		&"swift":
+			c.speed *= WaveTwists.SWIFT_SPEED
+		&"plated":
+			c.armor += WaveTwists.PLATED_ARMOR
 
 
 func _check_wave_cleared() -> void:
@@ -524,6 +557,8 @@ func hit(c: SimCreep, base: float, t: SimTower, aura: float) -> float:
 	events.append({"type": &"hit", "id": c.id, "amount": amount, "counter": counter})
 	if c.hp <= 0.0:
 		_on_zero_hp(c, t)
+	else:
+		_check_second_wind(c)
 	return amount
 
 
@@ -541,11 +576,26 @@ func _apply_dot(c: SimCreep, amount: float, t: SimTower) -> void:
 		c.dot_accum = 0.0
 	if c.hp <= 0.0:
 		_on_zero_hp(c, t)
+	else:
+		_check_second_wind(c)
+
+
+## Second Wind twist: the first time damage leaves a creep alive at half HP
+## or less, it heals a quarter of its max HP (half that while poisoned).
+func _check_second_wind(c: SimCreep) -> void:
+	if c.twist != &"second_wind" or c.second_wind_used:
+		return
+	if c.hp > c.max_hp * WaveTwists.SECOND_WIND_AT:
+		return
+	c.second_wind_used = true
+	var heal := c.max_hp * WaveTwists.SECOND_WIND_HEAL * (0.5 if not c.poison.is_empty() else 1.0)
+	c.hp = minf(c.hp + heal, c.max_hp)
+	events.append({"type": &"second_wind", "id": c.id})
 
 
 func _on_zero_hp(c: SimCreep, t: SimTower) -> void:
 	_spread_plague(c)
-	if c.type == &"ghoul" and not c.revived:
+	if (c.type == &"ghoul" or c.twist == &"undying") and not c.revived:
 		c.revived = true
 		c.revive_time = GHOUL_REVIVE_TIME
 		c.hp = 0.0
@@ -563,7 +613,7 @@ func affectable(c: SimCreep) -> bool:
 
 
 func apply_slow(c: SimCreep, amount: float, duration: float) -> void:
-	if not affectable(c):
+	if not affectable(c) or c.twist == &"unstoppable":
 		return
 	if c.boss:
 		duration *= 0.5
@@ -575,7 +625,7 @@ func apply_slow(c: SimCreep, amount: float, duration: float) -> void:
 
 
 func apply_root(c: SimCreep, duration: float) -> void:
-	if affectable(c) and not c.boss:
+	if affectable(c) and not c.boss and c.twist != &"unstoppable":
 		c.root_time = maxf(c.root_time, duration)
 
 

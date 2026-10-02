@@ -86,6 +86,8 @@ const CUES := {
 	&"dreadlord_death": {"db": -2.0, "voices": 1, "prio": Prio.KEY, "duck": true},
 	&"ghoul_down": {"sound": &"ghoul_death", "db": -13.0, "group": &"death", "max_len": 1.0},
 	&"ghoul_revive": {"db": -12.0, "gap": 0.2, "max_len": 1.4},
+	&"second_wind":
+	{"sound": &"ghoul_revive", "pitch": 1.35, "db": -13.0, "gap": 0.25, "max_len": 1.0},
 	&"tank_steam": {"db": -15.0, "gap": 0.4, "max_len": 0.8},
 	&"dot_tick":
 	{
@@ -184,6 +186,7 @@ const EVENT_CUES := {
 	&"frost_ring": &"frost_ring",
 	&"downed": &"ghoul_down",
 	&"revived": &"ghoul_revive",
+	&"second_wind": &"second_wind",
 	&"immune": &"tank_steam",
 	&"summoned": &"dreadlord_summon",
 	&"dot": &"dot_tick",

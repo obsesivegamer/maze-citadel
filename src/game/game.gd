@@ -78,7 +78,7 @@ func _process(delta: float) -> void:
 func _flush() -> void:
 	for e in sim.drain_events():
 		if e.type == &"defeat" or e.type == &"victory":
-			Save.record(Save.mode_key(sim.hard, sim.infinite), sim.wave, sim.score())
+			Save.record(Save.sim_key(sim), sim.wave, sim.score())
 		sim_event.emit(e)
 
 
@@ -177,12 +177,16 @@ func set_quality(preset: Quality.Preset) -> void:
 	quality_changed.emit(preset)
 
 
-## Mode can change only before wave 1 spawns (GDD §5).
-func set_mode(hard: bool, infinite: bool) -> bool:
+## Mode can change only before wave 1 spawns (GDD §5). Turning Twists on
+## deals a fresh schedule unless a seed was already given (--seed).
+func set_mode(hard: bool, infinite: bool, twists := false) -> bool:
 	if sim.wave > 0:
 		return false
 	sim.hard = hard
 	sim.infinite = infinite
+	if twists and not sim.twists and sim.twist_seed == 0:
+		sim.twist_seed = randi() | 1
+	sim.twists = twists
 	return true
 
 

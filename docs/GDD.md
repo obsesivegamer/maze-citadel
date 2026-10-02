@@ -74,8 +74,26 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Normal | Base values |
 | Hard | Creep HP +30%, bounty +20% |
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. |
+| Twists | From wave 11, most waves carry one random creep ability (below). Combines with Hard and Infinite. Score × 1.1. |
 
 Mode is picked from a chip in the top bar during the opening build phase and locks when wave 1 spawns.
+
+### 5.1 Twists (random wave abilities)
+
+In the spirit of Element TD's random creep abilities. The schedule comes from a seed (`--twists --seed=N` replays one), so it can't be rerolled by calling waves early. The next-wave chip shows the coming twist a full wave ahead, and the wave banner repeats it.
+
+| Twist | Player text | Effect | Never on |
+|---|---|---|---|
+| Swift | Creeps move 20% faster. | speed × 1.2 | Wolf Rider waves |
+| Plated | Creeps gain +3 armor. | armor + 3 (Poison ignores it, shred strips it) | before wave 15; waves ≥ 75% Armored |
+| Stampede | Creeps arrive twice as tightly packed. | spawn gap × 0.5 | Harpy waves |
+| Unstoppable | Creeps can't be slowed, rooted or frozen. | slows, roots and freezes do nothing | — |
+| Undying | Creeps rise once at a third of their HP. | the Ghoul rule for every creep | Ghoul or Harpy waves |
+| Second Wind | At half HP, creeps heal 25% once. | first time at ≤ 50% HP: +25% max HP (half while poisoned) | — |
+
+- Waves 1–10 teach the basics and stay clean, as do boss waves and the all-Armored waves 22, 23, 33 and 38 (already the hardest regular waves). Bosses never carry a twist.
+- One twist per wave, never the same twist two twisted waves in a row. A twist that has come up less often is likelier (weight 1 / (1 + times so far)), so a run sees all six without any fixed wave for one of them.
+- Twists never change a wave's element, armor class, creep count, bounty or leak cost.
 
 ## 6. Damage model
 
@@ -263,4 +281,4 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/`): best wave and best score per mode, quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/`): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.

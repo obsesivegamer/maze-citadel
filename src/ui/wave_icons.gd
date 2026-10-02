@@ -1,10 +1,12 @@
 class_name WaveIcons
 extends HBoxContainer
 ## One wave at a glance: creep icons with counts, element and armor-class
-## glyphs and a skull for bosses. Used by the next-wave chip and the banner;
-## nodes are rebuilt only when the wave changes.
+## glyphs, a skull for bosses and the wave's twist (Twists mode). Used by the
+## next-wave chip and the banner; nodes are rebuilt only when the wave or its
+## twist changes.
 
 var wave := -1
+var twist: StringName = &""
 
 var _icon_px := 18.0
 var _font_size := 13
@@ -18,10 +20,11 @@ func _init(icon_px := 18.0, font_size := 13) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
-func show_wave(w: int) -> void:
-	if w == wave:
+func show_wave(w: int, w_twist: StringName = &"") -> void:
+	if w == wave and w_twist == twist:
 		return
 	wave = w
+	twist = w_twist
 	for c in get_children():
 		remove_child(c)
 		c.queue_free()
@@ -39,3 +42,10 @@ func show_wave(w: int) -> void:
 		add_child(UiIcon.new(UiGlyphs.armor(c), _icon_px))
 	if WaveDefs.has_boss(w):
 		add_child(UiIcon.new(&"skull", _icon_px * 1.15))
+	if twist != &"":
+		add_child(UiKit.divider(_icon_px))
+		add_child(UiIcon.new(&"twist", _icon_px))
+		var label := UiKit.label(WaveTwists.display_name(twist), &"", _font_size)
+		label.add_theme_font_override("font", UiTheme.bold())
+		label.add_theme_color_override("font_color", UiGlyphs.TWIST)
+		add_child(label)

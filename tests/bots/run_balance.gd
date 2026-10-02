@@ -1,6 +1,7 @@
 extends SceneTree
 ## Headless balance run: every strategy × mode, prints a markdown table.
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
+##        [-- --twists=<seed>,<seed>,...]   smart bot with Twists, one run per seed
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -13,14 +14,24 @@ const MAX_GAME_SECONDS := 6000.0
 
 
 func _initialize() -> void:
+	var runs := RUNS.duplicate()
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--twists="):
+			runs.clear()
+			for s in a.trim_prefix("--twists=").split(","):
+				runs.append([&"smart", false, int(s)])
+				runs.append([&"smart", true, int(s)])
 	print(
 		"| Strategy | Mode | Result | Lives | Kills | Gold earned | Towers | Route m | Game time |"
 	)
 	print("|---|---|---|---|---|---|---|---|---|")
-	for run in RUNS:
+	for run in runs:
 		var t0 := Time.get_ticks_msec()
 		var sim := GameSim.new()
 		sim.hard = run[1]
+		if run.size() > 2:
+			sim.twists = true
+			sim.twist_seed = run[2]
 		var bot := Bot.new(sim, run[0])
 		var lost_at := {}
 		while sim.time < MAX_GAME_SECONDS:
@@ -38,7 +49,7 @@ func _initialize() -> void:
 				"| %s | %s | %s | %d | %d | %d | %d | %.0f | %d:%02d |"
 				% [
 					run[0],
-					"hard" if run[1] else "normal",
+					_mode(run),
 					result,
 					sim.lives,
 					sim.kills,
@@ -53,12 +64,11 @@ func _initialize() -> void:
 		printerr(
 			(
 				"  %s/%s leaks by wave: %s  (%.1f s real)"
-				% [
-					run[0],
-					"hard" if run[1] else "normal",
-					lost_at,
-					(Time.get_ticks_msec() - t0) / 1000.0
-				]
+				% [run[0], _mode(run), lost_at, (Time.get_ticks_msec() - t0) / 1000.0]
 			)
 		)
 	quit()
+
+
+func _mode(run: Array) -> String:
+	return ("hard" if run[1] else "normal") + (" twists:%d" % run[2] if run.size() > 2 else "")

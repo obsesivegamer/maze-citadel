@@ -6,6 +6,7 @@ extends Node3D
 ##   --quality=cinematic|balanced|performance   presentation preset
 ##   --<setting>=<value>                        override one preset setting
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
+##   --twists [--seed=<n>]                      Twists mode, optionally a fixed schedule
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
@@ -26,6 +27,9 @@ func _ready() -> void:
 	if Cli.has("autoplay"):
 		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
 		game.choose_build(&"")
+	if Cli.has("twists"):
+		game.sim.twist_seed = int(Cli.get_str("seed", "0"))
+		game.set_mode(game.sim.hard, game.sim.infinite, true)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
 	if Cli.has("warp-wave"):
