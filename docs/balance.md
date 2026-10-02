@@ -1,10 +1,10 @@
 # Balance log
 
-Bots play full games headless: `godot --headless --path . --script res://tests/bots/run_balance.gd` (about 15 minutes for 4 seeds of every run on one core; `-- --only=smart:hard` runs one row, `--seeds=N` sets the sample, `--per-wave` prints how far each wave got).
+Bots play full games headless: `godot --headless --path . --script res://tests/bots/run_balance.gd` (about 15 minutes for 4 seeds of every run on one core; `-- --only=smart:hard` runs one row, `--seeds=N` sets the sample, `--per-wave` prints how far each wave got, `--twists` plays Twists mode with bot seed n on twist schedule n + 1).
 
 | Bot | Plays like |
 |---|---|
-| smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics |
+| smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics of all four families between waves, only with gold to rebuild the freed wall tile; ignores twists |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 
@@ -20,7 +20,7 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 | smart clears Normal with ≥ 10 lives | Met: 4/4 wins, 19.0 lives on average (18–20) |
 | archers-only fails without counters | Met: dies at wave 38 |
 | no-anti-air dies at the Harpy waves | Met: dies at wave 5 |
-| Hard is beatable but tight | Met: 4/4 wins with 5.0 lives (2–7) and 8.2 close calls per game, against 19.0 lives and 2 close calls on Normal |
+| Hard is beatable but tight | Met: 4/4 wins with 5.5 lives (4–8) and 8.2 close calls per game, against 19.0 lives and 2 close calls on Normal |
 | Boss waves are the peak of their stretch, not a sure leak | Normal: met, every boss dies on its first pass in almost every game, the late ones near the gate. Hard: the wave-30 and wave-40 bosses still leak against the bot in most games, with far less HP left than before ([Late bosses](#late-bosses-2026-10-02)) |
 
 ## Latest run (2026-10-02)
@@ -28,13 +28,36 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |
 |---|---|---|---|---|---|---|
 | smart | normal | 4/4 | 19.0, 18–20 | 2.0 | 54% / 60% / 98% / 88% | – |
-| smart | hard | 4/4 | 5.0, 2–7 | 8.2 | 100% / 75% / 100% / 100% | – |
+| smart | hard | 4/4 | 5.5, 4–8 | 8.2 | 100% / 75% / 100% / 100% | – |
 | archers | normal | 0/4 | 0.0, 0–0 | 7.0 | 100% / 54% / 100% / – | w38, w38, w38, w38 |
 | no_air | normal | 0/4 | 0.0, 0–0 | 4.0 | – / – / – / – | w5, w5, w5, w5 |
+
+The smart rows are from the Epics and Twists run below; archers and no_air don't fuse, so their rows stand.
 
 Lives lost per wave (seed 0): smart/normal {} · smart/hard {7: 1, 10: 2, 30: 4, 38: 4, 40: 3} · archers {7: 1, 10: 2, 26: 1, 28: 1, 30: 6, 33: 4, 38: 5} · no_air {1: 8, 2: 6, 4: 2, 5: 4}
 
 Seeds barely change the archers and no_air games: those bots have one tower to pick, so only timing and wall order vary.
+
+## Epics and Twists (2026-10-02)
+
+The Alliance and Forsaken Epics (Sunfire Ballista, Plague Necropolis) and Twists mode came in together.
+
+**Fusions.** The smart bot used to fuse only Elven and Horde Epics, as soon as two level-3 towers were ready, mid-wave included. With four families it fused archer walls during wave 40 on Hard, and the freed wall tiles opened the maze while the Dreadlord walked it (in a run before the Hard rework, Hard fell from 6 to 3 lives). It now fuses only between waves and only with gold to rebuild the freed tile at once. In that earlier run it then fused Frost Wyrms, Doom Cannons, Sunfire Ballistas and a Necropolis between waves 37 and 39, and the Sunfires got 66 kills. On today's Hard it goes from 5.0 to 5.5 lives on the same seeds. On Normal the bot never fuses (it spends all its gold on upgrades), so Normal is unchanged.
+
+**Twists.** Same 4 seeds per row, each on its own twist schedule:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|
+| smart | normal | 4/4 | 19.0, 18–20 | 2.0 | 54% / 60% / 98% / 88% | – |
+| smart | normal twists | 4/4 | 18.0, 18–18 | 2.8 | 54% / 62% / 100% / 89% | – |
+| smart | hard | 4/4 | 5.5, 4–8 | 8.2 | 100% / 75% / 100% / 100% | – |
+| smart | hard twists | 1/4 | 1.2, 0–5 | 11.2 | 100% / 80% / 100% / 99% | w40, w40, w38 |
+
+- **Normal:** no twisted wave leaked. Twists add close calls, and a wave-30 Ogre slips through in every game instead of in two of four.
+- **Hard:** Hard already runs about 5 lives from the edge, so twists tip it. Twisted waves leaked 23 lives across the 4 games: wave 21 in all of them, 26–28 in three. Undying caused 15 of those 23: it is +33% effective HP and is barred from the many Ghoul and Harpy waves, so the weighted schedule makes it the likeliest twist on waves 21 and 27, which are already close on Hard.
+- The bot doesn't read twists. A player sees each one a wave ahead (for example, not leaning on slows before an Unstoppable wave), so these numbers are a floor. Hard + Twists is the hardest combination; its score bonus is ×1.3 × 1.1.
+
+Seed 0 lives lost per wave on Hard + Twists: {7: 1, 10: 2, 21: 1, 27: 2, 30: 4, 38: 5, 40: 6}.
 
 ## Late bosses (2026-10-02)
 
