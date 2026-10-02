@@ -180,8 +180,12 @@ func _build_fields() -> void:
 			var nz := maxi(1, floori(r.size.y / d))
 			for gx in nx:
 				for gz in nz:
-					var p := r.position + Vector2((gx + 0.5) * r.size.x / nx, (gz + 0.5) * r.size.y / nz)
-					var b := Basis.from_scale(GRAIN_SCALE * Vector3(r.size.x / nx / w, 1, r.size.y / nz / d))
+					var p := (
+						r.position + Vector2((gx + 0.5) * r.size.x / nx, (gz + 0.5) * r.size.y / nz)
+					)
+					var b := Basis.from_scale(
+						GRAIN_SCALE * Vector3(r.size.x / nx / w, 1, r.size.y / nz / d)
+					)
 					grain.append(Transform3D(b, _ground(p)))
 			continue
 		var z := r.position.y + CROP_SPACING * 0.5
@@ -189,7 +193,11 @@ func _build_fields() -> void:
 			var x := r.position.x + CROP_SPACING * 0.5
 			while x < r.end.x:
 				var p := Vector2(x + rng.randf_range(-0.2, 0.2), z)
-				crops.append(WorldKit.placed(_ground(p), rng.randf() * TAU, CROP_SCALE * rng.randf_range(0.85, 1.1)))
+				crops.append(
+					WorldKit.placed(
+						_ground(p), rng.randf() * TAU, CROP_SCALE * rng.randf_range(0.85, 1.1)
+					)
+				)
 				x += CROP_SPACING
 			z += CROP_SPACING * 1.4
 	add_child(WorldKit.multimesh(WorldKit.merged(GRAIN), grain))

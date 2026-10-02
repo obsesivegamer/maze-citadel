@@ -82,7 +82,9 @@ const ROCKS := {
 const LILY := NK + "lily_large.glb"
 const LILY_COUNT := 26
 const LILY_SCALE := Vector2(4.0, 7.0)
-const MOUNTAINS: Array[String] = [KK + "mountain_A.glb", KK + "mountain_B.glb", KK + "mountain_C.glb"]
+const MOUNTAINS: Array[String] = [
+	KK + "mountain_A.glb", KK + "mountain_B.glb", KK + "mountain_C.glb"
+]
 const MOUNTAIN_COUNT := 26
 const MOUNTAIN_RING := Vector2(270.0, 330.0)
 const MOUNTAIN_SCALE := Vector2(30.0, 48.0)
@@ -150,7 +152,10 @@ func _broadleaf_density(p: Vector2) -> float:
 
 func _dead_density(p: Vector2) -> float:
 	var b := p.distance_to(WorldLayout.BLIGHT_CENTER)
-	return 0.55 * (1.0 - smoothstep(WorldLayout.BLIGHT_RADIUS * 0.5, WorldLayout.BLIGHT_RADIUS + 6.0, b))
+	return (
+		0.55
+		* (1.0 - smoothstep(WorldLayout.BLIGHT_RADIUS * 0.5, WorldLayout.BLIGHT_RADIUS + 6.0, b))
+	)
 
 
 func _bush_density(p: Vector2) -> float:
@@ -195,7 +200,8 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 	for gz in range(-cells, cells + 1):
 		for gx in range(-cells, cells + 1):
 			var p := Vector2(
-				(gx + _rng.randf_range(-0.45, 0.45)) * step, (gz + _rng.randf_range(-0.45, 0.45)) * step
+				(gx + _rng.randf_range(-0.45, 0.45)) * step,
+				(gz + _rng.randf_range(-0.45, 0.45)) * step
 			)
 			if p.length() > radius:
 				continue

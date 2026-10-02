@@ -98,12 +98,20 @@ func _build_lowland() -> void:
 			var wd := river.distance_to(p)
 			var hw := WorldLayout.RIVER_HALF_WIDTH
 			colors[j * n + i] = Color(
-				1.0 - smoothstep(WorldLayout.ROAD_HALF_WIDTH - 0.5, WorldLayout.ROAD_HALF_WIDTH + 0.9, rd),
+				(
+					1.0
+					- smoothstep(
+						WorldLayout.ROAD_HALF_WIDTH - 0.5, WorldLayout.ROAD_HALF_WIDTH + 0.9, rd
+					)
+				),
 				1.0 - smoothstep(hw + 0.8, hw + WorldLayout.RIVER_BANK + 2.2, wd),
-				1.0 - smoothstep(
-					WorldLayout.BLIGHT_RADIUS * 0.35,
-					WorldLayout.BLIGHT_RADIUS,
-					p.distance_to(WorldLayout.BLIGHT_CENTER)
+				(
+					1.0
+					- smoothstep(
+						WorldLayout.BLIGHT_RADIUS * 0.35,
+						WorldLayout.BLIGHT_RADIUS,
+						p.distance_to(WorldLayout.BLIGHT_CENTER)
+					)
 				),
 				1.0 if WorldLayout.in_rects(p, WorldLayout.FIELDS, -0.5) else 0.0
 			)

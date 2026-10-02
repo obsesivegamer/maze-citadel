@@ -96,7 +96,9 @@ func _wall_run(xforms: Array[Transform3D], from: Vector2, to: Vector2) -> void:
 func _build_walls() -> void:
 	var xforms: Array[Transform3D] = []
 	for sx in [-1.0, 1.0]:
-		_wall_run(xforms, Vector2(sx * (GATE_TOWER_X + 2.0), WALL_Z), Vector2(sx * CORNER.x, WALL_Z))
+		_wall_run(
+			xforms, Vector2(sx * (GATE_TOWER_X + 2.0), WALL_Z), Vector2(sx * CORNER.x, WALL_Z)
+		)
 		_wall_run(xforms, Vector2(sx * SIDE_X, CORNER.y - 1.5), Vector2(sx * SIDE_X, SIDE_END_Z))
 	add_child(WorldKit.multimesh(WorldKit.merged(WALL), xforms))
 	var wall_h := WorldKit.bounds(WALL).size.y * WALL_SCALE

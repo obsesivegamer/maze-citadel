@@ -66,7 +66,9 @@ func build() -> void:
 	rng.seed = 66
 	for i in SPIKE_COUNT:
 		# A crescent behind and beside the arch, opening toward the board.
-		var a := lerpf(PI * 1.05, PI * 1.95, float(i) / (SPIKE_COUNT - 1)) + rng.randf_range(-0.1, 0.1)
+		var a := (
+			lerpf(PI * 1.05, PI * 1.95, float(i) / (SPIKE_COUNT - 1)) + rng.randf_range(-0.1, 0.1)
+		)
 		var r := rng.randf_range(SPIKE_RADIUS.x, SPIKE_RADIUS.y)
 		var pos := p + Vector3(cos(a) * r, -0.3, sin(a) * r * 0.7)
 		var s := rng.randf_range(2.2, 4.2)
@@ -140,7 +142,9 @@ func _particles(pos: Vector3, amount: int, ground: bool) -> GPUParticles3D:
 	pm.scale_min = 0.05
 	pm.scale_max = 0.16 if ground else 0.22
 	var ramp := Gradient.new()
-	ramp.colors = PackedColorArray([Color(3.0, 1.4, 0.4), Color(2.4, 0.3, 0.08), Color(0.6, 0.05, 0.02, 0)])
+	ramp.colors = PackedColorArray(
+		[Color(3.0, 1.4, 0.4), Color(2.4, 0.3, 0.08), Color(0.6, 0.05, 0.02, 0)]
+	)
 	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
 	var ramp_tex := GradientTexture1D.new()
 	ramp_tex.gradient = ramp

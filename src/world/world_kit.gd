@@ -92,7 +92,9 @@ static func bake(entries: Array, skip: PackedStringArray = []) -> ArrayMesh:
 			var mesh: Mesh = part[0]
 			var xf: Transform3D = e[1] * part[1]
 			for s in mesh.get_surface_count():
-				var mat: Material = e[2] if e.size() > 2 else mipmapped(mesh.surface_get_material(s))
+				var mat: Material = (
+					e[2] if e.size() > 2 else mipmapped(mesh.surface_get_material(s))
+				)
 				if not tools.has(mat):
 					var st := SurfaceTool.new()
 					st.begin(Mesh.PRIMITIVE_TRIANGLES)
