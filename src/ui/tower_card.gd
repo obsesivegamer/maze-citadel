@@ -1,0 +1,194 @@
+class_name TowerCard
+extends Button
+## One bottom-bar card (GDD §11): icon, name, cost, hotkey, attack/element
+## pips and an air icon. Draws itself and redraws only when its state changes.
+## Dims when unaffordable; Epic cards pulse when a fusion is possible.
+
+const SIZE := Vector2(88, 112)
+const ICON_PX := 44.0
+const ICON_TOP := 13.0
+const NAME_Y := 75.0
+const PIPS_Y := 81.0
+const PIP_PX := 13.0
+const COST_Y := 104.0
+const COIN_PX := 12.0
+const BADGE := Rect2(5, 5, 17, 15)
+const AIR_PX := 15.0
+const NAME_SIZE := 12
+const COST_SIZE := 13
+const DIM := Color(1, 1, 1, 0.42)
+const GLOW_PERIOD := 0.7
+
+static var _styles := {}
+
+var id: StringName
+var affordable := true:
+	set = set_affordable
+## True while this card's tower is the build choice.
+var chosen := false:
+	set = set_chosen
+## Epic cards only: a fusion is possible right now.
+var lit := false:
+	set = set_lit
+
+var _hover := false
+var _glow := Control.new()
+var _glow_tween: Tween
+
+
+func _init(tower: StringName) -> void:
+	id = tower
+	flat = true
+	focus_mode = Control.FOCUS_NONE
+	custom_minimum_size = SIZE
+	mouse_entered.connect(_set_hover.bind(true))
+	mouse_exited.connect(_set_hover.bind(false))
+	_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_glow.visible = false
+	_glow.draw.connect(_draw_glow)
+	add_child(_glow)
+
+
+func set_affordable(value: bool) -> void:
+	if value != affordable:
+		affordable = value
+		queue_redraw()
+
+
+func set_chosen(value: bool) -> void:
+	if value != chosen:
+		chosen = value
+		queue_redraw()
+
+
+func set_lit(value: bool) -> void:
+	if value == lit:
+		return
+	lit = value
+	_glow.visible = value
+	if _glow_tween != null:
+		_glow_tween.kill()
+		_glow_tween = null
+	if value and is_inside_tree():
+		_glow_tween = create_tween().set_loops()
+		_glow_tween.tween_property(_glow, "modulate:a", 0.3, GLOW_PERIOD)
+		_glow_tween.tween_property(_glow, "modulate:a", 1.0, GLOW_PERIOD)
+	queue_redraw()
+
+
+func _set_hover(value: bool) -> void:
+	_hover = value
+	queue_redraw()
+
+
+func _draw() -> void:
+	var def: Dictionary = TowerDefs.TOWERS[id]
+	var epic := TowerInfo.is_epic(id)
+	draw_style_box(_frame(epic), Rect2(Vector2.ZERO, size))
+	var usable := lit if epic else (affordable or chosen)
+	var tint := Color.WHITE if usable else DIM
+	var fam: Color = UiTheme.FAMILY_COLORS[def.family]
+	var icon_center := Vector2(size.x / 2.0, ICON_TOP + ICON_PX / 2.0)
+	draw_circle(icon_center, ICON_PX * 0.56, Color(fam, 0.13 * tint.a), true, -1.0, true)
+	var icon_rect := Rect2(Vector2((size.x - ICON_PX) / 2.0, ICON_TOP), Vector2(ICON_PX, ICON_PX))
+	UiGlyphs.draw(self, id, icon_rect, tint)
+	draw_style_box(_badge(), BADGE)
+	draw_string(
+		UiTheme.bold(),
+		BADGE.position + Vector2(0, 12),
+		"G" if epic else TowerDefs.hotkey(id),
+		HORIZONTAL_ALIGNMENT_CENTER,
+		BADGE.size.x,
+		11,
+		UiTheme.GOLD_BRIGHT * tint
+	)
+	if def.get("air", false):
+		var air := Rect2(Vector2(size.x - AIR_PX - 5.0, 5.0), Vector2(AIR_PX, AIR_PX))
+		UiGlyphs.draw(self, &"cls_air", air, tint)
+	draw_string(
+		UiTheme.body(),
+		Vector2(0, NAME_Y),
+		TowerInfo.short_name(id),
+		HORIZONTAL_ALIGNMENT_CENTER,
+		size.x,
+		NAME_SIZE,
+		(UiTheme.GOLD_BRIGHT if chosen else UiTheme.TEXT) * tint
+	)
+	_draw_pips(def, tint)
+	_draw_cost(epic, tint)
+
+
+func _draw_pips(def: Dictionary, tint: Color) -> void:
+	var glyphs: Array[StringName] = []
+	if def.has("attack"):
+		glyphs.append(UiGlyphs.attack(def.attack))
+		glyphs.append(UiGlyphs.element(def.element))
+	else:
+		glyphs.append(&"aura")
+	var w := glyphs.size() * PIP_PX + (glyphs.size() - 1) * 4.0
+	var x := (size.x - w) / 2.0
+	for g in glyphs:
+		UiGlyphs.draw(self, g, Rect2(Vector2(x, PIPS_Y), Vector2(PIP_PX, PIP_PX)), tint)
+		x += PIP_PX + 4.0
+
+
+func _draw_cost(epic: bool, tint: Color) -> void:
+	var font := UiTheme.bold()
+	var text := ("+%d" if epic else "%d") % TowerInfo.card_cost(id)
+	var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, COST_SIZE).x
+	var x := (size.x - tw - COIN_PX - 3.0) / 2.0
+	var coin := Rect2(Vector2(x, COST_Y - COIN_PX + 1.0), Vector2(COIN_PX, COIN_PX))
+	UiGlyphs.coin(self, coin, tint)
+	var ok := lit if epic else affordable
+	var color := UiTheme.GOLD_BRIGHT if ok else UiTheme.BAD
+	draw_string(
+		font,
+		Vector2(x + COIN_PX + 3.0, COST_Y),
+		text,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		COST_SIZE,
+		Color(color, tint.a)
+	)
+
+
+func _draw_glow() -> void:
+	var r := Rect2(Vector2.ZERO, _glow.size).grow(-1.0)
+	_glow.draw_style_box(_style(&"glow"), r)
+
+
+func _frame(epic: bool) -> StyleBox:
+	if chosen:
+		return _style(&"chosen")
+	if _hover and not disabled:
+		return _style(&"hover")
+	return _style(&"epic" if epic else &"normal")
+
+
+func _badge() -> StyleBox:
+	return _style(&"badge")
+
+
+static func _style(key: StringName) -> StyleBox:
+	if _styles.is_empty():
+		_styles[&"normal"] = UiTheme.box(UiTheme.STONE_HI, UiTheme.GOLD_DIM, 1, 6, Vector2.ZERO, 4)
+		_styles[&"epic"] = UiTheme.box(
+			UiTheme.STONE_HI, Color(UiTheme.FUSE, 0.45), 1, 6, Vector2.ZERO, 4
+		)
+		_styles[&"hover"] = UiTheme.box(
+			UiTheme.STONE_HI.lightened(0.07), UiTheme.GOLD, 2, 6, Vector2.ZERO, 6
+		)
+		var chosen_box := UiTheme.box(UiTheme.STONE_DEEP, UiTheme.GOLD_BRIGHT, 2, 6, Vector2.ZERO)
+		chosen_box.shadow_color = Color(UiTheme.GOLD_BRIGHT, 0.4)
+		chosen_box.shadow_size = 10
+		chosen_box.shadow_offset = Vector2.ZERO
+		_styles[&"chosen"] = chosen_box
+		var glow := UiTheme.box(Color(0, 0, 0, 0), UiTheme.FUSE, 2, 6, Vector2.ZERO)
+		glow.draw_center = false
+		glow.shadow_color = Color(UiTheme.FUSE, 0.55)
+		glow.shadow_size = 12
+		glow.shadow_offset = Vector2.ZERO
+		_styles[&"glow"] = glow
+		_styles[&"badge"] = UiTheme.box(Color(0, 0, 0, 0.55), UiTheme.GOLD_DIM, 1, 4, Vector2.ZERO, 0)
+	return _styles[key]
