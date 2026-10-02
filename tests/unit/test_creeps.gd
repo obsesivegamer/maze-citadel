@@ -102,8 +102,13 @@ func test_hard_and_infinite_scaling() -> void:
 	var sim := GameSim.new()
 	sim.hard = true
 	var c := sim.spawn_creep(&"grunt", &"flame", 1, Vector2.ZERO)
-	check_near(c.max_hp, 60.0 * 1.3, 1e-3, "hard HP")
-	check_eq(c.bounty, roundi(6 * 1.2), "hard bounty")
+	check_near(c.max_hp, 60.0 * 1.1, 1e-3, "hard HP +10% on wave 1")
+	check_eq(c.bounty, 6, "no hard bounty bonus")
+	var late := sim.spawn_creep(&"grunt", &"flame", 40, Vector2.ZERO)
+	check_near(late.max_hp, CreepDefs.max_hp(&"grunt", 40) * 1.4, 1e-2, "hard HP +40% on wave 40")
+	var mid := sim.spawn_creep(&"grunt", &"flame", 20, Vector2.ZERO)
+	check(mid.max_hp > CreepDefs.max_hp(&"grunt", 20) * 1.2, "hard HP ramps")
+	check(mid.max_hp < CreepDefs.max_hp(&"grunt", 20) * 1.3, "hard HP ramps")
 	sim.hard = false
 	var inf := sim.spawn_creep(&"grunt", &"flame", 42, Vector2.ZERO)
 	check_near(inf.max_hp, CreepDefs.max_hp(&"grunt", 42) * pow(1.08, 2), 1e-2, "infinite HP")
@@ -131,3 +136,11 @@ func test_poisoned_ghoul_going_down_mid_tick() -> void:
 	sim.step()
 	check(c.alive and c.revive_time > 0.0, "downed by poison, stacks cleared safely")
 	check(c.poison.is_empty(), "no stacks left")
+
+
+func test_boss_waves_scale_their_boss() -> void:
+	var base := 60.0 * pow(CreepDefs.HP_GROWTH, 9) * CreepDefs.CREEPS[&"ogre"].hp
+	check_near(CreepDefs.max_hp(&"ogre", 10), base * 2.2, 1e-2, "wave 10 Ogre ×2.2")
+	check_near(CreepDefs.max_hp(&"grunt", 10), base / 12.0, 1e-2, "escorts unscaled")
+	var dread := 60.0 * pow(CreepDefs.HP_GROWTH, 39) * CreepDefs.CREEPS[&"dreadlord"].hp
+	check_near(CreepDefs.max_hp(&"dreadlord", 40), dread, 1e-2, "Dreadlord as listed")

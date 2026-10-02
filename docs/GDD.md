@@ -72,7 +72,7 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Mode | Change |
 |---|---|
 | Normal | Base values |
-| Hard | Creep HP +30%, bounty +20% |
+| Hard | Creep HP +10% on wave 1 rising to +40% on wave 40; no bounty bonus |
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. |
 
 Mode is picked from a chip in the top bar during the opening build phase and locks when wave 1 spawns.
@@ -169,7 +169,7 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | Harpy | Air | 1 | 3.4 | 0.8 | Flies straight, ignores maze; air-capable towers only |
 | Ghoul | Light | 2 | 3.2 | 1.0 | Revives once after 1.5 s at ⅓ HP; bounty on final death |
 | Steam Tank | Armored | 10 | 2.2 | 2.1 | Every 6 s: immune for 1.5 s (steam shroud) |
-| Ogre Boss | Boss | 8 | 2.0 | 12 | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
+| Ogre Boss | Boss | 8 | 2.0 | 12 (×2.2 on wave 10, ×3.2 on wave 20) | Aura r6 m: escorts +3 armor, +10% speed. Leak −2. |
 | Dreadlord | Boss | 12 | 1.8 | 32 | Summons 3 Felhounds every 10 s. Leak −2. |
 | Felhound (summon) | Light | 2 | 4.0 | 0.6 | Dreadlord summon, Dark element |
 
