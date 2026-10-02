@@ -59,6 +59,19 @@ The Alliance and Forsaken Epics (Sunfire Ballista, Plague Necropolis) and Twists
 
 Seed 0 lives lost per wave on Hard + Twists: {7: 1, 10: 2, 21: 1, 27: 2, 30: 4, 38: 5, 40: 6}.
 
+On the Fallen Rampart (second map, PR #5, run on a trial merge of both branches): Normal 17.5 lives, Normal + Twists 17.2 (13–20); Hard 3.8 (2–5), Hard + Twists 0/4 wins, two of them lost by wave 27–28. Wave 21 and waves 26–28 cost 3–12 lives each.
+
+Tried on both maps to soften Hard + Twists, and dropped:
+
+| Change | Citadel: Normal + T / Hard + T | Rampart: Normal + T / Hard + T |
+|---|---|---|
+| None (above) | 18.0 / 1.2 lives, 1/4 wins | 17.2 / 0/4 wins |
+| Undying rises at ¼ HP instead of ⅓ | 19.0 / 0.2, 1/4 wins | 17.5 / 0/4 wins |
+| Twisted creeps pay +25% bounty | 19.5 / 10.0, 4/4 | 20.0 / 8.2, 4/4 |
+| Twisted creeps pay +10% bounty | 20.0 / 7.2, 4/4 | 19.5 / 0.8, 2/4 |
+
+A softer Undying moved nothing: the twisted waves that leak on Hard leak under any twist. Bounty overshoots as it did for Hard itself: even +10% makes Twists easier than no twists on the Citadel, while Rampart Hard still loses half its games.
+
 ## Late bosses (2026-10-02)
 
 The twin Ogres on wave 30 and the Dreadlord on wave 40 leaked in every game on both modes, so the last two boss waves were a fixed toll rather than a fight. When they reached the gate on their first pass (seeds 0–3), the Ogres still had 10–48% of their HP on Normal and 46–63% on Hard, and the Dreadlord 5–10% on Normal and 37–40% on Hard. Three changes:
