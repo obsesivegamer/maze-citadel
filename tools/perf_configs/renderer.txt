@@ -1,0 +1,58 @@
+# Renderer matrix, starting from Balanced (render scale 0.5, MetalFX temporal,
+# SSAO medium, fog 64x48, 2048 shadows with 4 cascades, soft shadow filter 3).
+#   ALLOW_WINDOW=1 tools/perf_matrix.sh tools/perf_configs/renderer.txt
+#   tools/perf_matrix.sh --dry-run tools/perf_configs/renderer.txt
+# name | engine args (+section/key=value -> override.cfg) | game args
+# Flags: src/core/perf_render.gd. Preset keys (--render_scale, --upscaler,
+# --ssao, --ssao_quality, --fog, --fog_size, --shadow_size, ...) also work.
+
+# Sun shadows. The sun's 0.8° angular size turns on PCSS: at filter 3 every
+# shaded pixel takes 12 blocker-search + 12 filter taps per cascade, alpha-
+# tested leaves included; plain PCF takes 8.
+pcf           |  | --pf-sun-angular=0
+pcf-low       |  | --pf-sun-angular=0 --pf-shadow-filter=2
+filter-low    |  | --pf-shadow-filter=2
+# In the full view the board is ~85-140 m from the camera, so the default
+# splits (15/30/75/150 m) leave nearly all of it in the last, coarsest
+# cascade. Fidelity, not speed; the closer portal/gate views lose a little.
+cascades-fit  |  | --pf-shadow-distance=180 --pf-shadow-splits=0.4,0.55,0.75
+# Diagnostic ceiling: what all sun shadows cost.
+no-sun-shadow |  | --pf-sun-shadow=false
+
+# Depth prepass. Forward+ always runs it (the vendor list only affects the
+# Compatibility renderer) and SSAO needs it, so price it against SSAO off.
+ssao-off      |  | --ssao=false
+prepass-off   | +rendering/driver/depth_prepass/enable=false | --ssao=false
+ssao-low      |  | --ssao_quality=1
+
+# Post and sampling.
+glow-linear   |  | --pf-glow-bicubic=false
+mip-bias      |  | --pf-mip-bias=0.5
+lod-4         |  | --pf-lod-threshold=4
+
+# Upscaling / AA alternatives to MetalFX temporal.
+spatial-smaa  |  | --upscaler=metalfx_spatial --pf-ssaa=smaa
+# Mobile renderer (built for tile GPUs): no SSAO, no volumetric fog, no
+# MetalFX temporal, so this is a fidelity trade, not a free win.
+mobile        | --rendering-method mobile | --upscaler=metalfx_spatial
+
+# Second pass candidates (uncomment, or keep and use --only=...):
+# spatial-fxaa  |  | --upscaler=metalfx_spatial --pf-ssaa=fxaa
+# spatial-taa   |  | --upscaler=metalfx_spatial --pf-taa=true
+# bilinear-smaa |  | --upscaler=bilinear --render_scale=0.6 --pf-ssaa=smaa
+# shadow-hard   |  | --pf-sun-angular=0 --pf-shadow-filter=0
+# shadow-2split |  | --shadow_splits=2 --pf-shadow-splits=0.5
+# shadow-near   |  | --pf-shadow-distance=110
+# ssao-blur1    |  | --pf-ssao-blur=1
+# ssao-radius   |  | --pf-ssao-radius=0.6 --pf-ssao-intensity=2.5
+# glow-off      |  | --pf-glow=false
+# glow-3levels  |  | --pf-glow-levels=0,0.8,0.4,0,0,0,0
+# fog-nofilter  |  | --pf-fog-filter=false
+# fog-noreproj  |  | --pf-fog-reprojection=false
+# fog-small     |  | --fog_size=48 --fog_depth=32
+# aniso-2x      |  | --pf-aniso=2
+# lod-2         |  | --pf-lod-threshold=2
+# debanding-off |  | --pf-debanding=false
+# roughness-off |  | --pf-roughness-limiter=false
+# frame-queue-3 | +rendering/rendering_device/vsync/frame_queue_size=3 |
+# spec-occl-off | +rendering/reflections/specular_occlusion/enabled=false |
