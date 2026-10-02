@@ -2,9 +2,10 @@ class_name World
 extends Node3D
 ## The citadel around the plateau (GDD §1, §12): sky and sun, terrain and
 ## cliffs, outer walls and gate, the demon portal, forests, the village and
-## its people. Owns `env` and `sun`, which Quality tunes, and reacts to the
-## match: the gate flashes on a leak, villagers cheer cleared waves and run
-## from leaking bosses, gryphons circle on victory.
+## its people, and the map's ruins on the plateau. Owns `env` and `sun`, which
+## Quality tunes, and reacts to the match: the gate flashes on a leak,
+## villagers cheer cleared waves and run from leaking bosses, gryphons circle
+## on victory.
 
 var env: Environment
 var sun: DirectionalLight3D
@@ -16,12 +17,15 @@ var _village := WorldVillage.new()
 var _citadel := WorldCitadel.new()
 var _portal := WorldPortal.new()
 var _crowd := WorldCrowd.new()
+var _ruins := WorldRuins.new()
 
 
 func setup(game: Game) -> void:
 	_game = game
 	_build_lighting()
-	for part in [_terrain, _nature, _village, _citadel, _portal, _crowd]:
+	_terrain.grid = game.sim.grid
+	_ruins.grid = game.sim.grid
+	for part in [_terrain, _nature, _village, _citadel, _portal, _crowd, _ruins]:
 		add_child(part)
 		part.build()
 	game.sim_event.connect(_on_sim_event)

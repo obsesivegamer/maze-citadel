@@ -1,6 +1,6 @@
 class_name Save
 extends RefCounted
-## Best results per mode and player settings in user://save.cfg
+## Best results per map and mode, and player settings in user://save.cfg
 ## (~/Library/Application Support/Maze Citadel/save.cfg).
 
 const PATH := "user://save.cfg"
@@ -15,8 +15,10 @@ static func _file() -> ConfigFile:
 	return _cfg
 
 
-static func mode_key(hard: bool, infinite: bool) -> String:
-	return ("hard" if hard else "normal") + ("_infinite" if infinite else "")
+## Records are kept per map and mode; the default map keeps its original keys.
+static func mode_key(hard: bool, infinite: bool, map := MapDefs.DEFAULT) -> String:
+	var key := ("hard" if hard else "normal") + ("_infinite" if infinite else "")
+	return key if map == MapDefs.DEFAULT else "%s_%s" % [map, key]
 
 
 static func best_wave(mode: String) -> int:

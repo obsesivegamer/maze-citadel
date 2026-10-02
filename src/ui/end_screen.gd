@@ -78,7 +78,7 @@ func show_result(won: bool, best_before: int) -> void:
 		var v := UiKit.label(row[1], &"Number", UiTheme.SIZE_LARGE)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_grid.add_child(v)
-	var mode := Save.mode_key(sim.hard, sim.infinite)
+	var mode := Save.mode_key(sim.hard, sim.infinite, sim.grid.map)
 	if sim.wave > best_before:
 		_best.text = "New best wave!"
 		_best.add_theme_color_override("font_color", UiTheme.GOOD)
