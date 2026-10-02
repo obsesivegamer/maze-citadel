@@ -13,10 +13,12 @@ sources are in each manifest.
 - **8 Magic Attacks (RPG Battle Magic SFX free samples)** by leohpaz — CC-BY-4.0 — https://opengameart.org/content/8-magic-attacks
 - **8 Magic Attacks (RPG Battle Magic SFX free samples) + JC Sounds - Fantasy SFX Pack Vol 1** by leohpaz; JC Sounds — CC-BY-4.0 — https://opengameart.org/content/8-magic-attacks | https://opengameart.org/content/jc-sounds-fantasy-sfx-pack-vol-1
 - **8 Magic Attacks (RPG Battle Magic SFX free samples) + Kenney Sci-fi Sounds** by leohpaz; Kenney (kenney.nl) — CC-BY-4.0 — https://opengameart.org/content/8-magic-attacks | https://kenney.nl/assets/sci-fi-sounds
+- **Cinzel** by Natanael Gama, The Cinzel Project Authors — OFL-1.1 — https://github.com/google/fonts/blob/main/ofl/cinzel/Cinzel%5Bwght%5D.ttf
 - **Crossbow Shot** by spookymodem — CC-BY-3.0 — https://opengameart.org/content/crossbow-shot
 - **Crossbow sounds** by HolgiB — CC-BY-3.0 — https://opengameart.org/content/crossbow-sounds
 - **Death/Dying Female Fighter/Warrior Voice Over** by JeanMyna_VA (Jean Myna) — CC-BY-3.0 — https://opengameart.org/content/deathdying-female-fighterwarrior-voice-over-vocal-sound-for-character
 - **Fantasy Sound Effects Library** by Little Robot Sound Factory — CC-BY-3.0 — https://opengameart.org/content/fantasy-sound-effects-library
+- **Fira Sans** by Carrois Apostrophe, The Mozilla Foundation and Telefonica S.A. — OFL-1.1 — https://github.com/google/fonts/blob/main/ofl/firasans/FiraSans-Bold.ttf, https://github.com/google/fonts/blob/main/ofl/firasans/FiraSans-Medium.ttf
 - **Free Crowd Cheering Sounds** by Gregor Quendel — CC-BY-4.0 — https://opengameart.org/content/free-crowd-cheering-sounds
 - **Ice & Electricity Magic** by Iwan 'qubodup' Gabovitch — CC-BY-3.0 — https://opengameart.org/content/ice-electricity-magic
 - **JC Sounds - Fantasy SFX Pack Vol 1** by JC Sounds — CC-BY-4.0 — https://opengameart.org/content/jc-sounds-fantasy-sfx-pack-vol-1

@@ -190,5 +190,7 @@ static func _style(key: StringName) -> StyleBox:
 		glow.shadow_size = 12
 		glow.shadow_offset = Vector2.ZERO
 		_styles[&"glow"] = glow
-		_styles[&"badge"] = UiTheme.box(Color(0, 0, 0, 0.55), UiTheme.GOLD_DIM, 1, 4, Vector2.ZERO, 0)
+		_styles[&"badge"] = UiTheme.box(
+			Color(0, 0, 0, 0.55), UiTheme.GOLD_DIM, 1, 4, Vector2.ZERO, 0
+		)
 	return _styles[key]

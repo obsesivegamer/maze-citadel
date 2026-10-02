@@ -337,7 +337,9 @@ static func wave_summary(wave: int) -> String:
 static func hints(state: StringName) -> Array:
 	match state:
 		&"build":
-			return [["Click", "Place"], ["Shift+Click", "Keep placing"], ["Right-click/Esc", "Cancel"]]
+			return [
+				["Click", "Place"], ["Shift+Click", "Keep placing"], ["Right-click/Esc", "Cancel"]
+			]
 		&"select":
 			return [
 				["U", "Upgrade"],

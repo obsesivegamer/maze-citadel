@@ -192,8 +192,11 @@ static func poly(ci: CanvasItem, r: Rect2, flat: Array, color: Color) -> void:
 	poly_pts(ci, pts, color)
 
 
+## Tiny glyphs can collapse into shapes the renderer can't triangulate (e.g.
+## the crescent's tips at pip size); those keep their outline and skip the fill.
 static func poly_pts(ci: CanvasItem, pts: PackedVector2Array, color: Color) -> void:
-	ci.draw_colored_polygon(pts, color)
+	if not Geometry2D.triangulate_polygon(pts).is_empty():
+		ci.draw_colored_polygon(pts, color)
 	var edge := pts.duplicate()
 	edge.append(pts[0])
 	ci.draw_polyline(edge, color, EDGE, true)

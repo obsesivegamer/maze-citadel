@@ -195,11 +195,15 @@ func follow(delta: float) -> void:
 	var y := clampf(p.y - s.y - POINTER.y, SAFE_TOP, vp.y - s.y - SAFE_BOTTOM)
 	_panel.position = Vector2(x, y)
 	_pointer.visible = absf(y - (p.y - s.y - POINTER.y)) < 1.0
-	_pointer.position = Vector2(clampf(p.x, x + 16.0, x + s.x - 16.0) - POINTER.x / 2.0, y + s.y - 2.0)
+	_pointer.position = Vector2(
+		clampf(p.x, x + 16.0, x + s.x - 16.0) - POINTER.x / 2.0, y + s.y - 2.0
+	)
 
 
 func _draw_pointer() -> void:
-	var pts := PackedVector2Array([Vector2.ZERO, Vector2(POINTER.x, 0), Vector2(POINTER.x / 2.0, POINTER.y)])
+	var pts := PackedVector2Array(
+		[Vector2.ZERO, Vector2(POINTER.x, 0), Vector2(POINTER.x / 2.0, POINTER.y)]
+	)
 	_pointer.draw_colored_polygon(pts, UiTheme.STONE)
 	_pointer.draw_polyline(PackedVector2Array([pts[0], pts[2], pts[1]]), UiTheme.GOLD, 2.0, true)
 
@@ -207,7 +211,8 @@ func _draw_pointer() -> void:
 func _draw_pips() -> void:
 	var c := Vector2(_pips.size.x - PIP * 1.5, _pips.size.y / 2.0)
 	if _epic:
-		UiGlyphs.star(_pips, Rect2(c - Vector2(9, 9), Vector2(18, 18)), Vector2(0.5, 0.5), 0.5, 0.2, 5, UiTheme.GOLD_BRIGHT)
+		var r := Rect2(c - Vector2(9, 9), Vector2(18, 18))
+		UiGlyphs.star(_pips, r, Vector2(0.5, 0.5), 0.5, 0.2, 5, UiTheme.GOLD_BRIGHT)
 		return
 	for i in range(TowerDefs.MAX_LEVEL - 1, -1, -1):
 		var color := UiTheme.GOLD_BRIGHT if i < _level else Color(UiTheme.GOLD_DIM, 0.7)

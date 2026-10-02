@@ -7,6 +7,8 @@ extends Node3D
 const GHOST_OK := Color(0.3, 1.0, 0.45, 0.45)
 const GHOST_BAD := Color(1.0, 0.2, 0.15, 0.5)
 const RING_COLOR := Color(1.0, 0.95, 0.6, 0.85)
+const PARTNER_COLOR := Color(1.0, 0.8, 0.25, 0.9)
+const MAX_PARTNER_RINGS := 16
 
 var hover_tile := Game.NONE
 var hover_result := Placement.Result.OUT_OF_BOUNDS
@@ -21,6 +23,7 @@ var _fusing := false
 var _refusal_shake := 0.0
 ## Seconds until the ghost's validity is re-checked (creeps move under it).
 var _recheck := 0.0
+var _partner_rings: Array[MeshInstance3D] = []
 
 
 func setup(game: Game) -> void:
@@ -45,6 +48,19 @@ func setup(game: Game) -> void:
 	_ring.material_override = ring_mat
 	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ring)
+	var partner_mesh := TorusMesh.new()
+	partner_mesh.inner_radius = 1.05
+	partner_mesh.outer_radius = 1.3
+	var partner_mat := ring_mat.duplicate() as StandardMaterial3D
+	partner_mat.albedo_color = PARTNER_COLOR
+	for i in MAX_PARTNER_RINGS:
+		var r := MeshInstance3D.new()
+		r.mesh = partner_mesh
+		r.material_override = partner_mat
+		r.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		r.visible = false
+		add_child(r)
+		_partner_rings.append(r)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _fusing = false)
 	game.sim_event.connect(_on_sim_event)
 
@@ -56,6 +72,27 @@ func is_fusing() -> bool:
 ## Arms fusion: the next click on a matching level-3 tower fuses the pair.
 func start_fuse() -> void:
 	_fusing = _game.selected != Game.NONE
+
+
+func cancel_fuse() -> void:
+	_fusing = false
+
+
+## Swaps the translucent box for a real tower model (TowerVisuals.build).
+func set_ghost_model(node: Node3D) -> void:
+	for c in _ghost.get_children():
+		c.queue_free()
+	_ghost.mesh = null
+	_ghost.add_child(node)
+	_apply_ghost_material(node)
+
+
+func _apply_ghost_material(node: Node) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).material_override = _ghost_mat
+		(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for c in node.get_children():
+		_apply_ghost_material(c)
 
 
 func _on_sim_event(e: Dictionary) -> void:
@@ -154,6 +191,21 @@ func _process(delta: float) -> void:
 		_ghost.position = Coords.tile_to_world(hover_tile, Coords.PLATEAU_TOP + 1.2)
 		_ghost.position.x += wobble
 	_update_ring(building)
+	_update_partner_rings()
+
+
+## While fusing, a pulsing gold ring marks every valid level-3 partner.
+func _update_partner_rings() -> void:
+	var partners: Array[Vector2i] = []
+	if _fusing:
+		partners = TowerInfo.fuse_partners(_game.sim, _game.selected)
+	var pulse := 1.0 + 0.08 * sin(Time.get_ticks_msec() * 0.008)
+	for i in _partner_rings.size():
+		var r := _partner_rings[i]
+		r.visible = i < partners.size()
+		if r.visible:
+			r.position = Coords.tile_to_world(partners[i], Coords.PLATEAU_TOP + 0.15)
+			r.scale = Vector3.ONE * pulse
 
 
 func _update_ring(building: bool) -> void:
