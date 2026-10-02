@@ -57,7 +57,9 @@ plist="$app/Contents/Info.plist"
 plist_get() { /usr/libexec/PlistBuddy -c "Print :$1" "$plist"; }
 bundle_id=$(plist_get CFBundleIdentifier)
 short_version=$(plist_get CFBundleShortVersionString)
-min_macos=$(plist_get LSMinimumSystemVersion)
+# Godot writes the minimum per architecture when the preset sets one per arch.
+min_macos=$(plist_get LSMinimumSystemVersionByArchitecture:arm64 2>/dev/null \
+  || plist_get LSMinimumSystemVersion 2>/dev/null || true)
 bin="$app/Contents/MacOS/$(plist_get CFBundleExecutable)"
 [[ "$bundle_id" == "$bundle_id_expected" ]] \
   || fail "bundle id $bundle_id, expected $bundle_id_expected"
@@ -65,7 +67,8 @@ bin="$app/Contents/MacOS/$(plist_get CFBundleExecutable)"
   || fail "app version $short_version but project.godot says $version (export_presets.cfg application/short_version)"
 archs=$(lipo -archs "$bin")
 [[ "$archs" == arm64 ]] || fail "expected an arm64-only binary, got '$archs'"
-ok "$bundle_id $short_version, $archs, macOS $min_macos+"
+app_bytes=$(($(du -sk "$app" | cut -f1) * 1024))
+ok "$bundle_id $short_version, $archs, macOS $min_macos+, $((app_bytes / 1048576)) MB installed"
 
 echo "== signature"
 codesign --verify --deep --strict "$app" || fail "app signature does not verify"
@@ -131,8 +134,8 @@ fi
 sha256=$(shasum -a 256 "$dmg" | cut -d' ' -f1)
 echo "$sha256  $dmg_name" >"$out_dir/$dmg_name.sha256"
 commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
-export dmg_name version size_bytes sha256 archs min_macos bundle_id signature notarized \
-  godot_version commit frames smoke_seconds launch
+export dmg_name version size_bytes app_bytes sha256 archs min_macos bundle_id signature \
+  notarized godot_version commit frames smoke_seconds launch
 python3 - "$out_dir/build-info.json" <<'PY'
 import datetime, json, os, sys
 e = os.environ
@@ -141,6 +144,7 @@ info = {
     "version": e["version"],
     "dmg": e["dmg_name"],
     "size_bytes": int(e["size_bytes"]),
+    "app_bytes": int(e["app_bytes"]),
     "sha256": e["sha256"],
     "arch": e["archs"],
     "min_macos": e["min_macos"],

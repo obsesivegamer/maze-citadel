@@ -129,6 +129,7 @@ def fetch_release(repo: str, tok: str, out: Path):
             "dmg_href": href,
             "size_bytes": dmg["size"],
             "sha256": build.get("sha256", ""),
+            "app_bytes": build.get("app_bytes", 0),
             "min_macos": build.get("min_macos", ""),
             "notarized": bool(build.get("notarized")),
             "prerelease": bool(rel.get("prerelease")),
@@ -225,12 +226,15 @@ def build(out: Path, release, url: str) -> dict:
     min_macos = (rel.get("min_macos") or defaults["min_macos"]).split(".")[0]
     dmg = rel.get("dmg", defaults["dmg"])
     date = rel.get("release_date")
+    # Free space to ask for: the installed app, rounded up to the next 50 MB.
+    disk_mb = -(-(rel.get("app_bytes") or 180 * 1048576) // (50 * 1048576)) * 50
     values = {
         "version": rel.get("version", defaults["version"]),
         "dmg_name": dmg,
         "dmg_href": rel.get("dmg_href", ""),
         "size_mb": f"{round(rel['size_bytes'] / 1048576)} MB" if release else "",
         "sha256": rel.get("sha256", ""),
+        "disk_mb": disk_mb,
         "min_macos": min_macos,
         "min_macos_name": f"{min_macos} {MACOS_NAMES.get(min_macos, '')}".strip(),
         "release_date": f"{date.day} {date:%B %Y}" if date else "",
