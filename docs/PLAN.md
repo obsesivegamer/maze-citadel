@@ -1,6 +1,6 @@
 # Maze Citadel — Build Plan
 
-**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Performance pass done: Balanced holds 60 fps in the wave-24 battle at render scale 0.5 (63.4 fps, 1% low 60; [perf.md](perf.md)). Open items: an on-screen look at 0.5 and the 10-minute thermal soak.
+**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Performance pass done: Balanced holds 60 fps in the wave-24 battle at render scale 0.5 (63.4 fps, 1% low 60; [perf.md](perf.md)). Open items: an on-screen look at 0.5 and the 10-minute thermal soak. Added since: the two stretch Epics (Sunfire Ballista, Plague Necropolis) and Twists mode, random creep abilities from wave 11 ([GDD §5.1](GDD.md)).
 
 ### Resume here
 
@@ -13,7 +13,7 @@ Game rules, numbers and content: [GDD.md](GDD.md).
 
 ## 1. The game in one paragraph
 
-A single-player maze tower defense in the spirit of Warcraft III custom maps. You open straight into a finished 3D citadel: red demon portal in the north, blue town gate in the south, a buildable plateau in between. You wall the plateau with towers to force creeps down a long winding path. You can never fully block it. Forty waves of orcs, wolves, harpies, ghouls, steam tanks and ogre bosses end with a Dreadlord. Twelve towers in four families (Alliance, Horde, Elven, Forsaken) plus support. Depth comes from three layers: where you place towers (maze length), attack type vs armor class, and a six-element counter wheel.
+A single-player maze tower defense in the spirit of Warcraft III custom maps. You open straight into a finished 3D citadel: red demon portal in the north, blue town gate in the south, a buildable plateau in between. You wall the plateau with towers to force creeps down a long winding path. You can never fully block it. Forty waves of orcs, wolves, harpies, ghouls, steam tanks and ogre bosses end with a Dreadlord. Fourteen towers in four families (Alliance, Horde, Elven, Forsaken) plus support. Depth comes from three layers: where you place towers (maze length), attack type vs armor class, and a six-element counter wheel.
 
 ## 2. Technology
 
@@ -177,7 +177,7 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - [x] Tower data tables, L1→L3 upgrades, targeting, projectiles (sim)
 - [x] Damage model: attack × armor class × element wheel × armor/shred × aura (tested cell by cell)
 - [x] Bard aura, Runesmith shred, all tower kinds (sim); [ ] distinct models and attack FX (units worker)
-- [x] Epic fusion: Frost Wyrm, Doom Cannon (sim + input)
+- [x] Epic fusion: Frost Wyrm, Doom Cannon (sim + input); stretch Epics Sunfire Ballista and Plague Necropolis added 2026-10-02
 - [x] Range ring only on ghost/hover/select; colored damage numbers
 - **Gate:** a unit test for every damage-table cell · tower showcase capture · 30 towers vs 24 creeps ≥ 60 fps Balanced
 
@@ -238,7 +238,7 @@ Between slots, all work is headless: logic, tests, balance bots, asset import, e
 1. **Engine:** Godot 4.7.2 Forward+ on Metal, typed GDScript.
 2. **Repo:** new private GitHub repo `maze-citadel`, nested in `3d/claude/towerdefense` and hidden from the `3d` repo via its local exclude file.
 3. **Notarization:** none (ad-hoc signed). No Apple Developer account; the one-time unidentified-developer prompt is fine.
-4. **12 towers** = 10 buildable + 2 Epic fusions (Frost Wyrm, Doom Cannon); 2 more Epics are stretch.
+4. **12 towers** = 10 buildable + 2 Epic fusions (Frost Wyrm, Doom Cannon); 2 more Epics are stretch (built 2026-10-02: Sunfire Ballista, Plague Necropolis).
 5. **Archer at 25 g** so 220 g buys an 8-tower opener (GDD §4).
 6. **Leaked creeps loop** back to the portal, cost lives on every pass and pay no bounty.
 7. **Pathing:** 1-tile towers on a 20 × 28 grid; 8-way movement, no corner squeezing.
