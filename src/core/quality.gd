@@ -61,7 +61,7 @@ static func settings(preset: Preset) -> Dictionary:
 			}
 		_:
 			return {
-				"render_scale": 0.7,
+				"render_scale": 0.5,
 				"upscaler": "metalfx_temporal",
 				"sdfgi": false,
 				"ssil": false,

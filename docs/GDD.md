@@ -249,7 +249,7 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 
 | Setting | Cinematic | Balanced (default) | Performance |
 |---|---|---|---|
-| 3D render scale (upscaled) | 0.85 | 0.7 | 0.5 |
+| 3D render scale (upscaled) | 0.85 | 0.5 (MetalFX temporal) | 0.5 (MetalFX spatial) |
 | Global illumination | SDFGI | SSIL | Off |
 | Shadows | 4096, soft, 4 cascades | 2048, 3 cascades | 1024, 2 cascades |
 | Volumetric fog | High | Low | Off |
