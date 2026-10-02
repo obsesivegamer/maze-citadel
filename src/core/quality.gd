@@ -105,4 +105,5 @@ static func apply(
 		if s.shadow_splits == 4
 		else DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	)
+	PerfRender.apply(viewport, env, sun, s)
 	return s

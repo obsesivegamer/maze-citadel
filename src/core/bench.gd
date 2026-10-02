@@ -83,6 +83,21 @@ static func mean(values: PackedFloat32Array) -> float:
 	return total / max(values.size(), 1)
 
 
+## The engine's values for every setting in the project's override.cfg (the
+## perf matrix writes one for startup-only settings), so a report shows the
+## override took effect.
+static func override_settings(path := "res://override.cfg") -> Dictionary:
+	var cfg := ConfigFile.new()
+	if not FileAccess.file_exists(path) or cfg.load(path) != OK:
+		return {}
+	var out := {}
+	for section in cfg.get_sections():
+		for key in cfg.get_section_keys(section):
+			var setting := section + "/" + key
+			out[setting] = ProjectSettings.get_setting(setting)
+	return out
+
+
 func _finish() -> void:
 	var avg := mean(_frame_ms)
 	var vp := get_viewport()
@@ -112,6 +127,8 @@ func _finish() -> void:
 		"godot": Engine.get_version_info().string,
 		"vsync_mode": DisplayServer.window_get_vsync_mode(),
 		"settings": settings,
+		"rendering_method": RenderingServer.get_current_rendering_method(),
+		"project_overrides": override_settings(),
 	}
 	var text := JSON.stringify(report, "  ")
 	print(text)
