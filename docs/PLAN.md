@@ -1,17 +1,14 @@
 # Maze Citadel — Build Plan
 
-**Status (checkpoint 2026-10-01):** all headless work through M6 is done and the game runs end to end with placeholder visuals on `main`. The presentation pass was stopped mid-way (usage limit); its work is saved, unmerged, on four branches. Screen slots A+B (45 min) still pending.
+**Status (2026-10-02):** all four presentation passes (audio, UI, units/FX, world) are merged on `main` with the gate and an 18,000-frame headless game green. Nothing has been seen on screen yet.
 
 ### Resume here
 
-1. Each branch below is WIP and has **not** passed `tools/check.sh`. For each: check it out (worktrees live under `.claude/worktrees/`), run the gate, finish the listed gap, then merge into `main`.
-   - `wip/world`: terrain, citadel, portal, nature, village, path, shaders. Missing: crowd (peasants, sheep, birds, gryphons), `ambience_points()`.
-   - ~~`wip/units-fx`~~ merged 2026-10-02: creep/tower/projectile visuals plus ImpactFx (explosions, scorch, fire, clouds, novas, flourishes).
-   - ~~`wip/ui`~~ merged 2026-10-02: HUD composed, plaque finished, fuse partner rings, boss-tracking toggle.
-   - ~~`wip/audio`~~ merged 2026-10-02 (gate + 18000-frame smoke green).
-2. Merge order: audio → ui → units-fx → world; after each merge run `tools/check.sh` and `tools/smoke.sh 18000`.
-3. Wire `BuildController.set_ghost_model(TowerVisuals.build(id, level))` once ui and units-fx are both in.
-4. Ask Jeremy for the 45-minute screen slot (A+B): `ALLOW_WINDOW=1 tools/bench.sh`, `tools/capture.sh`, double-click launch of the `.dmg`.
+1. **Screen slot A+B with Jeremy (45 min)** — the next step; nothing below it should start before.
+   - `ALLOW_WINDOW=1 tools/capture.sh captures/m3 full,portal,gate` at each preset; review against GDD §1 and fix what looks wrong.
+   - `ALLOW_WINDOW=1 BENCH_TAG=m3 tools/bench.sh 20` (window must stay frontmost).
+   - Export with `tools/export.sh` and double-click `dist/MazeCitadel.app` to confirm one-click launch.
+2. Then M7 (no-placeholder audit, juice tuning from the captures), M8 (perf soak), M9 (prune unused assets from the export, README, v1.0 release).
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 

@@ -8,6 +8,7 @@ const GHOST_OK := Color(0.3, 1.0, 0.45, 0.45)
 const GHOST_BAD := Color(1.0, 0.2, 0.15, 0.5)
 const RING_COLOR := Color(1.0, 0.95, 0.6, 0.85)
 const PARTNER_COLOR := Color(1.0, 0.8, 0.25, 0.9)
+const GHOST_LIFT := 1.2
 const MAX_PARTNER_RINGS := 16
 
 var hover_tile := Game.NONE
@@ -24,6 +25,7 @@ var _refusal_shake := 0.0
 ## Seconds until the ghost's validity is re-checked (creeps move under it).
 var _recheck := 0.0
 var _partner_rings: Array[MeshInstance3D] = []
+var _ghost_id: StringName = &""
 
 
 func setup(game: Game) -> void:
@@ -61,7 +63,8 @@ func setup(game: Game) -> void:
 		r.visible = false
 		add_child(r)
 		_partner_rings.append(r)
-	game.build_choice_changed.connect(func(_id: StringName) -> void: _fusing = false)
+	game.build_choice_changed.connect(_on_build_choice)
+	_on_build_choice(game.build_choice)
 	game.sim_event.connect(_on_sim_event)
 
 
@@ -79,12 +82,21 @@ func cancel_fuse() -> void:
 
 
 ## Swaps the translucent box for a real tower model (TowerVisuals.build).
+## The ghost's origin floats GHOST_LIFT above the tile, the model's sits on it.
 func set_ghost_model(node: Node3D) -> void:
 	for c in _ghost.get_children():
 		c.queue_free()
 	_ghost.mesh = null
+	node.position.y = -GHOST_LIFT
 	_ghost.add_child(node)
 	_apply_ghost_material(node)
+
+
+func _on_build_choice(id: StringName) -> void:
+	_fusing = false
+	if id != &"" and id != _ghost_id:
+		_ghost_id = id
+		set_ghost_model(TowerVisuals.build(id, 1))
 
 
 func _apply_ghost_material(node: Node) -> void:
@@ -188,7 +200,7 @@ func _process(delta: float) -> void:
 		var ok := hover_result == Placement.Result.OK
 		_ghost_mat.albedo_color = GHOST_OK if ok else GHOST_BAD
 		var wobble := sin(_refusal_shake * 60.0) * _refusal_shake * 0.6
-		_ghost.position = Coords.tile_to_world(hover_tile, Coords.PLATEAU_TOP + 1.2)
+		_ghost.position = Coords.tile_to_world(hover_tile, Coords.PLATEAU_TOP + GHOST_LIFT)
 		_ghost.position.x += wobble
 	_update_ring(building)
 	_update_partner_rings()
