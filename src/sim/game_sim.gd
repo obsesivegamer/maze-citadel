@@ -480,7 +480,19 @@ func kill(c: SimCreep, by: SimTower = null) -> void:
 	gold_earned += paid
 	if by != null:
 		by.kills += 1
-	events.append({"type": &"died", "id": c.id, "bounty": paid, "pos": c.pos})
+	(
+		events
+		. append(
+			{
+				"type": &"died",
+				"id": c.id,
+				"bounty": paid,
+				"pos": c.pos,
+				"creep": c.type,
+				"boss": c.boss,
+			}
+		)
+	)
 
 
 func _cleanup() -> void:

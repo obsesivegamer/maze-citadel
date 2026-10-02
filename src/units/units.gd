@@ -1,125 +1,198 @@
 class_name Units
 extends Node3D
-## Draws what the sim holds: creeps (interpolated between sim steps), towers,
-## projectiles and ground zones (GDD §7, §8). Skeleton version: primitive
-## shapes coloured by type; models and animation come later.
-
-const FAMILY_COLORS := {
-	&"alliance": Color(0.25, 0.5, 1.0),
-	&"horde": Color(0.9, 0.25, 0.12),
-	&"elven": Color(0.35, 0.9, 0.7),
-	&"forsaken": Color(0.55, 0.25, 0.75),
-	&"support": Color(0.95, 0.8, 0.3),
-}
-const CREEP_COLORS := {
-	&"grunt": Color(0.35, 0.6, 0.2),
-	&"wolf_rider": Color(0.5, 0.45, 0.4),
-	&"footman": Color(0.65, 0.65, 0.75),
-	&"priestess": Color(0.95, 0.9, 0.6),
-	&"harpy": Color(0.7, 0.4, 0.6),
-	&"ghoul": Color(0.55, 0.6, 0.5),
-	&"steam_tank": Color(0.45, 0.4, 0.35),
-	&"ogre": Color(0.6, 0.45, 0.3),
-	&"dreadlord": Color(0.4, 0.15, 0.4),
-	&"felhound": Color(0.3, 0.7, 0.2),
-}
+## Draws what the sim holds (GDD §7, §8, §12): creeps (pooled per type and
+## interpolated between sim steps), towers (TowerView per tile) and shots in
+## flight (ProjectileViews). Reads sim state every frame in sync() and reacts
+## to sim events for one-off animation (flinch, death, recoil, build).
 
 var _game: Game
 var _creeps := {}
+var _pools := {}
 var _towers := {}
-var _projectiles := {}
-var _zones := {}
-var _creep_mesh := CapsuleMesh.new()
-var _shot_mesh := SphereMesh.new()
+var _selling: Array[TowerView] = []
+var _shots := ProjectileViews.new()
+var _frame := 0
+var _quality := 1.0
+var _finished: Array[int] = []
+var _cam_right := Vector3.RIGHT
 
 
 func setup(game: Game) -> void:
 	_game = game
-	_creep_mesh.radius = 0.4
-	_creep_mesh.height = 1.4
-	_shot_mesh.radius = 0.15
-	_shot_mesh.height = 0.3
+	_shots.name = "Projectiles"
+	add_child(_shots)
+	_shots.setup(game)
 	game.sim_event.connect(_on_sim_event)
+	game.quality_changed.connect(_on_quality_changed)
 
 
-func _mat(color: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = 0.7
-	return m
+## Called every frame by Game with the interpolation factor between steps.
+func sync(alpha: float) -> void:
+	_frame += 1
+	var speed := 0.0 if _game.paused or _game.is_over() else float(_game.speed)
+	var dt := get_process_delta_time() * speed
+	_update_camera()
+	for c in _game.sim.creeps:
+		var v: CreepView = _creeps.get(c.id)
+		if v == null:
+			v = _acquire(c, alpha)
+		v.stamp = _frame
+		if not v.dying:
+			v.update(c, alpha, dt, speed, _cam_right)
+	_finished.clear()
+	for id: int in _creeps:
+		var v: CreepView = _creeps[id]
+		if v.stamp == _frame:
+			continue
+		v.on_died()
+		if v.update_dead(dt, speed):
+			_finished.append(id)
+	for id in _finished:
+		_release(id)
+	_sync_towers(dt)
+	_shots.sync(alpha, dt)
+
+
+func _update_camera() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var basis := cam.global_basis
+	_cam_right = basis.x
+	var hit: Variant = Plane(Vector3.UP, Coords.PLATEAU_TOP).intersects_ray(
+		cam.global_position, -basis.z
+	)
+	var dist := cam.global_position.distance_to(hit) if hit != null else 60.0
+	UnitStyle.update_outlines(dist, cam.fov, get_viewport().get_visible_rect().size.y)
+
+
+# --- Creeps -----------------------------------------------------------------
+
+
+func _acquire(c: SimCreep, alpha: float) -> CreepView:
+	var pool: Array = _pools.get(c.type, [])
+	_pools[c.type] = pool
+	var v: CreepView
+	if pool.is_empty():
+		v = CreepView.new()
+		v.name = "%s_%d" % [c.type, c.id]
+		add_child(v)
+		v.setup(c.type)
+		for p in v.emitters():
+			ParticleKit.apply_quality(p, _quality)
+	else:
+		v = pool.pop_back()
+	v.activate(c, alpha)
+	_creeps[c.id] = v
+	return v
+
+
+func _release(id: int) -> void:
+	var v: CreepView = _creeps[id]
+	_creeps.erase(id)
+	v.deactivate()
+	(_pools[v.type] as Array).append(v)
+
+
+func _creep_view(id: int) -> CreepView:
+	return _creeps.get(id)
+
+
+# --- Towers -----------------------------------------------------------------
+
+
+func _sync_towers(dt: float) -> void:
+	for tile: Vector2i in _towers:
+		(_towers[tile] as TowerView).update(_game.sim.tower_at(tile), dt)
+	for i in range(_selling.size() - 1, -1, -1):
+		if not _selling[i].update(null, dt):
+			_selling[i].queue_free()
+			_selling.remove_at(i)
+
+
+func _place_tower(tile: Vector2i) -> void:
+	var t := _game.sim.tower_at(tile)
+	if t == null:
+		return
+	_sell_tower(tile)
+	var v := TowerView.new()
+	v.name = "Tower_%d_%d" % [tile.x, tile.y]
+	add_child(v)
+	v.setup(t, _quality)
+	_towers[tile] = v
+
+
+func _refresh_tower(tile: Vector2i) -> void:
+	var v: TowerView = _towers.get(tile)
+	var t := _game.sim.tower_at(tile)
+	if v == null or t == null:
+		_place_tower(tile)
+		return
+	v.rebuild(t, &"pop")
+
+
+func _sell_tower(tile: Vector2i) -> void:
+	var v: TowerView = _towers.get(tile)
+	if v == null:
+		return
+	_towers.erase(tile)
+	v.start_sell()
+	_selling.append(v)
+
+
+# --- Events -----------------------------------------------------------------
 
 
 func _on_sim_event(e: Dictionary) -> void:
 	match e.type:
-		&"built", &"upgraded", &"fused":
+		&"built":
 			_place_tower(e.tile)
-			if e.type == &"fused":
-				_remove_tower(e.freed)
+		&"upgraded":
+			_refresh_tower(e.tile)
+		&"fused":
+			_sell_tower(e.freed)
+			_refresh_tower(e.tile)
 		&"sold":
-			_remove_tower(e.tile)
+			_sell_tower(e.tile)
+		&"fired":
+			var tv: TowerView = _towers.get(e.tile)
+			if tv:
+				tv.on_fired()
+		&"hit":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_hit(e.counter)
+		&"died":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_died()
+		&"downed":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_downed()
+		&"revived":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_revived()
+		&"heal":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_heal()
+		&"summoned":
+			var v := _creep_view(e.id)
+			if v:
+				v.on_cast()
 
 
-func _place_tower(tile: Vector2i) -> void:
-	_remove_tower(tile)
-	var t := _game.sim.tower_at(tile)
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.6
-	cyl.bottom_radius = 0.85
-	cyl.height = 2.0 + t.level * 0.6 + (1.0 if t.is_epic() else 0.0)
-	var mi := MeshInstance3D.new()
-	mi.mesh = cyl
-	mi.material_override = _mat(FAMILY_COLORS.get(t.family(), Color.WHITE))
-	mi.position = Coords.tile_to_world(tile, Coords.PLATEAU_TOP + cyl.height / 2)
-	add_child(mi)
-	_towers[tile] = mi
-
-
-func _remove_tower(tile: Vector2i) -> void:
-	if _towers.has(tile):
-		_towers[tile].queue_free()
-		_towers.erase(tile)
-
-
-## Called every frame with the interpolation factor between sim steps.
-func sync(alpha: float) -> void:
-	var seen := {}
-	for c in _game.sim.creeps:
-		seen[c.id] = true
-		var node: MeshInstance3D = _creeps.get(c.id)
-		if node == null:
-			node = MeshInstance3D.new()
-			node.mesh = _creep_mesh
-			node.material_override = _mat(CREEP_COLORS.get(c.type, Color.WHITE))
-			node.scale = Vector3.ONE * (2.0 if c.boss else 1.0)
-			add_child(node)
-			_creeps[c.id] = node
-		var height := 4.0 if c.flying else 0.7 * node.scale.y
-		node.position = Coords.to_world(c.prev_pos.lerp(c.pos, alpha), Coords.PLATEAU_TOP + height)
-		node.visible = c.revive_time <= 0.0
-	for id in _creeps.keys():
-		if not seen.has(id):
-			_creeps[id].queue_free()
-			_creeps.erase(id)
-	_sync_projectiles()
-
-
-func _sync_projectiles() -> void:
-	var seen := {}
-	for p in _game.sim.projectiles:
-		seen[p] = true
-		var node: MeshInstance3D = _projectiles.get(p)
-		if node == null:
-			node = MeshInstance3D.new()
-			node.mesh = _shot_mesh
-			node.material_override = _mat(FAMILY_COLORS.get(p.tower.family(), Color.WHITE))
-			add_child(node)
-			_projectiles[p] = node
-		var y := Coords.PLATEAU_TOP + 3.0
-		if p.kind == &"shell":
-			var k := 1.0 - p.time_left / maxf(p.flight_time, 0.001)
-			y += sin(k * PI) * 6.0 - k * 2.5
-		node.position = Coords.to_world(p.pos, y)
-	for p in _projectiles.keys():
-		if not seen.has(p):
-			_projectiles[p].queue_free()
-			_projectiles.erase(p)
+func _on_quality_changed(preset: Quality.Preset) -> void:
+	_quality = Quality.settings(preset).particles
+	for type in _pools:
+		for v: CreepView in _pools[type]:
+			for p in v.emitters():
+				ParticleKit.apply_quality(p, _quality)
+	for id: int in _creeps:
+		for p in (_creeps[id] as CreepView).emitters():
+			ParticleKit.apply_quality(p, _quality)
+	for tile: Vector2i in _towers:
+		(_towers[tile] as TowerView).apply_quality(_quality)
+	_shots.apply_quality(_quality)
