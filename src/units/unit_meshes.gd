@@ -72,8 +72,20 @@ static func note() -> Mesh:
 		st.add_vertex(c)
 		st.add_vertex(c + Vector3(cos(a1) * 0.24, sin(a1) * 0.17, 0).rotated(Vector3.BACK, 0.4))
 		st.add_vertex(c + Vector3(cos(a0) * 0.24, sin(a0) * 0.17, 0).rotated(Vector3.BACK, 0.4))
-	_quad(st, Vector3(0.04, -0.33, 0), Vector3(0.1, -0.33, 0), Vector3(0.1, 0.5, 0), Vector3(0.04, 0.5, 0))
-	_quad(st, Vector3(0.04, 0.5, 0), Vector3(0.1, 0.5, 0), Vector3(0.36, 0.18, 0), Vector3(0.3, 0.12, 0))
+	_quad(
+		st,
+		Vector3(0.04, -0.33, 0),
+		Vector3(0.1, -0.33, 0),
+		Vector3(0.1, 0.5, 0),
+		Vector3(0.04, 0.5, 0)
+	)
+	_quad(
+		st,
+		Vector3(0.04, 0.5, 0),
+		Vector3(0.1, 0.5, 0),
+		Vector3(0.36, 0.18, 0),
+		Vector3(0.3, 0.12, 0)
+	)
 	var mesh := st.commit()
 	_cache["note"] = mesh
 	return mesh
@@ -173,7 +185,9 @@ static func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector
 
 
 ## A tapered tube through `pts`, radius r0 at the start and r1 at the end.
-static func _tube(st: SurfaceTool, pts: PackedVector3Array, r0: float, r1: float, sides: int) -> void:
+static func _tube(
+	st: SurfaceTool, pts: PackedVector3Array, r0: float, r1: float, sides: int
+) -> void:
 	var rings: Array[PackedVector3Array] = []
 	for i in pts.size():
 		var t := (pts[mini(i + 1, pts.size() - 1)] - pts[maxi(i - 1, 0)]).normalized()

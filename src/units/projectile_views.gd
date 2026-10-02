@@ -13,12 +13,23 @@ const LOOKS := {
 	&"archer":
 	{"mesh": "arrow", "scale": 1.6, "streak": Vector3(0.1, 0.1, 1.8), "tint": Color(1, 0.88, 0.6)},
 	&"ballista":
-	{"mesh": "arrow", "scale": 2.8, "streak": Vector3(0.24, 0.24, 3.8), "tint": Color(0.75, 0.9, 1)},
+	{
+		"mesh": "arrow",
+		"scale": 2.8,
+		"streak": Vector3(0.24, 0.24, 3.8),
+		"tint": Color(0.75, 0.9, 1)
+	},
 	&"cannon": {"mesh": "cannonball", "scale": 1.7, "trail": &"smoke_trail", "arc": 1.0},
 	&"demolisher":
 	{"mesh": "boulder", "scale": 2.4, "trail": &"dust_trail", "arc": 1.5, "spin": 9.0},
 	&"doom_cannon":
-	{"mesh": "cannonball", "scale": 3.0, "glow": Color(1, 0.45, 0.1), "trail": &"fire_trail", "arc": 1.4},
+	{
+		"mesh": "cannonball",
+		"scale": 3.0,
+		"glow": Color(1, 0.45, 0.1),
+		"trail": &"fire_trail",
+		"arc": 1.4
+	},
 	&"frost":
 	{
 		"mesh": "crystal",
@@ -29,8 +40,10 @@ const LOOKS := {
 		"streak": Vector3(0.3, 0.3, 1.2),
 		"tint": Color(0.5, 0.85, 1),
 	},
-	&"plague": {"mesh": "orb", "scale": 0.5, "glow": Color(0.4, 1, 0.2), "trail": &"plague_trail", "lob": 1.8},
-	&"runesmith": {"mesh": "hammer", "scale": 0.8, "trail": &"rune_trail", "spin": 14.0, "lob": 0.6},
+	&"plague":
+	{"mesh": "orb", "scale": 0.5, "glow": Color(0.4, 1, 0.2), "trail": &"plague_trail", "lob": 1.8},
+	&"runesmith":
+	{"mesh": "hammer", "scale": 0.8, "trail": &"rune_trail", "spin": 14.0, "lob": 0.6},
 }
 ## Shell arc height: metres per metre of range, clamped.
 const ARC_PER_M := 0.32
@@ -187,7 +200,9 @@ func _place(s: Flight, p: SimProjectile, alpha: float, dt: float) -> void:
 			var k := 1.0 - left / maxf(p.flight_time, 0.001)
 			flat = p.start.lerp(p.target_point, k)
 			var arc := clampf(p.start.distance_to(p.target_point) * ARC_PER_M, ARC_MIN, ARC_MAX)
-			s.height = lerpf(s.muzzle, 0.2, k) + arc * float(spec.get("arc", 1.0)) * 4.0 * k * (1.0 - k)
+			s.height = (
+				lerpf(s.muzzle, 0.2, k) + arc * float(spec.get("arc", 1.0)) * 4.0 * k * (1.0 - k)
+			)
 		&"bolt":
 			flat = p.pos + p.direction * p.speed * GameSim.DT * alpha
 			s.height = lerpf(s.muzzle, BOLT_HEIGHT, clampf(p.travelled / 4.0, 0.0, 1.0))

@@ -72,8 +72,8 @@ func rebuild(t: SimTower, kind: StringName) -> void:
 	_idle.clear()
 	_model = TowerVisuals.build(id, level)
 	_pivot.add_child(_model)
-	_head = _model.get_meta("head", null)
-	_recoil = _model.get_meta("recoil", null)
+	_head = (_model.get_meta("head") if _model.has_meta("head") else null)
+	_recoil = (_model.get_meta("recoil") if _model.has_meta("recoil") else null)
 	_recoil_kind = _model.get_meta("recoil_kind", &"")
 	if _recoil:
 		_recoil_rest = _recoil.get_meta("rest", _recoil.transform)

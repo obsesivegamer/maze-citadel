@@ -336,7 +336,9 @@ static func _frost_wyrm(k: TowerVisuals.Kit) -> void:
 	var skull := TowerVisuals.crystal_node(h, Vector3(0, 0, 0.15), 0.8, ICE)
 	skull.rotation.x = PI * 0.5
 	for side in [-1.0, 1.0]:
-		var horn := TowerVisuals.crystal_node(h, Vector3(side * 0.22, 0.25, -0.15), 0.5, Color.WHITE)
+		var horn := TowerVisuals.crystal_node(
+			h, Vector3(side * 0.22, 0.25, -0.15), 0.5, Color.WHITE
+		)
 		horn.rotation = Vector3(-0.6, 0, side * -0.5)
 	k.glow.append(skull)
 	k.idle.append(&"frost_mist")

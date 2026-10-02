@@ -199,7 +199,11 @@ static func pennant(k: Kit, pos: Vector3, height := 1.3, rot := 0.0) -> void:
 	var pole := _cached_mesh("pole")
 	var cloth := _cached_mesh("cloth")
 	var b := Basis(Vector3.UP, rot)
-	k.mesh(pole, Transform3D(b.scaled(Vector3(1, height, 1)), pos), UnitStyle.flat(Color(0.25, 0.17, 0.1)))
+	k.mesh(
+		pole,
+		Transform3D(b.scaled(Vector3(1, height, 1)), pos),
+		UnitStyle.flat(Color(0.25, 0.17, 0.1))
+	)
 	var cloth_xf := Transform3D(b, pos + b * Vector3(0, height - 0.28, 0.27))
 	k.mesh(cloth, cloth_xf, _cloth_mat(k.accent()))
 
