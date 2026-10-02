@@ -43,7 +43,9 @@ func setup(game: Game) -> void:
 	_plaque.setup(game)
 	_hints.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_hints.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_hints.position = Vector2(HINT_MARGIN.x, -HINT_MARGIN.y)
+	_hints.offset_left = HINT_MARGIN.x
+	# Above the card bar: at 16:10 the centred cards reach the left corner.
+	_hints.offset_bottom = -(TowerCard.SIZE.y + CARD_BOTTOM + HINT_MARGIN.y)
 	_root.add_child(_hints)
 	_tooltip.visible = false
 	_root.add_child(_tooltip)

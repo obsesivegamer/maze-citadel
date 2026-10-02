@@ -1,13 +1,11 @@
 # Maze Citadel — Build Plan
 
-**Status (2026-10-02):** all four presentation passes (audio, UI, units/FX, world) are merged on `main` with the gate and an 18,000-frame headless game green. Nothing has been seen on screen yet.
+**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Open item: performance (Balanced below 60 fps).
 
 ### Resume here
 
-1. **Screen slot A+B with Jeremy (45 min)**: the next step; nothing below it should start before.
-   - `ALLOW_WINDOW=1 tools/slot.sh` (~15 min, unattended): launch + wave-24 battle captures (3 views × 3 presets), idle + battle benchmarks, export, open-the-app launch check.
-   - Review the captures against GDD §1/§12 and fix what looks wrong; re-capture the fixes in the same slot.
-2. Then M7 (juice tuning from the captures; the no-placeholder audit is now tests/unit/test_coverage.gd), M8 (perf soak), M9 (prune unused assets from the export, README, v1.0 release).
+1. **M8 performance pass (headless first, then a 45-min screen slot D):** Balanced is at 54 fps idle and 34 fps in the wave-24 battle (target 60). Suspects: triangle count (1.6 M in battle incl. shadows), render scale, shadow cascades. Rebalance Cinematic (SDFGI/SSR add little). Bench on a cool machine, 3 repeats each ([perf.md](perf.md)).
+2. M7 juice tuning from the slot-1 screenshots (`docs/screens/m3-*.jpg`), M9 asset pruning + v1.0.
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 
@@ -143,7 +141,8 @@ Every milestone ends with: gate green → commit(s) pushed → tag `mN` → (M1+
 - [x] `tools/` scripts: check, capture, bench, export (arm64 `.app` + `.dmg`, 91 MB / 43 MB)
 - [x] Confirmed: Metal driver, MetalFX temporal + spatial, HDR output API, macOS 13+ minimum; exported app boots headless
 - [x] First Balanced ablation ([perf.md](perf.md)): SSIL dropped from Balanced, MetalFX chosen over FSR2
-- [ ] Screen slot: all presets, uncapped headroom, shader precompile check, double-click launch
+- [x] Screen slot 1: all presets benchmarked uncapped, launch via `open` (double-click path) works
+- [ ] Shader precompile at export: not verified (headless export may skip the shader baker)
 - **Gate:** check green · capture reviewed · exported app opens by double-click · test-scene fps logged per preset
 
 ### M2 — Art and audio sourcing (≈2–3 h · 4 workers: creeps / towers+props / environment / audio)

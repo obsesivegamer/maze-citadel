@@ -18,7 +18,7 @@ const ARM_SWING := 1.9
 const BOLT_SLIDE := 0.35
 const HAMMER_SWING := 1.4
 const HEAD_KICK := 0.12
-const BARD_RING := Color(1.0, 0.78, 0.3, 0.45)
+const BARD_RING := Color(1.0, 0.78, 0.3, 0.22)
 const BARD_RING_SPIN := 0.25
 const COIL_WAVE := 0.14
 const COIL_SPEED := 2.4
@@ -131,7 +131,7 @@ func update(t: SimTower, dt: float) -> bool:
 		g.scale = (g.get_meta("base_scale") as Vector3) * pulse
 	if _ring:
 		_ring.rotation.y += BARD_RING_SPIN * dt
-		_ring.transparency = 0.25 + 0.2 * sin(_age * 1.6)
+		_ring.transparency = 0.5 + 0.15 * sin(_age * 1.6)
 	return _animate(dt)
 
 

@@ -4,7 +4,7 @@ extends Node3D
 ## gate (GDD §2). Redrawn on every path change; hidden while a wave runs if
 ## the player prefers (always shown for now).
 
-const SPACING := 1.2
+const SPACING := 1.6
 const SPEED := 2.4
 const MAX_DOTS := 600
 
@@ -18,8 +18,8 @@ var _offset := 0.0
 func setup(game: Game) -> void:
 	_game = game
 	var dot := SphereMesh.new()
-	dot.radius = 0.13
-	dot.height = 0.26
+	dot.radius = 0.24
+	dot.height = 0.48
 	dot.radial_segments = 8
 	dot.rings = 4
 	var mat := StandardMaterial3D.new()

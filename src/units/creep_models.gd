@@ -15,11 +15,13 @@ const WOLF := CHARS + "quaternius_ultimate_animated_animals/Wolf.glb"
 const RIDER := MON + "Orc_Blob.glb"
 const STAFF := KAY + "staff.glb"
 
+## Heights run ~25% above life size so creeps read at full zoom-out, the way
+## Warcraft III units tower over their buildings.
 const SPECS := {
 	&"grunt":
 	{
 		"scene": MON + "Orc.glb",
-		"height": 1.6,
+		"height": 2.0,
 		"loop": &"Run",
 		"rate": 0.95,
 		"death": &"Death",
@@ -28,7 +30,7 @@ const SPECS := {
 	&"wolf_rider":
 	{
 		"scene": WOLF,
-		"height": 1.3,
+		"height": 1.62,
 		"loop": &"Gallop",
 		"rate": 1.0,
 		"death": &"Death",
@@ -37,7 +39,7 @@ const SPECS := {
 	&"footman":
 	{
 		"scene": KAY + "Knight.glb",
-		"height": 1.7,
+		"height": 2.12,
 		"loop": &"Running_A",
 		"rate": 1.45,
 		"death": &"Death_A",
@@ -49,7 +51,7 @@ const SPECS := {
 	&"priestess":
 	{
 		"scene": KAY + "Rogue.glb",
-		"height": 1.6,
+		"height": 2.0,
 		"loop": &"Running_A",
 		"rate": 1.35,
 		"death": &"Death_A",
@@ -60,7 +62,7 @@ const SPECS := {
 	&"harpy":
 	{
 		"scene": MON + "Hywirl.glb",
-		"height": 1.7,
+		"height": 2.12,
 		"loop": &"Fast_Flying",
 		"rate": 1.0,
 		"death": &"Death",
@@ -70,7 +72,7 @@ const SPECS := {
 	&"ghoul":
 	{
 		"scene": CHARS + "kaykit_skeletons/Skeleton_Minion.glb",
-		"height": 1.55,
+		"height": 1.94,
 		"loop": &"Running_C",
 		"rate": 1.5,
 		"death": &"Death_C_Skeletons",
@@ -81,7 +83,7 @@ const SPECS := {
 	&"steam_tank":
 	{
 		"scene": CHARS + "quaternius_animated_mech/Leela.glb",
-		"height": 2.2,
+		"height": 2.75,
 		"loop": &"Walk",
 		"rate": 1.3,
 		"death": &"Death",
@@ -91,7 +93,7 @@ const SPECS := {
 	&"ogre":
 	{
 		"scene": MON + "Yeti.glb",
-		"height": 3.2,
+		"height": 4.0,
 		"loop": &"Walk",
 		"rate": 1.15,
 		"death": &"Death",
@@ -102,7 +104,7 @@ const SPECS := {
 	&"dreadlord":
 	{
 		"scene": MON + "Demon.glb",
-		"height": 3.6,
+		"height": 4.5,
 		"loop": &"Walk",
 		"rate": 1.0,
 		"death": &"Death",
@@ -114,7 +116,7 @@ const SPECS := {
 	&"felhound":
 	{
 		"scene": WOLF,
-		"height": 1.15,
+		"height": 1.44,
 		"loop": &"Gallop",
 		"rate": 0.9,
 		"death": &"Death",

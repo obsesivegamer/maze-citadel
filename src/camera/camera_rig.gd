@@ -8,13 +8,14 @@ signal boss_tracking_changed(on: bool)
 ## portal, gate; C cycles them, B follows the boss.
 
 const PRESETS := {
-	&"full": {"target": Vector3(0, 0, 3), "yaw": 0.0, "pitch": 56.0, "distance": 78.0},
+	## Fits portal arch to gate front between the HUD bars (16:10 window).
+	&"full": {"target": Vector3(0, 0, 4), "yaw": 0.0, "pitch": 58.0, "distance": 106.0},
 	&"portal": {"target": Vector3(0, 2, -27), "yaw": -18.0, "pitch": 38.0, "distance": 30.0},
 	&"gate": {"target": Vector3(0, 2, 26), "yaw": 160.0, "pitch": 36.0, "distance": 30.0},
 }
 const PRESET_ORDER: Array[StringName] = [&"full", &"portal", &"gate"]
 const MIN_DISTANCE := 14.0
-const MAX_DISTANCE := 100.0
+const MAX_DISTANCE := 130.0
 const MIN_PITCH := 22.0
 const MAX_PITCH := 82.0
 const DAMPING := 9.0
@@ -29,8 +30,8 @@ var boss_tracking := false
 var _game: Game
 var _target := Vector3.ZERO
 var _yaw := 0.0
-var _pitch := 56.0
-var _distance := 78.0
+var _pitch := 58.0
+var _distance := 106.0
 var _cur_target := Vector3.ZERO
 var _cur_yaw := 0.0
 var _cur_pitch := 56.0

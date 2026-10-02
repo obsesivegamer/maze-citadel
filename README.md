@@ -2,7 +2,7 @@
 
 A single-player maze tower defense in the spirit of Warcraft III custom maps (Element TD, Gem TD, Wintermaul One). Wall the plateau with towers to stretch the creeps' path from the red demon portal to the blue town gate, then survive 40 waves. Built with Godot 4.7 for Apple Silicon Macs.
 
-**Status:** playable end to end; visuals not yet reviewed on screen. See [docs/PLAN.md](docs/PLAN.md).
+**Status:** playable end to end; first on-screen review done, performance tuning next. See [docs/PLAN.md](docs/PLAN.md).
 
 ## Run it
 

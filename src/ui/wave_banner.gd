@@ -4,9 +4,12 @@ extends Control
 ## the top with the wave number, creep icons and counts, element, armor class
 ## and a skull for bosses. Also shows a short "wave cleared" note.
 
-const TOP := 92.0
-const HEIGHT := 128.0
-const BAND_ALPHA := 0.62
+## Sits below the portal (fraction of screen height) so spawning creeps stay
+## visible, as a centred plate rather than a full-width band.
+const TOP_FRACTION := 0.3
+const WIDTH := 860.0
+const HEIGHT := 112.0
+const BAND_ALPHA := 0.5
 const FADE_IN := 0.25
 const HOLD := 3.0
 const CLEARED_HOLD := 1.4
@@ -23,9 +26,10 @@ var _tween: Tween
 
 
 func _init() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	offset_top = TOP
-	offset_bottom = TOP + HEIGHT
+	set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	offset_left = -WIDTH / 2.0
+	offset_right = WIDTH / 2.0
+	offset_bottom = HEIGHT
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 	var box := UiKit.vbox(2)
@@ -84,12 +88,13 @@ func _play(hold: float) -> void:
 		_tween.kill()
 	visible = true
 	modulate.a = 0.0
-	position.y = TOP - SLIDE
+	var top := get_viewport_rect().size.y * TOP_FRACTION
+	position.y = top - SLIDE
 	queue_redraw()
 	_tween = create_tween()
 	_tween.set_parallel()
 	_tween.tween_property(self, "modulate:a", 1.0, FADE_IN)
-	_tween.tween_property(self, "position:y", TOP, FADE_IN).set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(self, "position:y", top, FADE_IN).set_trans(Tween.TRANS_CUBIC)
 	_tween.chain().tween_interval(hold - FADE_IN)
 	_tween.chain().tween_property(self, "modulate:a", 0.0, FADE_OUT)
 	_tween.chain().tween_callback(hide)
