@@ -1,6 +1,6 @@
 class_name UiUnitGlyphs
 extends RefCounted
-## Procedural icons for the 12 towers and 10 creep types (tower cards, wave
+## Procedural icons for the 14 towers and 10 creep types (tower cards, wave
 ## chips, banner, plaque). Same unit-square conventions as UiGlyphs. Tower
 ## icons use their family colour; creep icons their own palette.
 
@@ -17,6 +17,8 @@ const TOWERS: Array[StringName] = [
 	&"shadow",
 	&"frost_wyrm",
 	&"doom_cannon",
+	&"sunfire_ballista",
+	&"plague_necropolis",
 ]
 const CREEPS: Array[StringName] = [
 	&"grunt",
@@ -37,6 +39,7 @@ const SHADOW_STONE := Color(0.26, 0.2, 0.32)
 const BRASS := Color(0.86, 0.66, 0.3)
 const HIDE := Color(0.62, 0.48, 0.34)
 const FUR := Color(0.62, 0.6, 0.58)
+const SUN := Color(1.0, 0.8, 0.32)
 
 
 static func has(id: StringName) -> bool:
@@ -85,6 +88,11 @@ static func draw(ci: CanvasItem, id: StringName, r: Rect2, tint: Color) -> void:
 				UiGlyphs.COIN * tint
 			)
 			_cannon(ci, r, tint, 1.15)
+		&"sunfire_ballista":
+			_sunburst(ci, r, SUN * tint)
+			_crossbow(ci, r, tint)
+		&"plague_necropolis":
+			_necropolis(ci, r, tint)
 		&"grunt":
 			_axe(ci, r, tint)
 		&"wolf_rider":
@@ -224,6 +232,31 @@ static func _wyrm(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	for p in [Vector2(0.76, 0.32), Vector2(0.64, 0.46), Vector2(0.46, 0.58)]:
 		UiGlyphs.line(ci, r, Vector2(0.22, 0.32), p, Color(1, 1, 1, 0.45) * tint, 0.025)
 	UiGlyphs.star(ci, r, Vector2(0.78, 0.76), 0.2, 0.06, 6, ICE * tint)
+
+
+## Rays fanning out behind a tower icon, centred high on the glyph.
+static func _sunburst(ci: CanvasItem, r: Rect2, color: Color) -> void:
+	var c := Vector2(0.5, 0.36)
+	for i in 12:
+		var a := TAU * i / 12.0
+		var d := Vector2(cos(a), sin(a))
+		UiGlyphs.line(ci, r, c + d * 0.3, c + d * (0.46 if i % 2 == 0 else 0.4), color, 0.05)
+	UiGlyphs.ring(ci, r, c, 0.26, color, 0.06)
+
+
+static func _necropolis(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+	_obelisk(ci, r, tint)
+	for x in [0.16, 0.84]:
+		UiGlyphs.poly(
+			ci,
+			r,
+			[x - 0.07, 0.94, x + 0.07, 0.94, x + 0.06, 0.5, x - 0.06, 0.5],
+			SHADOW_STONE.lightened(0.25) * tint
+		)
+		UiGlyphs.dot(ci, r, Vector2(x, 0.44), 0.08, UiGlyphs.BONE * tint)
+	UiGlyphs.dot(ci, r, Vector2(0.5, 0.14), 0.11, PLAGUE * tint)
+	UiGlyphs.dot(ci, r, Vector2(0.32, 0.26), 0.05, PLAGUE * tint)
+	UiGlyphs.dot(ci, r, Vector2(0.68, 0.22), 0.04, PLAGUE * tint)
 
 
 # --- Creeps ---------------------------------------------------------------------

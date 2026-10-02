@@ -34,10 +34,22 @@ func _check_tower(id: StringName, level: int) -> void:
 	check(node != null, "%s L%d builds" % [id, level])
 	if node == null:
 		return
-	var meshes := node.find_children("*", "MeshInstance3D", true, false)
-	meshes.append_array(node.find_children("*", "MultiMeshInstance3D", true, false))
-	check(not meshes.is_empty(), "%s L%d has geometry" % [id, level])
+	# The merged static body is empty when TowerRecipes has no entry for `id`.
+	var body := node.get_node_or_null("Body") as MeshInstance3D
+	check(
+		body != null and body.mesh != null and body.mesh.get_surface_count() > 0,
+		"%s L%d has a body" % [id, level]
+	)
 	node.free()
+
+
+func test_every_tower_has_an_icon_words_and_shot_look() -> void:
+	for id: StringName in TowerDefs.TOWERS:
+		check(UiUnitGlyphs.TOWERS.has(id), "%s has a card icon" % id)
+		check(TowerInfo.SHORT_NAMES.has(id), "%s has a card name" % id)
+		check(TowerInfo.BLURBS.has(id), "%s has a blurb" % id)
+		if TowerDefs.stat(id, "kind") in [&"projectile", &"shell", &"bolt"]:
+			check(ProjectileViews.LOOKS.has(id), "%s has a projectile look" % id)
 
 
 static func _has_anim(ap: AnimationPlayer, anim: StringName) -> bool:

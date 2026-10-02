@@ -15,7 +15,7 @@ Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon 
 ## Play
 
 - **Build:** pick a tower card (or `1`–`0`) and click a tile. `Shift`+click keeps placing. A red ghost means the spot would block the path; the game never lets you seal the portal off from the gate.
-- **Manage:** click a tower for its plaque: `U` upgrade (two levels), `X` or right-click sell for 75%, `G` fuse two level-3 Elven or Horde towers into an Epic.
+- **Manage:** click a tower for its plaque: `U` upgrade (two levels), `X` or right-click sell for 75%, `G` fuse two level-3 towers of one family into its Epic (Frost Wyrm, Doom Cannon, Sunfire Ballista, Plague Necropolis).
 - **Waves:** they start on a timer; `N` calls the next one early. `Space` pauses, `F` cycles ×1/×2/×3.
 - **Camera:** WASD/arrows or two-finger drag to pan, scroll or pinch to zoom, middle-drag or Option-drag to orbit, `Q`/`E` rotate, `R` reset, `C` cycle portal/gate views, `B` follow the boss.
 - **Counters:** every wave carries an armor class and an element. Pierce beats Light armor and Air, Siege beats Armored, Poison ignores armor; each element deals double damage to the next one in Light → Dark → Aqua → Flame → Verdant → Stone → Light. The banner before each wave tells you what's coming.

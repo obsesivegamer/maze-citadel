@@ -71,6 +71,17 @@ const SPECS := {
 		"energy": 2.0,
 		"bounds": 30.0,
 	},
+	&"sun_trail":
+	{
+		"key": "sun_trail",
+		"amount": 28,
+		"lifetime": 0.45,
+		"vel": Vector2(0.0, 0.3),
+		"scale": Vector2(0.18, 0.34),
+		"color": Color(1.0, 0.82, 0.35),
+		"energy": 3.0,
+		"bounds": 60.0,
+	},
 	&"plague_trail":
 	{
 		"key": "plague_trail",
@@ -132,6 +143,18 @@ const SPECS := {
 		"scale": Vector2(0.08, 0.16),
 		"color": Color(0.6, 0.9, 1.0),
 		"energy": 2.5,
+	},
+	&"sun_motes":
+	{
+		"key": "sun_motes",
+		"amount": 10,
+		"lifetime": 1.4,
+		"shape": "sphere",
+		"radius": 0.7,
+		"vel": Vector2(0.15, 0.4),
+		"scale": Vector2(0.08, 0.18),
+		"color": Color(1.0, 0.85, 0.4),
+		"energy": 3.0,
 	},
 	&"frost_mist":
 	{
@@ -209,6 +232,7 @@ const IDLE_HEIGHT := {
 	&"bubbles": 1.0,
 	&"plague_fumes": 1.0,
 	&"frost_sparkle": 1.0,
+	&"sun_motes": 1.0,
 	&"frost_mist": 0.05,
 	&"embers": 0.9,
 	&"forge_embers": 0.62,

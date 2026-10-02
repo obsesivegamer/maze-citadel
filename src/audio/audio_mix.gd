@@ -40,6 +40,17 @@ const CUES := {
 	&"frost_cast": {"db": -13.0, "gap": 0.12, "group": &"fire", "max_len": 0.9},
 	&"poison_lob": {"db": -12.0, "jitter": 0.08, "gap": 0.12, "group": &"fire"},
 	&"rune_hammer": {"db": -12.0, "gap": 0.15, "group": &"fire", "max_len": 0.8},
+	&"sunfire_fire":
+	{
+		"sound": &"ballista_fire",
+		"pitch": 0.72,
+		"db": -5.0,
+		"gap": 0.3,
+		"voices": 1,
+		"group": &"fire"
+	},
+	&"necropolis_lob":
+	{"sound": &"poison_lob", "pitch": 0.8, "db": -10.0, "gap": 0.15, "group": &"fire"},
 	# Impacts and blasts
 	&"arrow_hit": {"db": -16.0, "jitter": 0.1, "gap": 0.12, "group": &"impact"},
 	&"frost_hit": {"db": -15.0, "gap": 0.15, "group": &"impact", "max_len": 0.7},
@@ -51,6 +62,15 @@ const CUES := {
 	&"roots_nova": {"db": -9.0, "gap": 0.3, "group": &"spell", "max_len": 1.8},
 	&"shadow_cloud": {"db": -12.0, "gap": 0.3, "group": &"spell", "max_len": 1.6},
 	&"epic_frost_breath": {"db": -8.0, "gap": 0.3, "voices": 1, "group": &"spell"},
+	&"plague_burst":
+	{
+		"sound": &"shadow_cloud",
+		"pitch": 1.25,
+		"db": -11.0,
+		"gap": 0.25,
+		"group": &"spell",
+		"max_len": 1.2,
+	},
 	&"frost_ring":
 	{"sound": &"frost_hit", "pitch": 0.8, "db": -10.0, "gap": 0.3, "voices": 1, "group": &"spell"},
 	# Creeps
@@ -127,8 +147,15 @@ const FIRE := {
 	&"frost": &"frost_cast",
 	&"plague": &"poison_lob",
 	&"runesmith": &"rune_hammer",
+	&"sunfire_ballista": &"sunfire_fire",
+	&"plague_necropolis": &"necropolis_lob",
 }
-const IMPACT := {&"archer": &"arrow_hit", &"frost": &"frost_hit", &"plague": &"poison_bubble"}
+const IMPACT := {
+	&"archer": &"arrow_hit",
+	&"frost": &"frost_hit",
+	&"plague": &"poison_bubble",
+	&"plague_necropolis": &"poison_bubble",
+}
 const LANDING := {
 	&"cannon": &"cannon_explode",
 	&"demolisher": &"demolisher_explode",
@@ -153,6 +180,7 @@ const EVENT_CUES := {
 	&"nova": &"roots_nova",
 	&"cloud": &"shadow_cloud",
 	&"breath": &"epic_frost_breath",
+	&"contagion": &"plague_burst",
 	&"frost_ring": &"frost_ring",
 	&"downed": &"ghoul_down",
 	&"revived": &"ghoul_revive",

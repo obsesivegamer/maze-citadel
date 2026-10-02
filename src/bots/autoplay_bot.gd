@@ -201,7 +201,7 @@ func _upgrade_one(reserve: int) -> void:
 func _try_fuse() -> void:
 	if strategy != &"smart":
 		return
-	for family in [&"elven", &"horde"]:
+	for family in TowerDefs.FUSIONS:
 		var ready: Array[Vector2i] = []
 		for tile in plan:
 			var t := sim.tower_at(tile)

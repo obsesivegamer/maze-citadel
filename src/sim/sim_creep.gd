@@ -56,3 +56,11 @@ func effective_speed() -> float:
 	if root_time > 0.0 or revive_time > 0.0:
 		return 0.0
 	return speed * (1.0 - slow) * (1.0 + aura_haste)
+
+
+## True while the creep holds a poison stack from a tower of type `tower_id`.
+func carries(tower_id: StringName) -> bool:
+	for t in poison_src:
+		if t != null and t.id == tower_id:
+			return true
+	return false
