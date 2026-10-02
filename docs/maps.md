@@ -22,12 +22,14 @@ Tiles are (column, row); row 0 is the portal (north) edge. The anti-block rule s
 
 ## Resume here (handoff notes)
 
-Work happens on branch `claude/second-map-sik2ej`, draft PR "Second map: Fallen Rampart". Each step is pushed when it lands.
+Work happens on branch `claude/second-map-sik2ej`, PR #5 "Second map: Fallen Rampart". Each step is pushed when it lands.
 
-1. [ ] Map table + map-aware sim (Grid, FlowField, Placement, GameSim), tests
-2. [ ] Map picker before wave 1, per-map save keys, `--map` flag
-3. [ ] Presentation follows the map: portal, gate, ramp, road, blight, camera presets
-4. [ ] Ruins visuals (`WorldRuins`) and ruin shading on the plateau
-5. [ ] Bot wall plan for the Rampart; balance runs on both maps (docs/balance.md)
-6. [ ] Triangle count of the wave-24 battle on the Rampart vs the Citadel (perf.md)
-7. [ ] GDD, README, ARCHITECTURE updated; `tools/check.sh` green
+1. [x] Map table + map-aware sim (Grid, FlowField, Placement, GameSim), tests (`tests/unit/test_maps.gd`)
+2. [x] Map picker before wave 1, per-map save keys (`Save.sim_key`), `--map` flag
+3. [x] Presentation follows the map: portal, gate, ramp, road, blight, camera presets
+4. [x] Ruins visuals (`WorldRuins`) and trodden dirt under ruins on the plateau
+5. [x] Bot wall plan for the Rampart; balance runs on both maps ([balance.md](balance.md))
+6. [ ] Draw calls and triangles of the wave-24 battle on the Rampart vs the Citadel ([perf.md](perf.md))
+7. [x] GDD, README, ARCHITECTURE updated; `tools/check.sh` green (it now smoke-tests the Rampart too)
+
+**Merging with the Epics + Twists branch (PR #7):** both add a third argument to `Save.mode_key` and a `Save.sim_key(sim)`; combine them as `mode_key(hard, infinite, twists, map)` with `sim_key` passing all four. `Game.change_map` carries `hard` and `infinite` across the reload in `_carry`; carry `twists` and `twist_seed` too. `run_balance.gd` and `GameSim._spawn` conflict on neighbouring lines; keep both changes.

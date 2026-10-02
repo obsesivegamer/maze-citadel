@@ -56,7 +56,7 @@ func setup(game: Game) -> void:
 	_settings.setup(game)
 	_root.add_child(_end)
 	_end.setup(game)
-	_best_before = Save.best_wave(_mode_key())
+	_best_before = Save.best_wave(Save.sim_key(game.sim))
 	game.sim_event.connect(_on_sim_event)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
@@ -114,7 +114,7 @@ func _on_sim_event(e: Dictionary) -> void:
 	match e.type:
 		&"wave_started":
 			if e.wave == 1:
-				_best_before = Save.best_wave(_mode_key())
+				_best_before = Save.best_wave(Save.sim_key(_game.sim))
 			if _announced < e.wave:
 				_announce(e.wave)
 		&"wave_cleared":
@@ -129,10 +129,6 @@ func _on_sim_event(e: Dictionary) -> void:
 		&"built", &"sold", &"upgraded", &"fused":
 			_refresh_cards()
 			_plaque.refresh()
-
-
-func _mode_key() -> String:
-	return Save.mode_key(_game.sim.hard, _game.sim.infinite, _game.sim.grid.map)
 
 
 func _announce(wave: int) -> void:

@@ -99,7 +99,7 @@ func _process(delta: float) -> void:
 func _flush() -> void:
 	for e in sim.drain_events():
 		if e.type == &"defeat" or e.type == &"victory":
-			Save.record(Save.mode_key(sim.hard, sim.infinite, sim.grid.map), sim.wave, sim.score())
+			Save.record(Save.sim_key(sim), sim.wave, sim.score())
 		sim_event.emit(e)
 
 

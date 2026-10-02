@@ -15,10 +15,15 @@ static func _file() -> ConfigFile:
 	return _cfg
 
 
-## Records are kept per map and mode; the default map keeps its original keys.
+## "normal", "hard_infinite", ...; on other maps prefixed with the map, e.g.
+## "rampart_hard". The default map keeps the keys it had before maps existed.
 static func mode_key(hard: bool, infinite: bool, map := MapDefs.DEFAULT) -> String:
 	var key := ("hard" if hard else "normal") + ("_infinite" if infinite else "")
 	return key if map == MapDefs.DEFAULT else "%s_%s" % [map, key]
+
+
+static func sim_key(sim: GameSim) -> String:
+	return mode_key(sim.hard, sim.infinite, sim.grid.map)
 
 
 static func best_wave(mode: String) -> int:

@@ -2,8 +2,9 @@ extends SceneTree
 ## Headless balance run: every strategy × mode over several bot seeds, prints
 ## a markdown table. Seed 0 is the bot's plain plan; other seeds vary its
 ## timing, wall order and tower picks the way different players would.
+## --map=rampart plays the Fallen Rampart (default: Citadel Plateau).
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
-##        [-- --seeds=4 --only=smart:hard --per-wave --map=rampart]
+##        [-- --seeds=4 --only=smart:hard --per-wave]
 ## --per-wave also prints how far each wave got (percent of the route).
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")

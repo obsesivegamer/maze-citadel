@@ -95,3 +95,12 @@ func test_bot_plan_fits_every_map() -> void:
 		for t in bot.plan:
 			check_eq(sim.build(t, &"archer"), R.OK, "%s: bot tile %s" % [id, t])
 		check(sim.field.route_length() > 4.0 * Grid.DEPTH, "%s: the maze is long" % id)
+
+
+func test_records_are_kept_per_map() -> void:
+	check_eq(Save.mode_key(false, false), "normal", "default map keeps its keys")
+	check_eq(Save.mode_key(true, true, MapDefs.DEFAULT), "hard_infinite", "default map")
+	check_eq(Save.mode_key(true, false, &"rampart"), "rampart_hard", "other maps prefixed")
+	var sim := GameSim.new(&"rampart")
+	sim.infinite = true
+	check_eq(Save.sim_key(sim), "rampart_normal_infinite", "from a sim")

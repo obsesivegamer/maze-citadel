@@ -13,6 +13,7 @@
 ## Contracts
 
 - **Coordinates:** sim positions are `Vector2` metres on the plateau (origin north-west corner). Convert with `Coords.to_world()` / `Coords.tile_to_world()`. Plateau top is `Coords.PLATEAU_TOP`; north is −Z (portal), south is +Z (gate).
+- **Maps:** `MapDefs` (data) lists the maps. The sim reads the map from its `Grid` (`grid.spawn_tiles`, `grid.goal_tiles`, `grid.spawn_point`, `grid.gate_point`, `grid.obstacles`), never from constants. The presentation reads `Coords.map`, set by `Game` before anything is built: place the portal, gate and anything tied to them from `Coords.portal()` / `Coords.gate()`, and ruins from `game.sim.grid`. `game.change_map(id)` works only before wave 1 and reloads the scene.
 - **Interpolation:** draw creeps at `c.prev_pos.lerp(c.pos, game.alpha())`.
 - **Events:** see `GameSim` for every `events.append({...})`. Types: `wave_started, wave_cleared, spawned, died, downed, revived, leaked, defeat, victory, built, sold, upgraded, fused, build_refused, path_changed, fired, hit, dot, shell_landed, nova, cloud, breath, frost_ring, immune, heal, summoned, interest`.
 - **Game signals:** `sim_event, build_choice_changed, selection_changed, speed_changed, pause_changed, quality_changed`.
