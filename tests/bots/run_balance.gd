@@ -3,7 +3,7 @@ extends SceneTree
 ## a markdown table. Seed 0 is the bot's plain plan; other seeds vary its
 ## timing, wall order and tower picks the way different players would.
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
-##        [-- --seeds=4 --only=smart:hard --per-wave]
+##        [-- --seeds=4 --only=smart:hard --per-wave --map=rampart]
 ## --per-wave also prints how far each wave got (percent of the route).
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
@@ -45,14 +45,14 @@ func _initialize() -> void:
 ## shows how close a wave came even when nothing leaked.
 func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
-	var sim := GameSim.new()
+	var sim := GameSim.new(StringName(Cli.get_str("map", MapDefs.DEFAULT)))
 	sim.hard = hard
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
 	var boss_walked := {}
 	var start := {}
-	var fly_route := Grid.SPAWN_POINT.distance_to(Grid.GATE_POINT)
+	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
 	while sim.time < MAX_GAME_SECONDS:
 		bot.step()
 		for e in sim.drain_events():
