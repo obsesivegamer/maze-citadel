@@ -92,6 +92,22 @@ const MOUNTAIN_SCALE := Vector2(30.0, 48.0)
 var _rng := RandomNumberGenerator.new()
 var _noise := FastNoiseLite.new()
 var _thinned: Array[MultiMeshInstance3D] = []
+## Performance experiments (PerfFlags); the defaults are the shipped look.
+## Chunk edge (m): smaller chunks cull and pick LODs closer to each tree.
+var _chunk := PerfFlags.get_float("nature-chunk", CHUNK)
+## Only plants this close to the plateau edge (m) cast shadows; 0 = all.
+var _shadow_radius := PerfFlags.get_float("nature-shadow-radius", 0.0)
+## Swaying leafy plants cast shadows from FoliageVariants.shadow_proxy hulls.
+var _shadow_proxy := PerfFlags.get_bool("nature-shadow-proxy", false)
+## Scales every set's planting radius; the random sequence is kept, so the
+## nearer plants stay where they were.
+var _radius_scale := PerfFlags.get_float("nature-radius-scale", 1.0)
+## GeometryInstance3D.lod_bias for every set: < 1 drops to coarser LODs nearer.
+var _lod_bias := PerfFlags.get_float("nature-lod-bias", 1.0)
+## Visibility range (m) for the sets without one (trees, rocks); 0 = any.
+var _tree_range := PerfFlags.get_float("nature-tree-range", 0.0)
+## Small plants fade out at their range instead of popping.
+var _fade := PerfFlags.get_bool("nature-fade", true)
 
 
 func build() -> void:
@@ -197,6 +213,7 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 	var buckets := {}
 	var margin := step * 0.35
 	var cells := ceili(radius / step)
+	var keep := radius * _radius_scale
 	for gz in range(-cells, cells + 1):
 		for gx in range(-cells, cells + 1):
 			var p := Vector2(
@@ -213,19 +230,41 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 			var s := WorldKit.fit_height(path, _rng.randf_range(size.x, size.y))
 			var pos := WorldLayout.ground_point(p) - Vector3(0, 0.1 * s, 0)
 			var t := WorldKit.placed(pos, _rng.randf() * TAU, s, _rng.randf_range(-0.05, 0.05))
-			var key := Vector3i(mi, floori(p.x / CHUNK), floori(p.y / CHUNK))
+			if p.length() > keep:
+				continue
+			var cast: bool = (
+				spec.shadows
+				and (_shadow_radius <= 0.0 or WorldLayout.plateau_sdf(p) < _shadow_radius)
+			)
+			var key := Vector4i(mi, floori(p.x / _chunk), floori(p.y / _chunk), int(cast))
 			if not buckets.has(key):
 				buckets[key] = [] as Array[Transform3D]
 			buckets[key].append(t)
 	var sway: float = spec.sway
-	for key: Vector3i in buckets:
+	for key: Vector4i in buckets:
 		var path: String = models[key.x]
 		var mesh: Mesh = WorldKit.swaying(path, sway) if sway > 0.0 else WorldKit.merged(path)
-		var mmi := WorldKit.multimesh(mesh, buckets[key], spec.shadows, key.y * 31 + key.z)
-		if spec.view_range > 0.0:
-			mmi.visibility_range_end = spec.view_range
+		var xforms: Array[Transform3D] = buckets[key]
+		var seed_value := key.y * 31 + key.z
+		var cast := key.w == 1
+		if cast and _shadow_proxy and sway > 0.0 and FoliageVariants.has_leaves(mesh):
+			# Same seed and starting order, so both shuffle alike and thin alike.
+			var proxy := WorldKit.multimesh(
+				FoliageVariants.shadow_proxy(mesh), xforms.duplicate(), true, seed_value
+			)
+			proxy.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+			add_child(proxy)
+			_thinned.append(proxy)
+			cast = false
+		var mmi := WorldKit.multimesh(mesh, xforms, cast, seed_value)
+		var view_range: float = spec.view_range if spec.view_range > 0.0 else _tree_range
+		if view_range > 0.0:
+			mmi.visibility_range_end = view_range
 			mmi.visibility_range_end_margin = 20.0
-			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			if spec.view_range > 0.0 and _fade:
+				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		if _lod_bias != 1.0:
+			mmi.lod_bias = _lod_bias
 		add_child(mmi)
 		_thinned.append(mmi)
 
