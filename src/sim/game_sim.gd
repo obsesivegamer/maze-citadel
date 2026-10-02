@@ -18,8 +18,12 @@ const CREEP_RADIUS := 0.45
 const INTEREST_PERIOD := 15.0
 const INTEREST_RATE := 0.02
 const INTEREST_CAP := 20
-const HARD_HP := 1.3
-const HARD_BOUNTY := 1.2
+## Hard creep HP multiplier: HARD_HP_FROM on wave 1 rising to HARD_HP_TO on
+## wave 40 (and after), so the opening lessons stay fair and the late game is
+## tight. Hard pays no extra bounty: extra gold buys upgrades that more than
+## made up for the extra HP (docs/balance.md).
+const HARD_HP_FROM := 1.1
+const HARD_HP_TO := 1.4
 const INFINITE_HP_GROWTH := 1.08
 const DOT_REPORT_PERIOD := 0.5
 
@@ -236,6 +240,11 @@ func last_wave() -> int:
 	return 1_000_000 if infinite else WaveDefs.count()
 
 
+## True while the current wave still has creeps waiting to enter.
+func spawning() -> bool:
+	return not _spawn_queue.is_empty()
+
+
 ## Starts the next wave now (also how `N` calls a wave early; waves may overlap).
 func start_next_wave() -> void:
 	if phase == Phase.DEFEAT or phase == Phase.VICTORY or wave >= last_wave():
@@ -295,6 +304,11 @@ func _spawn() -> void:
 	_spawn_timer = FAST_SPAWN_INTERVAL if c.speed >= 4.5 else SPAWN_INTERVAL
 
 
+static func hard_hp(w: int) -> float:
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	return lerpf(HARD_HP_FROM, HARD_HP_TO, f)
+
+
 func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> SimCreep:
 	var def: Dictionary = CreepDefs.CREEPS[type]
 	var c := SimCreep.new()
@@ -304,7 +318,7 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.wave = w
 	c.pos = at
 	c.prev_pos = at
-	var hp_mult := HARD_HP if hard else 1.0
+	var hp_mult := hard_hp(w) if hard else 1.0
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
@@ -315,9 +329,8 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.element = element
 	c.flying = def.get("flying", false)
 	c.boss = CreepDefs.is_boss(type)
-	var bounty_mult := HARD_BOUNTY if hard else 1.0
 	var boss_mult := 25 if type == &"dreadlord" else (10 if c.boss else 1)
-	c.bounty = roundi(CreepDefs.bounty(w) * boss_mult * bounty_mult)
+	c.bounty = CreepDefs.bounty(w) * boss_mult
 	match type:
 		&"steam_tank":
 			c.ability_timer = TANK_IMMUNE_PERIOD

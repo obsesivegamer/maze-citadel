@@ -3,6 +3,9 @@ extends RefCounted
 ## Wave table (GDD §9). Groups spawn in order; a group may carry its own
 ## element (waves 31-39 mix two), otherwise the wave's element applies.
 ## Infinite mode repeats waves 31-39 with extra HP (see GameSim).
+## `boss_hp` scales the boss's HP on that wave (CreepDefs.max_hp): the lone
+## Ogres on 10 and 20 are made the peak of their stretch, while the twin Ogres
+## on 30 and the Dreadlord use the type multiplier as is.
 
 const WAVES: Array[Dictionary] = [
 	# 1-9: one mechanic each
@@ -15,7 +18,7 @@ const WAVES: Array[Dictionary] = [
 	{"element": &"flame", "groups": [[&"grunt", 4], [&"steam_tank", 6]]},
 	{"element": &"flame", "groups": [[&"wolf_rider", 12], [&"grunt", 8]]},
 	{"element": &"aqua", "groups": [[&"footman", 12], [&"priestess", 4]]},
-	{"element": &"flame", "groups": [[&"grunt", 8], [&"ogre", 1]]},
+	{"element": &"flame", "groups": [[&"grunt", 8], [&"ogre", 1]], "boss_hp": 2.2},
 	# 11-19: air, heal, revive
 	{"element": &"verdant", "groups": [[&"harpy", 10], [&"priestess", 4]]},
 	{"element": &"dark", "groups": [[&"ghoul", 12], [&"priestess", 3]]},
@@ -26,7 +29,7 @@ const WAVES: Array[Dictionary] = [
 	{"element": &"dark", "groups": [[&"harpy", 18]]},
 	{"element": &"flame", "groups": [[&"ghoul", 14], [&"priestess", 5]]},
 	{"element": &"stone", "groups": [[&"wolf_rider", 14], [&"harpy", 8]]},
-	{"element": &"dark", "groups": [[&"harpy", 8], [&"ogre", 1]]},
+	{"element": &"dark", "groups": [[&"harpy", 8], [&"ogre", 1]], "boss_hp": 3.2},
 	# 21-29: armor and immunity
 	{"element": &"aqua", "groups": [[&"steam_tank", 8], [&"priestess", 4]]},
 	{"element": &"verdant", "groups": [[&"footman", 16]]},

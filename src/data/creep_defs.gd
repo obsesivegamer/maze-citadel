@@ -22,8 +22,13 @@ const BASE_HP := 60.0
 const HP_GROWTH := 1.105
 
 
+## Boss HP also takes the wave's own `boss_hp` scale (WaveDefs), so each boss
+## wave can be tuned as the peak of its stretch.
 static func max_hp(type: StringName, wave: int, mode_mult := 1.0) -> float:
-	return BASE_HP * pow(HP_GROWTH, wave - 1) * CREEPS[type].hp * mode_mult
+	var hp: float = BASE_HP * pow(HP_GROWTH, wave - 1) * CREEPS[type].hp * mode_mult
+	if is_boss(type):
+		hp *= WaveDefs.row(wave).get("boss_hp", 1.0)
+	return hp
 
 
 static func bounty(wave: int) -> int:
