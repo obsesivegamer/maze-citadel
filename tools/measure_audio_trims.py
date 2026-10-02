@@ -6,16 +6,16 @@ the mix table in audio_mix.gd sets balance instead of fighting source levels.
 One-shots are measured by their loudest 400 ms (EBU R128 momentary, padded so
 very short clips still register); music and looping beds by integrated
 loudness. Needs ffmpeg. Rerun after adding or replacing audio:
-    python3 src/audio/measure_trims.py && gdformat src/audio/audio_trims.gd
+    python3 tools/measure_audio_trims.py && gdformat src/audio/audio_trims.gd
 """
 import json
 import pathlib
 import re
 import subprocess
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 AUDIO = ROOT / "assets" / "audio"
-OUT = pathlib.Path(__file__).resolve().parent / "audio_trims.gd"
+OUT = ROOT / "src" / "audio" / "audio_trims.gd"
 ONE_SHOT_TARGET = -12.0
 LOOP_TARGET = -16.0
 LIMIT = 12.0
