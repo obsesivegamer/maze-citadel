@@ -6,6 +6,7 @@ extends Node3D
 ##   --quality=cinematic|balanced|performance   presentation preset
 ##   --<setting>=<value>                        override one preset setting
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
+##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
 
@@ -27,6 +28,8 @@ func _ready() -> void:
 		game.choose_build(&"")
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
+	if Cli.has("warp-wave"):
+		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
 	_attach_tools(func(view: String) -> void: game.camera.preset(StringName(view), true))
 
 

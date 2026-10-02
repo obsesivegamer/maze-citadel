@@ -82,6 +82,24 @@ func _flush() -> void:
 		sim_event.emit(e)
 
 
+## Plays instantly (no rendering) until `wave` has started plus `into`
+## seconds, so captures and benchmarks can start mid-battle. Capped at an hour
+## of game time in case the player (or bot) can't get that far.
+func warp_to_wave(wave: int, into := 0.0) -> void:
+	var limit := 3600.0
+	var extra := -1.0
+	while not is_over() and sim.time < limit:
+		if autoplay != null:
+			autoplay.step()
+		else:
+			sim.step()
+		_flush()
+		if extra < 0.0 and sim.wave >= wave:
+			extra = sim.time + into
+		if extra >= 0.0 and sim.time >= extra:
+			break
+
+
 func is_over() -> bool:
 	return sim.phase == GameSim.Phase.DEFEAT or sim.phase == GameSim.Phase.VICTORY
 
