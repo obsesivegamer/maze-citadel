@@ -95,6 +95,7 @@ func _finish() -> void:
 		"avg_frame_ms": snappedf(avg, 0.01),
 		"avg_cpu_ms": snappedf(mean(_cpu_ms), 0.01),
 		"timeline_fps": _timeline,
+		"flags": PerfFlags.active(),
 		"max_draw_calls": _draw_calls,
 		"max_primitives": _primitives,
 		"video_mem_mb":
