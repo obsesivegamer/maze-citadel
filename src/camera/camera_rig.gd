@@ -1,5 +1,7 @@
 class_name CameraRig
 extends Node3D
+
+signal boss_tracking_changed(on: bool)
 ## RTS camera (GDD §10): damped orbit, pan and zoom around a ground target.
 ## Mouse wheel / pinch zoom, WASD / arrows / two-finger trackpad pan,
 ## middle-drag or Option-drag orbit, Q/E rotate. Presets: full board (R),
@@ -63,9 +65,17 @@ func preset(preset_name: StringName, snap := false) -> void:
 		_apply()
 
 
-## Fx decides when to shake; the rig only renders it.
+## Fx decides when to shake; the rig only renders it, unless the player turned
+## shake off in settings.
 func add_shake(amount: float) -> void:
-	_shake = minf(_shake + amount, 1.5)
+	if Save.setting("camera_shake", true):
+		_shake = minf(_shake + amount, 1.5)
+
+
+func set_boss_tracking(on: bool) -> void:
+	if on != boss_tracking:
+		boss_tracking = on
+		boss_tracking_changed.emit(on)
 
 
 ## The point on the plateau under a screen position, or null when the ray
@@ -98,13 +108,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMagnifyGesture:
 		_distance /= (event as InputEventMagnifyGesture).factor
 	elif event.is_action_pressed(&"hero_view"):
-		boss_tracking = false
+		set_boss_tracking(false)
 		preset(&"full")
 	elif event.is_action_pressed(&"camera_preset"):
-		boss_tracking = false
+		set_boss_tracking(false)
 		preset(PRESET_ORDER[(_preset_index + 1) % PRESET_ORDER.size()])
 	elif event.is_action_pressed(&"boss_track"):
-		boss_tracking = not boss_tracking
+		set_boss_tracking(not boss_tracking)
 	_distance = clampf(_distance, MIN_DISTANCE, MAX_DISTANCE)
 	_pitch = clampf(_pitch, MIN_PITCH, MAX_PITCH)
 

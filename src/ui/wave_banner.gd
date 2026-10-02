@@ -1,0 +1,124 @@
+class_name WaveBanner
+extends Control
+## The pre-wave announcement (GDD §3): 3 s before a wave spawns, a band across
+## the top with the wave number, creep icons and counts, element, armor class
+## and a skull for bosses. Also shows a short "wave cleared" note.
+
+const TOP := 92.0
+const HEIGHT := 128.0
+const BAND_ALPHA := 0.62
+const FADE_IN := 0.25
+const HOLD := 3.0
+const CLEARED_HOLD := 1.4
+const FADE_OUT := 0.7
+const SLIDE := 14.0
+const ICON_PX := 30.0
+
+var _title := UiKit.label("", &"Title", UiTheme.SIZE_BANNER)
+var _skull_l := UiIcon.new(&"skull", 38.0)
+var _skull_r := UiIcon.new(&"skull", 38.0)
+var _icons := WaveIcons.new(ICON_PX, 18)
+var _detail := UiKit.rich(UiTheme.SIZE_BODY)
+var _tween: Tween
+
+
+func _init() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	offset_top = TOP
+	offset_bottom = TOP + HEIGHT
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	visible = false
+	var box := UiKit.vbox(2)
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	add_child(box)
+	var row := UiKit.hbox(14)
+	row.add_child(_skull_l)
+	_title.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.02))
+	_title.add_theme_constant_override("outline_size", 10)
+	row.add_child(_title)
+	row.add_child(_skull_r)
+	box.add_child(row)
+	box.add_child(_icons)
+	_detail.fit_content = true
+	_detail.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_detail.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(_detail)
+
+
+func announce(wave: int) -> void:
+	var boss := WaveDefs.has_boss(wave)
+	_title.text = "Wave %d" % wave
+	_title.add_theme_color_override("font_color", UiTheme.BAD if boss else UiTheme.GOLD_BRIGHT)
+	_skull_l.visible = boss
+	_skull_r.visible = boss
+	_icons.visible = true
+	_icons.show_wave(wave)
+	var parts := PackedStringArray()
+	for e in WaveDefs.elements(wave):
+		var c := UiTheme.element_color(e)
+		parts.append("[color=#%s]%s[/color]" % [UiTheme.hex(c), TowerInfo.ELEMENT_NAMES[e]])
+	var classes := PackedStringArray()
+	for c in TowerInfo.wave_classes(wave):
+		classes.append(TowerInfo.CLASS_NAMES[c])
+	var text := " + ".join(parts) + "   ·   " + "/".join(classes) + " armor"
+	if boss:
+		text += "   ·   [color=#%s]BOSS — leaks cost 2 lives[/color]" % UiTheme.hex(UiTheme.BAD)
+	_detail.text = "[center]%s[/center]" % text
+	_detail.visible = true
+	_play(HOLD)
+
+
+func cleared(wave: int) -> void:
+	_title.text = "Wave %d cleared" % wave
+	_title.add_theme_color_override("font_color", UiTheme.GOOD)
+	_skull_l.visible = false
+	_skull_r.visible = false
+	_icons.visible = false
+	_detail.visible = false
+	_play(CLEARED_HOLD)
+
+
+func _play(hold: float) -> void:
+	if _tween != null:
+		_tween.kill()
+	visible = true
+	modulate.a = 0.0
+	position.y = TOP - SLIDE
+	queue_redraw()
+	_tween = create_tween()
+	_tween.set_parallel()
+	_tween.tween_property(self, "modulate:a", 1.0, FADE_IN)
+	_tween.tween_property(self, "position:y", TOP, FADE_IN).set_trans(Tween.TRANS_CUBIC)
+	_tween.chain().tween_interval(hold - FADE_IN)
+	_tween.chain().tween_property(self, "modulate:a", 0.0, FADE_OUT)
+	_tween.chain().tween_callback(hide)
+
+
+## A dark band that fades out toward the screen edges, with gold hairlines.
+func _draw() -> void:
+	var w := size.x
+	var h := size.y
+	var clear := Color(0, 0, 0, 0)
+	var dark := Color(0.03, 0.025, 0.02, BAND_ALPHA)
+	var mid := w / 2.0
+	var edge := w * 0.18
+	for side in [-1.0, 1.0]:
+		var outer: float = mid + side * (mid - edge * 0.2)
+		var inner: float = mid + side * edge
+		var core := PackedVector2Array(
+			[Vector2(mid, 0), Vector2(inner, 0), Vector2(inner, h), Vector2(mid, h)]
+		)
+		draw_polygon(core, PackedColorArray([dark, dark, dark, dark]))
+		var fade := PackedVector2Array(
+			[Vector2(inner, 0), Vector2(outer, 0), Vector2(outer, h), Vector2(inner, h)]
+		)
+		draw_polygon(fade, PackedColorArray([dark, clear, clear, dark]))
+		var line_colors := PackedColorArray([UiTheme.GOLD, UiTheme.GOLD, Color(UiTheme.GOLD, 0.0)])
+		for y in [1.0, h - 1.0]:
+			draw_polyline_colors(
+				PackedVector2Array([Vector2(mid, y), Vector2(inner, y), Vector2(outer, y)]),
+				line_colors,
+				1.5,
+				true
+			)

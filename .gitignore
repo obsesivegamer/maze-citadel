@@ -11,3 +11,6 @@ export_credentials.cfg
 # OS / editor
 .DS_Store
 *.tmp
+
+# Agent worktrees
+/.claude/
