@@ -1,0 +1,23 @@
+{
+  "adapter": "Apple M3 (Apple9)",
+  "avg_cpu_ms": 1.06,
+  "avg_fps": 53.0,
+  "avg_frame_ms": 18.86,
+  "driver": "metal",
+  "focused": true,
+  "frames": 1061,
+  "godot": "4.7.2-stable (official)",
+  "hdr_max_nits": -1.0,
+  "hdr_supported": true,
+  "label": "balanced",
+  "low_1pct_fps": 47.4,
+  "max_draw_calls": 1420.0,
+  "max_primitives": 654529.0,
+  "render_scale": 0.699999988079071,
+  "scaling_mode": 4,
+  "seconds": 20.0,
+  "seconds_waiting_for_focus": 0.0,
+  "video_mem_mb": 951.0,
+  "vsync_mode": 0,
+  "window_px": "(2940, 1782)"
+}
