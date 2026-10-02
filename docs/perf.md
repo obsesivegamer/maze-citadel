@@ -51,3 +51,36 @@ Findings and caveats:
 3. Render-thread CPU time is only 1-2 ms per frame, and draw calls (1.2-2.5 k) are not the bottleneck by that measure; triangle count (0.8 M idle, 1.6 M battle, shadow passes included) and fill are the suspects.
 4. Cinematic looks almost the same as Balanced in this stylized scene (SDFGI and SSR add little) at twice the cost. Rebalance: spend Cinematic's budget on render scale and shadow resolution instead.
 5. Launch: `open dist/MazeCitadel.app` (the double-click path) started the exported arm64 app; 156 MB app, 107 MB dmg.
+
+## Balanced performance pass (2026-10-02)
+
+Balanced only, 20 s per run, focused window (every run `focused=true`), vsync off, plugged in, 2 min rest between runs. Idle and battle runs interleaved so heat doesn't favour one scene. "Battle" is the same deterministic wave-24 warp as slot 1 (`--autoplay --warp-wave=24 --warp-into=18`). Raw JSON: [perf/pass-1002/](perf/pass-1002/).
+
+**Baseline, render scale 0.7, 3 runs each:**
+
+| Scene | Avg frame ms | Avg fps (range) | 1% low | Max draw calls | Max primitives | Video mem |
+|---|---|---|---|---|---|---|
+| Idle | 18.7 | 53.4 (53.0–53.6) | 51.3 | 1,420 | 0.65 M | 951 MB |
+| Battle | 20.1 | 49.7 (49.6–49.8) | 48.9 | 2,313 | 1.37 M | 1,036 MB |
+
+**One setting at a time against the battle, 2 runs each (interleaved, with an unchanged control in each round):**
+
+| Change from Balanced | Avg frame ms | Avg fps (range) | 1% low | Δ ms vs control |
+|---|---|---|---|---|
+| none (control) | 20.1 | 49.7 (49.7–49.7) | 49.1 | — |
+| render scale 0.6 | 17.7 | 56.5 (56.4–56.5) | 55.4 | −2.4 |
+| **render scale 0.5** | **15.8** | **63.5 (62.7–64.3)** | **60.0** | **−4.3** |
+| SSAO off | 18.7 | 53.3 (53.3–53.4) | 52.4 | −1.4 |
+| volumetric fog off | 19.7 | 50.8 (50.7–50.8) | 50.0 | −0.4 |
+| shadows 1024, 2 cascades | 20.0 | 49.9 (49.9–49.9) | 49.1 | −0.1 |
+| foliage 0.5 | 20.1 | 49.7 (49.6–49.7) | 48.5 | 0 |
+| crowd 0.35 | 20.1 | 49.8 (49.8–49.8) | 49.1 | 0 |
+
+**Fix: Balanced render scale 0.7 → 0.5** (MetalFX temporal upscaling stays), confirmed with 3 more battle runs: 15.8 ms, **63.4 fps (62.6–64.4), 1% low 60.0**, 2,314 draw calls, 1.37 M primitives, 955 MB video memory. This meets the PLAN target (60 fps average, 1% low ≥ 50).
+
+Findings:
+1. Runs were stable this time: every repeat landed within ±1 fps. Slot 1's 33.7 fps battle did not reproduce. Battle primitives also dropped from 1.59 M to 1.37 M after the slot 1 fixes, but heat is the likelier cause of the old number.
+2. The GPU is fill-bound at 2940 × 1782. Render scale is the only lever that reaches 60. Shadow resolution, fog, foliage and crowd are each worth ≤ 0.4 ms. SSAO is the next-biggest single cost (1.4 ms).
+3. The foliage and crowd overrides did not change draw calls or primitives at all. Either the density isn't reapplied after the warp, or those meshes are a small share of the cost. Worth a headless check before relying on those settings.
+4. Each 1% low at render scale 0.5 is exactly 60.0, which suggests the display's frame pacing still caps some frames even with vsync off (see "How to measure").
+5. Still to do: check on screen that 0.5 with MetalFX temporal looks acceptable on the Retina display. Balanced and Performance now share a render scale; they still differ in upscaler, SSAO, fog, shadows and density. Also still owed: the 10-minute thermal soak.
