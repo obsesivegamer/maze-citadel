@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maze Citadel</title>
+<!-- Template for tools/build_site.py, which fills the double-brace values and
+     keeps or drops the if/end blocks using the newest release. -->
+<meta name="description" content="A maze tower defense for Apple silicon Macs. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Maze Citadel">
+<meta property="og:description" content="A maze tower defense for Apple silicon Macs. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
+<!--if:site_url--><meta property="og:image" content="{{site_url}}img/hero.jpg">
+<meta property="og:url" content="{{site_url}}"><!--end:site_url-->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#181513">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23181513'/%3E%3Cpath d='M6 27V11h3V7h3v4h2V7h4v4h2V7h3v4h3v16h-8v-5a3 3 0 0 0-6 0v5z' fill='%23C79E52'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Fira+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: the battlefield screenshot is the hero; the title is set like the
+   in-game wave banner, and the one framed object on the page is the download
+   panel, trimmed like the game's HUD. Palette from src/ui/ui_theme.gd. */
+:root {
+  color-scheme: dark;
+  --stone: #181513;
+  --stone-hi: #2a2620;
+  --stone-deep: #0d0b0a;
+  --gold: #c79e52;
+  --gold-bright: #ffdb7a;
+  --gold-dim: #705930;
+  --text: #f2e8d1;
+  --text-dim: #aba18c;
+  --shade: rgba(13, 11, 10, 0.82);
+  --shade-soft: rgba(13, 11, 10, 0);
+  --trim: rgba(199, 158, 82, 0.35);
+  --el-light: #ffeda3;
+  --el-dark: #b880fa;
+  --el-aqua: #61bdff;
+  --el-flame: #ff8538;
+  --el-verdant: #80e059;
+  --el-stone: #c7ad8a;
+  --display: "Cinzel", "Trajan Pro", "Times New Roman", serif;
+  --body: "Fira Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3rem;
+  --step-2: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+  --step-4: clamp(2.8rem, 1.6rem + 6vw, 5.6rem);
+  --radius: 6px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--stone); }
+body {
+  margin: 0;
+  background: var(--stone);
+  color: var(--text);
+  font: 400 var(--step-0)/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--gold-bright); text-underline-offset: 3px; }
+a:hover { color: var(--text); }
+:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 2px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
+
+/* Hero */
+.hero { position: relative; isolation: isolate; overflow: hidden; background: var(--stone-deep); }
+.hero-art {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%;
+  /* Crop the game's HUD bars off the top and bottom edges. */
+  transform: scale(1.14); transform-origin: 62% 50%;
+}
+.hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(to top, var(--stone) 0%, var(--shade) 30%, var(--shade-soft) 72%),
+    linear-gradient(to right, var(--shade) 0%, var(--shade-soft) 62%);
+}
+.hero-inner { display: grid; gap: 22px; padding-block: clamp(200px, 26vw, 320px) 64px; }
+.eyebrow {
+  font: 500 var(--step--1)/1.2 var(--body);
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold);
+}
+.title {
+  font: 800 var(--step-4)/0.95 var(--display);
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, var(--gold-bright) 20%, var(--gold) 95%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 3px 0 var(--stone-deep)) drop-shadow(0 8px 22px var(--shade));
+}
+.lede { max-width: 34rem; font-size: var(--step-1); line-height: 1.5; color: var(--text); }
+
+/* Download panel, trimmed like the in-game HUD */
+.get {
+  justify-self: start; display: grid; gap: 12px; max-width: 100%;
+  padding: 20px 22px 18px;
+  background: var(--shade);
+  border: 1px solid var(--gold-dim); border-radius: var(--radius);
+  box-shadow: inset 0 0 0 4px var(--stone), inset 0 0 0 5px var(--trim), 0 12px 32px var(--shade);
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 26px; border-radius: var(--radius);
+  font: 700 var(--step-1)/1 var(--body); color: var(--stone-deep); text-decoration: none;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  box-shadow: inset 0 -2px 0 var(--gold-dim), 0 2px 0 var(--stone-deep);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn:hover { color: var(--stone-deep); filter: brightness(1.08); transform: translateY(-1px); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn.is-off { background: var(--stone-hi); color: var(--text-dim); box-shadow: none; cursor: default; }
+.btn.is-off:hover { transform: none; filter: none; }
+.get-meta { font-size: var(--step--1); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.get-meta strong { color: var(--text); font-weight: 500; }
+.pill {
+  justify-self: start; padding: 2px 10px; border-radius: 999px;
+  font: 500 0.75rem/1.6 var(--body); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-bright); border: 1px solid var(--gold-dim);
+}
+
+/* Sections */
+section { padding-block: 72px; }
+section + section { border-top: 1px solid var(--stone-hi); }
+.kicker {
+  font: 500 var(--step--1)/1.2 var(--body); letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+}
+h2 { font: 600 var(--step-2)/1.15 var(--display); color: var(--text); }
+h3 { font: 600 var(--step-1)/1.2 var(--display); color: var(--gold-bright); }
+.prose { display: grid; gap: 14px; max-width: 38rem; color: var(--text-dim); }
+.prose strong { color: var(--text); font-weight: 500; }
+
+.plays { display: grid; gap: 72px; }
+.row { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 44px; align-items: center; }
+.row.flip { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.row.flip .shot, .row.flip .ring { order: 2; }
+.row > div { min-width: 0; display: grid; gap: 14px; }
+.shot { border-radius: var(--radius); border: 1px solid var(--stone-hi); box-shadow: 0 18px 40px var(--shade); }
+
+.ring { justify-self: center; width: min(340px, 100%); }
+.ring svg { width: 100%; height: auto; }
+.ring .arc { fill: none; stroke: var(--gold-dim); stroke-width: 2.5; }
+.ring .node { fill: var(--stone-hi); stroke-width: 2.5; }
+.ring text { font-family: var(--body); font-weight: 500; font-size: 13px; text-anchor: middle; dominant-baseline: central; }
+.ring .x2 { font-family: var(--display); font-weight: 800; font-size: 40px; fill: var(--gold-bright); }
+.ring .x2-note { font-size: 12px; fill: var(--text-dim); font-weight: 400; }
+.counters { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--step--1); color: var(--text-dim); }
+.counters b { color: var(--text); font-weight: 500; }
+
+/* Controls */
+.keys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px; margin: 28px 0 0; padding: 0; }
+.keys div { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
+.keys dt { flex: none; min-width: 7.5rem; display: flex; flex-wrap: wrap; gap: 4px; }
+.keys dd { margin: 0; color: var(--text-dim); min-width: 0; }
+kbd {
+  display: inline-block; min-width: 1.9em; padding: 1px 7px; text-align: center;
+  font: 500 0.82rem/1.6 var(--body); color: var(--gold-bright);
+  background: var(--stone-hi); border: 1px solid var(--gold-dim); border-radius: 4px;
+  box-shadow: inset 0 -2px 0 var(--stone-deep);
+}
+
+/* Install */
+.install { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 44px; margin-top: 28px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 14px; counter-increment: step; }
+.steps li::before {
+  content: counter(step);
+  display: grid; place-items: center; width: 2.4rem; height: 2.4rem;
+  font: 800 1.1rem/1 var(--display); color: var(--stone-deep);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold)); border-radius: 50%;
+}
+.steps h3 { font-size: var(--step-0); margin-bottom: 4px; padding-top: 6px; }
+.steps p { color: var(--text-dim); }
+.steps p + p { margin-top: 8px; }
+.path { color: var(--text); font-weight: 500; overflow-wrap: anywhere; }
+.reqs { align-self: start; display: grid; gap: 14px; padding: 22px; background: var(--stone-deep); border-radius: var(--radius); }
+.reqs ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--text-dim); }
+.reqs li strong { color: var(--text); font-weight: 500; }
+details { color: var(--text-dim); font-size: var(--step--1); }
+summary { cursor: pointer; color: var(--text); }
+details code { display: block; margin-top: 8px; font: 0.8rem/1.5 var(--mono); color: var(--gold-bright); overflow-wrap: anywhere; }
+
+footer { padding-block: 40px 56px; border-top: 1px solid var(--stone-hi); font-size: var(--step--1); color: var(--text-dim); }
+footer .wrap { display: grid; gap: 8px; }
+footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-art { animation: drift 40s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: scale(1.14); } to { transform: scale(1.2); } }
+}
+@media (max-width: 860px) {
+  .row, .row.flip, .install { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .row.flip .shot, .row.flip .ring { order: 0; }
+  .keys { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .hero { background: var(--stone); }
+  .hero-art {
+    position: relative; height: auto; aspect-ratio: 16 / 10;
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  }
+  .hero::after { display: none; }
+  .hero-inner { padding-block: 0 48px; margin-top: -8px; position: relative; }
+  .get { justify-self: stretch; }
+  .btn { width: 100%; }
+  section { padding-block: 56px; }
+  .keys dt { min-width: 6rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="hero-art" src="img/hero.jpg" width="1600" height="969"
+       alt="Wave 24 pours out of the red demon portal into a wall of archer, frost and plague towers">
+  <div class="hero-inner wrap">
+    <p class="eyebrow">A maze tower defense for Mac</p>
+    <h1 class="title">Maze Citadel</h1>
+    <p class="lede">Wall the plateau with towers, bend the demons' path from the portal to the town gate, and hold for forty waves.</p>
+    <div class="get" id="download">
+      <!--if:release-->
+      <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
+      <a class="btn" href="{{dmg_href}}" download>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download for Mac
+      </a>
+      <p class="get-meta"><strong>Version {{version}}</strong> · {{size_mb}} · {{release_date}}<br>Apple silicon · macOS {{min_macos}} or later · <a href="#install">How to install</a></p>
+      <!--end:release-->
+      <!--if:no_release-->
+      <span class="btn is-off" aria-disabled="true">Download for Mac</span>
+      <p class="get-meta">The first build is on its way. Apple silicon · macOS 13 or later.</p>
+      <!--end:no_release-->
+    </div>
+  </div>
+</header>
+
+<main>
+  <section aria-labelledby="plays-title">
+    <div class="wrap">
+      <p class="kicker" id="plays-title">How it plays</p>
+      <div class="plays">
+        <div class="row">
+          <img class="shot" src="img/board.jpg" width="1600" height="969" loading="lazy"
+               alt="The whole plateau at wave 24: five long rows of towers force the path to snake back and forth inside the citadel walls">
+          <div>
+            <h2>Build the maze</h2>
+            <div class="prose">
+              <p>Every tower is also a wall. Place them on the <strong>20 × 28 tile plateau</strong> to stretch the route from the red portal to the blue gate. The glowing path redraws with every tower you place.</p>
+              <p>You can wall as hard as you like, but never shut the road: a tower that would seal the portal off from the gate turns red and won't build.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row flip">
+          <div class="ring">
+            <svg viewBox="0 0 340 340" role="img" aria-labelledby="ring-title">
+              <title id="ring-title">The element ring: Light beats Dark, Dark beats Aqua, Aqua beats Flame, Flame beats Verdant, Verdant beats Stone, Stone beats Light.</title>
+              <defs>
+                <marker id="head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0 0 10 5 0 10z" style="fill: var(--gold)"/>
+                </marker>
+              </defs>
+              <g>
+                <path class="arc" d="M212.0 59.7A118 118 0 0 1 244.5 78.5" marker-end="url(#head)"/>
+                <path class="arc" d="M286.5 151.2A118 118 0 0 1 286.5 188.8" marker-end="url(#head)"/>
+                <path class="arc" d="M244.5 261.5A118 118 0 0 1 212.0 280.3" marker-end="url(#head)"/>
+                <path class="arc" d="M128.0 280.3A118 118 0 0 1 95.5 261.5" marker-end="url(#head)"/>
+                <path class="arc" d="M53.5 188.8A118 118 0 0 1 53.5 151.2" marker-end="url(#head)"/>
+                <path class="arc" d="M95.5 78.5A118 118 0 0 1 128.0 59.7" marker-end="url(#head)"/>
+              </g>
+              <circle class="node" cx="170" cy="52" r="34" style="stroke: var(--el-light)"/>
+              <text x="170" y="52" style="fill: var(--el-light)">Light</text>
+              <circle class="node" cx="272.2" cy="111" r="34" style="stroke: var(--el-dark)"/>
+              <text x="272.2" y="111" style="fill: var(--el-dark)">Dark</text>
+              <circle class="node" cx="272.2" cy="229" r="34" style="stroke: var(--el-aqua)"/>
+              <text x="272.2" y="229" style="fill: var(--el-aqua)">Aqua</text>
+              <circle class="node" cx="170" cy="288" r="34" style="stroke: var(--el-flame)"/>
+              <text x="170" y="288" style="fill: var(--el-flame)">Flame</text>
+              <circle class="node" cx="67.8" cy="229" r="34" style="stroke: var(--el-verdant)"/>
+              <text x="67.8" y="229" style="fill: var(--el-verdant)">Verdant</text>
+              <circle class="node" cx="67.8" cy="111" r="34" style="stroke: var(--el-stone)"/>
+              <text x="67.8" y="111" style="fill: var(--el-stone)">Stone</text>
+              <text class="x2" x="170" y="162">×2</text>
+              <text class="x2-note" x="170" y="196">to the next element</text>
+            </svg>
+          </div>
+          <div>
+            <h2>Read the wave</h2>
+            <div class="prose">
+              <p>Three seconds before a wave spawns, its banner names what is coming: the creeps, their <strong>armor class</strong> and their <strong>element</strong>. Each element deals double damage to the next one around the ring.</p>
+              <p class="counters"><span><b>Pierce</b> beats Light armor and fliers</span><span><b>Siege</b> beats Armored</span><span><b>Poison</b> ignores armor</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <img class="shot" src="img/gate.jpg" width="1600" height="969" loading="lazy"
+               alt="The blue town gate at the south edge of the plateau, flanked by torch-lit towers, before the first wave">
+          <div>
+            <h2>Hold the gate</h2>
+            <div class="prose">
+              <p>You start with <strong>20 lives</strong>. A creep that slips through costs one, a boss costs two, and the leaker loops back to the portal for another pass with no bounty.</p>
+              <p>Upgrade towers twice, then fuse a pair of maxed towers into an Epic such as the Frost Wyrm or the Doom Cannon. Clear wave 40 to win, or try Hard and Infinite. Your best wave in each mode is saved.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="controls-title">
+    <div class="wrap">
+      <p class="kicker">Controls</p>
+      <h2 id="controls-title">Keyboard first, mouse for the rest</h2>
+      <dl class="keys">
+        <div><dt><kbd>1</kbd>–<kbd>0</kbd></dt><dd>Pick a tower, then click a tile. <kbd>Shift</kbd>-click keeps placing.</dd></div>
+        <div><dt><kbd>N</kbd></dt><dd>Call the next wave early</dd></div>
+        <div><dt><kbd>U</kbd></dt><dd>Upgrade the selected tower</dd></div>
+        <div><dt><kbd>Space</kbd></dt><dd>Pause. You can still build while paused.</dd></div>
+        <div><dt><kbd>X</kbd></dt><dd>Sell for 75%, or right-click</dd></div>
+        <div><dt><kbd>F</kbd></dt><dd>Cycle speed ×1, ×2, ×3</dd></div>
+        <div><dt><kbd>G</kbd></dt><dd>Fuse two maxed towers into an Epic</dd></div>
+        <div><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Pan. Scroll or pinch to zoom, <kbd>Q</kbd> <kbd>E</kbd> to rotate.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      <p class="kicker">Install</p>
+      <h2 id="install-title">Three steps to the citadel</h2>
+      <div class="install">
+        <ol class="steps">
+          <li><div><h3>Open the disk image</h3><p>Double-click <span class="path">{{dmg_name}}</span> in your Downloads folder.</p></div></li>
+          <li><div><h3>Drag Maze Citadel to Applications</h3><p>Or play it straight from the disk image. Nothing else to install.</p></div></li>
+          <!--if:notarized-->
+          <li><div><h3>Double-click to play</h3><p>The game opens straight into the citadel with the builder ready.</p></div></li>
+          <!--end:notarized-->
+          <!--if:unsigned-->
+          <li><div><h3>Allow it once in Privacy &amp; Security</h3>
+            <p>Maze Citadel isn't notarized by Apple yet, so the first double-click shows "Apple could not verify Maze Citadel is free of malware". Click <strong>Done</strong>, then open <span class="path">System Settings → Privacy &amp; Security</span>, scroll to Security and click <strong>Open Anyway</strong>. Confirm, and from then on it opens with a double-click.</p>
+            <p>On macOS 13 or 14 you can instead Control-click the app and choose <strong>Open</strong>.</p></div></li>
+          <!--end:unsigned-->
+        </ol>
+        <aside class="reqs" aria-label="System requirements">
+          <h3>Requirements</h3>
+          <ul>
+            <li><strong>Mac with Apple silicon</strong>, M1 or later. Intel Macs are not supported.</li>
+            <li><strong>macOS {{min_macos_name}}</strong> or later</li>
+            <li><strong>About 100 MB</strong> of free space</li>
+            <li>Plays at 60 fps on a MacBook Air M3 on the default Balanced preset</li>
+          </ul>
+          <!--if:release-->
+          <details>
+            <summary>Check the download (SHA-256)</summary>
+            <code>{{sha256}}</code>
+            <p>In Terminal: <span class="path">shasum -a 256 ~/Downloads/{{dmg_name}}</span></p>
+          </details>
+          <!--end:release-->
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="mark">Maze Citadel</p>
+    <p>A single-player maze tower defense in the spirit of Warcraft III custom maps like Element TD and Wintermaul. Built with Godot 4.7.</p>
+    <p>Models and textures are CC0 (Quaternius, KayKit, Kenney and OpenGameArt artists), sound is CC0 and CC-BY, fonts are OFL. <a href="credits.html">Full credits</a><!--if:public--> · <a href="{{release_url}}">Release notes</a><!--end:public--></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+# Builds the download site (site/ + the newest release, via tools/build_site.py)
+# and deploys it to GitHub Pages. Runs when the site changes on main, when the
+# Mac release workflow publishes a release, or by hand. Pull requests only build
+# it and keep the result as a run artifact. Deploying needs Pages turned on with
+# "GitHub Actions" as the source (docs/RELEASING.md); until then it's skipped.
+name: Download site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - tools/build_site.py
+      - assets/CREDITS.md
+      - .github/workflows/site.yml
+  pull_request:
+    paths:
+      - site/**
+      - tools/build_site.py
+      - .github/workflows/site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      pages: ${{ steps.pages.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull the site's images from LFS
+        run: git lfs pull --include="site/**"
+      - name: Build the site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/build_site.py --out build/site
+      - name: Check Pages is turned on
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is off for this repo, so the site was built but not deployed. See docs/RELEASING.md."
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build.outputs.pages == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
