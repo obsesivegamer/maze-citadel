@@ -23,15 +23,17 @@ static func from_name(preset_name: String) -> Preset:
 
 static func settings(preset: Preset) -> Dictionary:
 	match preset:
+		# SDFGI and SSR cost ~2x and barely show in this bright stylized scene
+		# (slot 1), so Cinematic spends that budget on sharpness, AO and shadows.
 		Preset.CINEMATIC:
 			return {
-				"render_scale": 0.85,
+				"render_scale": 0.7,
 				"upscaler": "metalfx_temporal",
-				"sdfgi": true,
+				"sdfgi": false,
 				"ssil": false,
 				"ssao": true,
 				"ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
-				"ssr": true,
+				"ssr": false,
 				"fog": true,
 				"fog_size": 128,
 				"fog_depth": 96,

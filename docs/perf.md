@@ -85,3 +85,9 @@ Findings:
 3. The foliage and crowd rows are not measurements: those runs stayed at the control's 1,369,181 primitives. `World._on_quality_changed` re-reads `Quality.settings(preset)` and drops the bench overrides, so Balanced kept foliage 0.8 and crowd 0.7. PR #3 makes the overrides apply and measures them headless (foliage 0.5 ≈ −2% triangles, crowd 0.35 ≈ −0.5%).
 4. Each 1% low at render scale 0.5 is exactly 60.0, which suggests the display's frame pacing still caps some frames even with vsync off (see "How to measure").
 5. On-screen check done (2026-10-02, maximized 2940 × 1782 window): 0.7 vs 0.5 side by side at native pixels ([gate](screens/m8-rs07-vs-rs05-battle-gate.jpg), [battle](screens/m8-rs07-vs-rs05-battle-full.jpg), [portal](screens/m8-rs07-vs-rs05-battle-portal.jpg), [start](screens/m8-rs07-vs-rs05-start-full.jpg)). 0.5 is very slightly softer on fine texture (cobblestones, tower trim); the HUD renders at full resolution either way. Balanced and Performance now share a render scale; they still differ in upscaler, SSAO, fog, shadows and density. Also still owed: the 10-minute thermal soak.
+
+## Cinematic rebalance (2026-10-02, not yet measured)
+
+Slot 1 showed Cinematic at about 2× Balanced's cost (20 fps in the battle) with SDFGI and SSR adding little to this bright, stylized scene. Cinematic is now render scale 0.7 (MetalFX temporal), SSAO high, fog high, 4096 shadows with 4 cascades, SDFGI and SSR off: in effect the old Balanced (49.7 fps in the battle at 0.7) plus stronger AO, fog and shadows. Expected 40-50 fps in the battle; `tools/slot_d.sh` measures it.
+
+Also new: bench reports `timeline_fps` (average fps per 30 s) for thermal soaks, and `--first-frame-out` records launch time (first frame, frame 60, worst of the first 120 frames).

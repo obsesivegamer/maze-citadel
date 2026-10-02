@@ -7,6 +7,8 @@ var duration := 20.0
 var warmup := 4.0
 var out_path := ""
 var label := ""
+## Seconds per entry in the report's timeline, to spot thermal throttling.
+var window := 30.0
 ## The quality values the run used, overrides included, echoed in the report.
 var settings := {}
 var max_wait_for_focus := 30.0
@@ -15,6 +17,9 @@ var _elapsed := 0.0
 var _unfocused := 0.0
 var _frame_ms := PackedFloat32Array()
 var _cpu_ms := PackedFloat32Array()
+var _timeline: Array[float] = []
+var _window_start := 0
+var _window_ms := 0.0
 var _draw_calls := 0.0
 var _primitives := 0.0
 
@@ -33,6 +38,9 @@ func _process(delta: float) -> void:
 		_elapsed = 0.0
 		_frame_ms.clear()
 		_cpu_ms.clear()
+		_timeline.clear()
+		_window_start = 0
+		_window_ms = 0.0
 		if _unfocused > max_wait_for_focus:
 			_finish()
 			set_process(false)
@@ -42,6 +50,12 @@ func _process(delta: float) -> void:
 		return
 	var vp := get_viewport().get_viewport_rid()
 	_frame_ms.append(delta * 1000.0)
+	_window_ms += delta * 1000.0
+	if _window_ms >= window * 1000.0:
+		var frames := _frame_ms.size() - _window_start
+		_timeline.append(snappedf(frames * 1000.0 / _window_ms, 0.1))
+		_window_start = _frame_ms.size()
+		_window_ms = 0.0
 	_cpu_ms.append(RenderingServer.viewport_get_measured_render_time_cpu(vp))
 	_draw_calls = max(
 		_draw_calls, Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
@@ -80,6 +94,7 @@ func _finish() -> void:
 		"low_1pct_fps": snappedf(1000.0 / max(percentile(_frame_ms, 0.99), 0.001), 0.1),
 		"avg_frame_ms": snappedf(avg, 0.01),
 		"avg_cpu_ms": snappedf(mean(_cpu_ms), 0.01),
+		"timeline_fps": _timeline,
 		"max_draw_calls": _draw_calls,
 		"max_primitives": _primitives,
 		"video_mem_mb":
