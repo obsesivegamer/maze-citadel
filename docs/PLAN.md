@@ -7,7 +7,7 @@
 1. Each branch below is WIP and has **not** passed `tools/check.sh`. For each: check it out (worktrees live under `.claude/worktrees/`), run the gate, finish the listed gap, then merge into `main`.
    - `wip/world`: terrain, citadel, portal, nature, village, path, shaders. Missing: crowd (peasants, sheep, birds, gryphons), `ambience_points()`.
    - `wip/units-fx`: creep and tower visuals, projectiles, FX (~3k lines). Was refreshing the class cache; status of the remaining FX unknown.
-   - `wip/ui`: theme, fonts/icons, top bar, cards, tooltips (~3k lines). Was starting the floating tower plaque.
+   - ~~`wip/ui`~~ merged 2026-10-02: HUD composed, plaque finished, fuse partner rings, boss-tracking toggle.
    - ~~`wip/audio`~~ merged 2026-10-02 (gate + 18000-frame smoke green).
 2. Merge order: audio → ui → units-fx → world; after each merge run `tools/check.sh` and `tools/smoke.sh 18000`.
 3. Wire `BuildController.set_ghost_model(TowerVisuals.build(id, level))` once ui and units-fx are both in.
