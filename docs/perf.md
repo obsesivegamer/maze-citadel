@@ -10,6 +10,7 @@ Machine: MacBook Air M3 (8-core GPU, 16 GB), macOS 26.6.2, Godot 4.7.2 on Metal,
 - macOS throttles unfocused windows. Unfocused runs reported 100–145 fps for the same scene that measures ~51 fps focused. The bench now only counts frames while the window has focus and records `focused` in its JSON.
 - Metal's GPU timer query returns 0, so cost is measured by toggling one setting at a time.
 - Focused runs cap at 60 fps (display refresh). Runtime vsync-off is wired in but not yet verified, so "60" means "at least 60".
+- Every preset key can be overridden, including `--foliage`, `--crowd` and `--particles`. Before 2026-10-02 those three only reached the renderer's copy of the settings, not the world or units, so runs that changed them measured nothing. Each report now lists the values it ran with under `settings`.
 
 ## M1 render spike, Balanced preset (2026-10-01, preliminary)
 

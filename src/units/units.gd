@@ -184,8 +184,8 @@ func _on_sim_event(e: Dictionary) -> void:
 				v.on_cast()
 
 
-func _on_quality_changed(preset: Quality.Preset) -> void:
-	_quality = Quality.settings(preset).particles
+func _on_quality_changed(_preset: Quality.Preset) -> void:
+	_quality = _game.quality_settings.particles
 	for type in _pools:
 		for v: CreepView in _pools[type]:
 			for p in v.emitters():

@@ -19,6 +19,12 @@ var sim := GameSim.new()
 var speed := 1
 var paused := false
 var quality := Quality.Preset.BALANCED
+## The preset's values with quality_overrides applied. World, units and FX
+## read their density budgets from here, not from the bare preset.
+var quality_settings := {}
+## Per-setting overrides layered on every preset (the benchmark's
+## --<setting>=<value> flags, which price one effect at a time).
+var quality_overrides := {}
 ## Tower the builder is placing, or &"" when not building.
 var build_choice: StringName = &"archer"
 var selected := NONE
@@ -172,7 +178,9 @@ func toggle_pause() -> void:
 
 func set_quality(preset: Quality.Preset) -> void:
 	quality = preset
-	Quality.apply(preset, get_viewport(), world.env, world.sun)
+	quality_settings = Quality.apply(
+		preset, get_viewport(), world.env, world.sun, quality_overrides
+	)
 	Save.set_setting("quality", Quality.NAMES[preset])
 	quality_changed.emit(preset)
 
