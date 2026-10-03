@@ -1,5 +1,5 @@
 class_name FieldGuide
-extends Control
+extends UiModal
 ## The Field Guide (H, or the book on the top bar): the counter rules on one
 ## page, like the quest log of a Warcraft III tower defense map. The element
 ## wheel (hover an element for what it beats and which towers carry it), the
@@ -12,42 +12,18 @@ const INFO_WIDTH := 330.0
 const CELL_WIDTH := 70.0
 const CHART_WIDTH := 500.0
 const COUNSEL_WIDTH := 500.0
-const DIM := Color(0, 0, 0, 0.45)
 ## Same colours as the floating numbers (Fx.COUNTER_COLORS, poison ticks).
 const POISON_COLOR := Color(0.5, 1.0, 0.4)
-const BOOK_COVER := Color(0.55, 0.16, 0.12)
 
-var _game: Game
 var _wheel := ElementWheel.new(WHEEL_PX)
 var _wheel_info := UiKit.rich(UiTheme.SIZE_SMALL, INFO_WIDTH)
 var _next_caption := UiKit.label("", &"Caption")
 var _counsel: CounselView
-var _paused_here := false
 
 
 func setup(game: Game) -> void:
-	_game = game
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	visible = false
-	var dim := ColorRect.new()
-	dim.color = DIM
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	dim.gui_input.connect(_on_dim_input)
-	add_child(dim)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	var panel := UiKit.panel()
-	panel.custom_minimum_size.x = PANEL_WIDTH
-	center.add_child(panel)
-	var box := UiKit.vbox(10)
-	panel.add_child(box)
-	var title := UiKit.label("Field Guide", &"Title")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	var box := build(game, "Field Guide", PANEL_WIDTH)
+	dim_pressed.connect(close_panel)
 	var sub := UiKit.label(
 		"Every wave has an element and an armor class. Towers that counter both hit far harder.",
 		&"Dim",
@@ -261,20 +237,12 @@ func open() -> void:
 	var has_next := next <= sim.last_wave() and not _game.is_over()
 	_next_caption.text = ("NEXT WAVE · WAVE %d" % next) if has_next else "NO WAVES LEFT"
 	_counsel.show_wave(next if has_next else 0, sim.twist_for(next) if has_next else &"")
-	visible = true
-	if not _game.paused:
-		_game.toggle_pause()
-		_paused_here = true
+	open_modal()
 
 
 func close_panel() -> void:
-	if not visible:
-		return
-	visible = false
 	_wheel.focus = &""
-	if _paused_here and _game.paused:
-		_game.toggle_pause()
-	_paused_here = false
+	close_modal()
 
 
 func toggle() -> void:
@@ -282,41 +250,3 @@ func toggle() -> void:
 		close_panel()
 	else:
 		open()
-
-
-func _on_dim_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
-		close_panel()
-
-
-## The top bar's Field Guide button: a book drawn in code (no glyph asset).
-static func book_button(game: Game, px: float) -> Button:
-	var b := Button.new()
-	b.theme_type_variation = &"IconButton"
-	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(px, px)
-	b.tooltip_text = "Field Guide: elements, armor and the next wave (H)"
-	var icon := Control.new()
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = 5
-	icon.offset_top = 5
-	icon.offset_right = -5
-	icon.offset_bottom = -5
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.draw.connect(func() -> void: draw_book(icon, Rect2(Vector2.ZERO, icon.size)))
-	b.add_child(icon)
-	UiKit.wire(game, b)
-	return b
-
-
-## An open book in the unit square of `r`.
-static func draw_book(ci: CanvasItem, r: Rect2, tint := Color.WHITE) -> void:
-	var cover := [0.03, 0.24, 0.5, 0.32, 0.97, 0.24, 0.97, 0.84, 0.5, 0.93, 0.03, 0.84]
-	UiGlyphs.poly(ci, r, cover, BOOK_COVER * tint)
-	UiGlyphs.poly(ci, r, [0.09, 0.16, 0.48, 0.25, 0.48, 0.85, 0.09, 0.76], UiGlyphs.BONE * tint)
-	UiGlyphs.poly(ci, r, [0.52, 0.25, 0.91, 0.16, 0.91, 0.76, 0.52, 0.85], UiGlyphs.BONE * tint)
-	var ink := Color(UiGlyphs.INK, 0.55) * tint
-	for y in [0.36, 0.48, 0.6]:
-		UiGlyphs.line(ci, r, Vector2(0.16, y - 0.06), Vector2(0.42, y), ink, 0.045)
-		UiGlyphs.line(ci, r, Vector2(0.58, y), Vector2(0.84, y - 0.06), ink, 0.045)
-	UiGlyphs.line(ci, r, Vector2(0.5, 0.27), Vector2(0.5, 0.88), UiGlyphs.COIN_DARK * tint, 0.05)
