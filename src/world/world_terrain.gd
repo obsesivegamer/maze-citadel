@@ -53,12 +53,13 @@ var grid: Grid
 
 var _macro: NoiseTexture2D
 var _rng := RandomNumberGenerator.new()
-## Performance experiment (PerfFlags): 1 = ground and plateau shaders that
-## skip the texture reads their masks don't need (same look); 2 = also the
-## lowland's coarse macro noise per vertex instead of per pixel (grass blend
-## edges shift slightly); 3 = also trilinear instead of anisotropic filtering
-## on ground, plateau and cliffs (softer far ground).
-var _cheap := PerfFlags.get_int("terrain-cheap", 0)
+## Terrain shader cost (PerfFlags `terrain-cheap`): 0 = every texture read;
+## 1 (shipped) = ground and plateau shaders skip the reads their masks don't
+## need (same look); 2 = also the lowland's coarse macro noise per vertex
+## instead of per pixel (grass blend edges shift slightly); 3 = also trilinear
+## instead of anisotropic filtering on ground, plateau and cliffs (softer far
+## ground).
+var _cheap := PerfFlags.get_int("terrain-cheap", 1)
 
 
 func build() -> void:

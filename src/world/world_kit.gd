@@ -135,7 +135,8 @@ static func swaying(path: String, amp: float, flutter := 0.03) -> ArrayMesh:
 	var bark: Array[bool] = []
 	for c in cutouts:
 		bark.append(not c and cutouts.has(true))
-	var bark_lod := PerfFlags.get_int("nature-bark-lod", 0)
+	# Bark from importer LOD 2: same look under the leaves, ~0.2 ms less.
+	var bark_lod := PerfFlags.get_int("nature-bark-lod", 2)
 	if bark_lod > 0 and bark.has(true):
 		mesh = FoliageVariants.with_lod(src, bark_lod, bark)
 	var leaf_priority := PerfFlags.get_int("leaf-priority", 0)

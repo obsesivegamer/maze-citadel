@@ -11,8 +11,8 @@ extends RefCounted
 ## engine arguments or writes a temporary override.cfg for those.
 ##
 ## Sun shadows (current values in brackets):
-##   shadow-filter=0..5        soft-shadow filter: 0 hard .. 5 ultra [3, soft medium]
-##   sun-angular=<deg>         sun size; > 0 is PCSS (blocker search), 0 plain PCF [0.8]
+##   shadow-filter=0..5        soft-shadow filter: 0 hard .. 5 ultra [2, soft low]
+##   sun-angular=<deg>         sun size; > 0 is PCSS (blocker search), 0 plain PCF [0]
 ##   shadow-blur=<f>           PCF filter radius scale [1.2]
 ##   shadow-distance=<m>       shadow max distance from the camera [150]
 ##   shadow-splits=a,b,c       cascade split ratios [0.1,0.2,0.5]
@@ -22,7 +22,7 @@ extends RefCounted
 ##   sun-shadow=<bool>         diagnostic: sun shadows at all [true]
 ## Glow:
 ##   glow=<bool> [true] · glow-levels=l1,..,l7 [0,0.8,0.4,0.1,0,0,0]
-##   glow-bloom=<f> [0.04] · glow-bicubic=<bool> upscale filter [true]
+##   glow-bloom=<f> [0.04] · glow-bicubic=<bool> upscale filter [false]
 ## SSAO (when the preset enables it):
 ##   ssao-radius=<m> [1.0] · ssao-intensity=<f> [2.0]
 ##   ssao-half=<bool> half-resolution buffers [true] · ssao-blur=0..6 passes [2]

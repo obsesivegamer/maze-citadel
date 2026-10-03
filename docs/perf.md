@@ -164,12 +164,30 @@ Creep views pre-built on the loading screen remove the first-spawn stalls (17–
 | `hud-lite`, tower/creep switches, grass LOD, foliage filter, leaf priority | ~0 | hud-lite also hurts hint readability: drop |
 | `shadow_splits=2` | −0.20 ms (slower) | drop |
 
-Partial (one control, 20.98 ms): `glow-bicubic=false` 20.69 ms, `glow-levels=0,0.8,0.4,0,0,0,0` 20.67 ms, so ~0.3 ms each with the bloom kept.
+Glow variants (render scale 0.7, controls 20.7–21.2 ms while another app used 4–7% of the GPU): `glow-bicubic=false` −0.58 ms, `glow-levels=0,0.8,0.4,0,0,0,0` −0.41, `glow-levels=0,1.0,0,0,0,0,0` −0.48, both −0.38, `glow=false` −1.96. Most of glow's cost is the base pass; bicubic off is the only variant that leaves the look alone.
 
 Terrain still costs ~3.5 ms (hiding it) but cheaper shading saves only 0.1 ms, so its cost is elsewhere (geometry, overdraw or prepass).
 
+### Look checks (stills at native resolution, no temporal AA, pixels that don't animate)
+1. Same look: `terrain-cheap=1`, `glow-bicubic=false`, `nature-bark-lod=2`, `ssao_quality=1`, `fog_size=48 fog_depth=32`, `shadow-filter=2`, `sun-angular=0` (edges a touch crisper).
+2. Visible: `shadow_size=1024` (blocky, speckled edges), `nature-shadow-proxy` (heavier tree shadows that lose the pine outline), `hud-lite` (hint text unreadable over bright ground), `glow=false`.
+3. `world-tex-compress` looks the same but only works in the editor binary (export templates have no compressor): dropped.
+
+### Shipped
+All presets: soft-shadow filter low (`project.godot`), sun angular distance 0 (PCF), linear glow upscale, `terrain-cheap` 1, bark from LOD 2. Balanced also: SSAO low, fog 48 × 32. Render scale stays 0.5: the keepers at 0.6 land at 16.2 ms, no margin.
+
+| Wave 35, Balanced, uncapped | Frame | Worst | 1% low |
+|---|---|---|---|
+| Before (old values restored with flags) | 15.82 ms | 16.7 ms | 60 fps |
+| Shipped | **14.14 ms** | 14.3–14.8 ms | 70 fps |
+
+Launch (warm, twice): first frame 0.6 s, playable 3.8–4.0 s, worst frame in the 10 s after wave 1 starts **32 ms** (was 114–116 ms), no hitches over 50 ms.
+
+### Heat (fanless Air)
+1. Frozen wave-35 battle (`--speed=0`), uncapped: 67.6 fps for 3.5 min, then throttled to ~59.5 fps (−12%) and stays there.
+2. Real play from wave 30 capped at 60 fps (`--max-fps 60`, the GPU idles part of each frame): 60.0 fps for 3 min, then 56–58 fps for the remaining 7 (waves 32+) with runs of 22–25 ms frames (53 frames over 20.8 ms in 10 min). Not butter yet in long late-game sessions: needs ~2–3 ms more, or less heat.
+
 ### Next
-1. Finish glow variants (bicubic off, fewer levels, both) with interleaved controls.
-2. Stills of the shadow, bark, SSAO, fog and glow candidates against the current look.
-3. Winners combined on Balanced with vsync on (missed frames), then render scale 0.5/0.6, a 10-minute soak (fanless Air throttles), and the first-frame/wave-1 hitch probe.
-4. Graduate winners into Quality presets, remove losers, re-export the app.
+1. Find what makes the late-wave runs of 22–25 ms frames (wave 32+, few creeps on screen: likely an effect or boss).
+2. Terrain still costs ~3.5 ms; find where (geometry, shadow casting, prepass).
+3. Re-run the capped 10-minute real-play soak until it holds 60.

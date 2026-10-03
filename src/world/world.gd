@@ -120,7 +120,9 @@ func _build_lighting() -> void:
 	sun.rotation_degrees = Vector3(-50, -35, 0)
 	sun.light_color = Color(1.0, 0.94, 0.84)
 	sun.light_energy = 1.5
-	sun.light_angular_distance = 0.8
+	# 0 = plain PCF: from the RTS camera it looks like the soft PCSS shadows
+	# (0.8) and costs ~0.8 ms less a frame.
+	sun.light_angular_distance = 0.0
 	sun.shadow_enabled = true
 	sun.shadow_blur = 1.2
 	sun.directional_shadow_max_distance = 150.0
