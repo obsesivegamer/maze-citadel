@@ -146,6 +146,15 @@ func test_necropolis_contagion_spreads_on_death_and_down() -> void:
 	check(ghoul.alive and ghoul.revive_time > 0.0, "ghoul down")
 	check(next.carries(&"plague_necropolis"), "ghoul's neighbour infected")
 	check(not ghoul.carries(&"plague_necropolis"), "downed ghoul's stacks cleared")
+	# A carrier with nobody in reach dies without a burst.
+	var lone := _parked(sim, &"grunt", Vector2i(18, 3))
+	sim.add_poison(lone, t, 1, 0.0)
+	sim.drain_events()
+	sim.hit(lone, lone.hp + 1.0, t, 0.0)
+	var bursts := sim.drain_events().filter(
+		func(e: Dictionary) -> bool: return e.type == &"contagion"
+	)
+	check(bursts.is_empty(), "no burst when nobody is in reach")
 
 
 ## Cauldron stacks don't spread; only the Necropolis's do.

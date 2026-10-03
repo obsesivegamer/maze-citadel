@@ -14,7 +14,7 @@
 
 - **Coordinates:** sim positions are `Vector2` metres on the plateau (origin north-west corner). Convert with `Coords.to_world()` / `Coords.tile_to_world()`. Plateau top is `Coords.PLATEAU_TOP`; north is −Z (portal), south is +Z (gate).
 - **Interpolation:** draw creeps at `c.prev_pos.lerp(c.pos, game.alpha())`.
-- **Events:** see `GameSim` for every `events.append({...})`. Types: `wave_started, wave_cleared, spawned, died, downed, revived, leaked, defeat, victory, built, sold, upgraded, fused, build_refused, path_changed, fired, hit, dot, shell_landed, nova, cloud, breath, frost_ring, immune, heal, summoned, interest`.
+- **Events:** see `GameSim` for every `events.append({...})`. Types: `wave_started, wave_cleared, spawned, died, downed, revived, leaked, defeat, victory, built, sold, upgraded, fused, build_refused, path_changed, fired, hit, dot, shell_landed, nova, cloud, breath, frost_ring, immune, heal, summoned, interest, contagion, second_wind`.
 - **Game signals:** `sim_event, build_choice_changed, selection_changed, speed_changed, pause_changed, quality_changed`.
 - **Cross-subsystem calls** (the only ones allowed): `game.camera.add_shake(amount)` from Fx; `game.camera.screen_to_ground(pos)` / `game.camera.camera` from input and HUD; `game.audio.play_ui(id)`, `game.audio.set_volume(bus, linear)`, `game.audio.volume(bus)` from HUD; `game.builder.start_fuse()` / `game.builder.is_fusing()` from HUD.
 - **Quality:** connect to `game.quality_changed` and read `Quality.settings(preset)` (`particles`, `crowd`, `foliage` scale 0..1). Never change gameplay values.

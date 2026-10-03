@@ -675,7 +675,9 @@ func _spread_plague(c: SimCreep) -> void:
 		if other != c and affectable(other) and other.pos.distance_to(c.pos) <= r:
 			add_poison(other, src, src.level, src.aura)
 			n += 1
-	events.append({"type": &"contagion", "pos": c.pos, "radius": r, "count": n})
+	# No burst when nobody was in reach: in a big wave that's one per kill.
+	if n > 0:
+		events.append({"type": &"contagion", "pos": c.pos, "radius": r, "count": n})
 
 
 # --- Towers -----------------------------------------------------------------
