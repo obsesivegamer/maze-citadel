@@ -91,3 +91,16 @@ Findings:
 Slot 1 showed Cinematic at about 2× Balanced's cost (20 fps in the battle) with SDFGI and SSR adding little to this bright, stylized scene. Cinematic is now render scale 0.7 (MetalFX temporal), SSAO high, fog high, 4096 shadows with 4 cascades, SDFGI and SSR off: in effect the old Balanced (49.7 fps in the battle at 0.7) plus stronger AO, fog and shadows. Expected 40-50 fps in the battle; `tools/slot_d.sh` measures it.
 
 Also new: bench reports `timeline_fps` (average fps per 30 s) for thermal soaks, and `--first-frame-out` records launch time (first frame, frame 60, worst of the first 120 frames).
+
+## Loading and first-use stalls (2026-10-02)
+
+Reported on v0.1.0: a long spinning cursor at launch (music already playing) and a freeze when wave 1 starts.
+
+Cause: the Godot shader baker only runs when a real RenderingDevice renderer is active (`ShaderBakerExportPlugin::_is_active` checks `RendererSceneRenderRD`), so `--headless` exports, local and CI alike, ship without baked shaders. Metal then compiles every shader on first use: the whole world in the first frames (one long main-thread stall, so macOS shows the spinning cursor) and creeps, projectiles and effects when wave 1 brings them on screen.
+
+Fix (works with or without baked shaders):
+1. `Game.async_boot`: a loading screen first, then the camera, each world part and each subsystem one per frame, so the window keeps answering and each frame compiles only what was just added.
+2. `WarmupStage`: behind the loading screen, a throwaway sim with every tower at every level and every creep type fights for 75 frames, drawn by its own Units/Fx, so every combat shader compiles before play. Sound, HUD and the real board never see it; the opening countdown doesn't tick until boot ends.
+3. `--first-frame-out` now records the first frame, when the game is playable, and the worst frame plus hitch count (> 50 ms) in the 10 s after it starts wave 1.
+
+Still to measure on screen: the probe on the dev build and on an app exported with `EXPORT_WINDOWED=1` (which does bake shaders). CI exports headless, so release builds stay unbaked until CI can export with a GPU; the warm-up covers that case.

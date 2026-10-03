@@ -14,4 +14,12 @@ if [[ -n "$errors" ]]; then
   echo "$errors" | head -20
   echo "smoke: FAILED"; exit 1
 fi
-echo "smoke: OK ($frames frames)"
+# The windowed game boots behind a loading screen with a battle rehearsal;
+# exercise that path too (headless normally uses the one-frame setup).
+log=$("$GODOT" --headless --path . --fixed-fps 60 --quit-after 900 -- --async-boot --autoplay 2>&1) || true
+errors=$(grep -E "SCRIPT ERROR|^ERROR|Parse Error" <<<"$log" | grep -v "resources still in use at exit" || true)
+if [[ -n "$errors" ]]; then
+  echo "$errors" | head -20
+  echo "smoke: FAILED (async boot)"; exit 1
+fi
+echo "smoke: OK ($frames frames, plus async boot)"
