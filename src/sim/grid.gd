@@ -76,5 +76,10 @@ func set_blocked(t: Vector2i, blocked: bool) -> void:
 	_blocked[index(t)] = 1 if blocked else 0
 
 
+## 1 for each blocked tile, by index(). Read only.
+func blocked_cells() -> PackedByteArray:
+	return _blocked
+
+
 func blocked_count() -> int:
 	return _blocked.count(1)

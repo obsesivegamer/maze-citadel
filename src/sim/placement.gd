@@ -21,11 +21,13 @@ enum Result {
 ## `center_tiles`: the tile under each creep's centre; each must still reach
 ## the gate. Bodies can brush a tower's corner, so only centres count for
 ## trapping; otherwise one creep grazing a tower would forbid every build.
+## `field`, when given, is left holding the paths with the tower in place.
 static func check(
 	grid: Grid,
 	tile: Vector2i,
 	body_tiles: Array[Vector2i],
 	center_tiles: Array[Vector2i] = [],
+	field: FlowField = null,
 ) -> Result:
 	if not Grid.in_bounds(tile):
 		return Result.OUT_OF_BOUNDS
@@ -38,7 +40,8 @@ static func check(
 	if tile in body_tiles:
 		return Result.CREEP_ON_TILE
 	grid.set_blocked(tile, true)
-	var field := FlowField.new()
+	if field == null:
+		field = FlowField.new()
 	field.compute(grid)
 	grid.set_blocked(tile, false)
 	if not grid.spawn_tiles.any(field.reachable):
