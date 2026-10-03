@@ -52,6 +52,15 @@ func test_every_tower_has_an_icon_words_and_shot_look() -> void:
 			check(ProjectileViews.LOOKS.has(id), "%s has a projectile look" % id)
 
 
+## Every shell leaves a scorch mark, but only a tower with crater_dps leaves a
+## crater that hurts, so only those blurbs may promise one.
+func test_blurbs_promise_craters_only_when_they_burn() -> void:
+	for id: StringName in TowerDefs.TOWERS:
+		var says_crater: bool = TowerInfo.BLURBS[id].to_lower().contains("crater")
+		var burns: bool = TowerDefs.stat(id, "crater_dps", 1, 0.0) > 0.0
+		check(says_crater == burns, "%s blurb mentions a crater iff it has crater_dps" % id)
+
+
 static func _has_anim(ap: AnimationPlayer, anim: StringName) -> bool:
 	if ap.has_animation(anim):
 		return true
