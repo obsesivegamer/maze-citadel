@@ -80,6 +80,8 @@ func _on_sim_event(e: Dictionary) -> void:
 		&"cloud":
 			var t: float = TowerDefs.stat(&"shadow", "cloud_time")
 			_impacts.linger(&"cloud", Coords.to_world(e.pos, Coords.PLATEAU_TOP + 0.3), e.radius, t)
+		&"contagion":
+			_impacts.burst(&"contagion", Coords.to_world(e.pos, Coords.PLATEAU_TOP + 0.6), e.radius)
 		&"breath":
 			var aim := Vector3(e.aim.x, 0, e.aim.y)
 			_impacts.burst(&"breath", _tile(e.tile, 3.5) + aim * 1.5, 2.0, aim)

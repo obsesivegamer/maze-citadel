@@ -133,7 +133,7 @@ func _on_sim_event(e: Dictionary) -> void:
 
 func _announce(wave: int) -> void:
 	_announced = wave
-	_banner.announce(wave)
+	_banner.announce(wave, _game.sim.twist_for(wave))
 
 
 func _process(delta: float) -> void:

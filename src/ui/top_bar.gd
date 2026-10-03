@@ -39,6 +39,7 @@ var _call: Button
 var _normal: Button
 var _hard: Button
 var _infinite: Button
+var _twists: Button
 var _lock := UiIcon.new(&"lock", 16.0)
 var _speeds: Array[Button] = []
 var _pause: Button
@@ -139,7 +140,20 @@ func _build_right() -> void:
 	_infinite = UiKit.icon_button(
 		_game, &"infinity", "Infinite: waves continue after 40", BUTTON_PX, true
 	)
-	for b in [_normal, _hard, _infinite]:
+	_twists = (
+		UiKit
+		. icon_button(
+			_game,
+			&"twist",
+			(
+				"Twists: from wave %d most waves get a random creep ability, shown a wave ahead. Score ×%s"
+				% [WaveTwists.FIRST_WAVE, TowerInfo.fmt_num(WaveTwists.SCORE_MULT)]
+			),
+			BUTTON_PX,
+			true
+		)
+	)
+	for b in [_normal, _hard, _infinite, _twists]:
 		b.toggled.connect(func(_on: bool) -> void: _apply_mode())
 		row.add_child(b)
 	_lock.tooltip_text = "Mode is locked once wave 1 spawns"
@@ -218,7 +232,7 @@ func _on_boss_tracking(on: bool) -> void:
 
 
 func _apply_mode() -> void:
-	if not _game.set_mode(_hard.button_pressed, _infinite.button_pressed):
+	if not _game.set_mode(_hard.button_pressed, _infinite.button_pressed, _twists.button_pressed):
 		_sync_mode()
 
 
@@ -227,8 +241,9 @@ func _sync_mode() -> void:
 	_normal.set_pressed_no_signal(not sim.hard)
 	_hard.set_pressed_no_signal(sim.hard)
 	_infinite.set_pressed_no_signal(sim.infinite)
+	_twists.set_pressed_no_signal(sim.twists)
 	var locked := sim.wave > 0
-	for b in [_normal, _hard, _infinite]:
+	for b in [_normal, _hard, _infinite, _twists]:
 		b.disabled = locked
 	_lock.visible = locked
 
@@ -267,11 +282,13 @@ func _refresh_next(sim: GameSim) -> void:
 	var next := sim.wave + 1
 	var has_next := next <= sim.last_wave() and not _game.is_over()
 	var secs := ceili(sim.countdown) if sim.countdown >= 0.0 else -1
+	var twist := sim.twist_for(next) if has_next else &""
 	var dirty := _changed(&"next", next)
+	dirty = _changed(&"twist", twist) or dirty
 	dirty = _changed(&"has_next", has_next) or dirty
 	dirty = _changed(&"secs", secs) or dirty
 	if dirty:
-		_next.show_wave(next if has_next else 0)
+		_next.show_wave(next if has_next else 0, twist)
 		_call.disabled = not has_next
 		if not has_next:
 			_next_caption.text = "FINAL WAVE" if not _game.is_over() else ""
@@ -279,9 +296,10 @@ func _refresh_next(sim: GameSim) -> void:
 			_next_caption.text = "NEXT · WAVE %d · IN %ds" % [next, secs]
 		else:
 			_next_caption.text = "NEXT · WAVE %d · N TO CALL EARLY" % next
-		_next.get_parent().tooltip_text = (
-			"Wave %d: %s" % [next, TowerInfo.wave_summary(next)] if has_next else ""
-		)
+		var tip := "Wave %d: %s" % [next, TowerInfo.wave_summary(next)] if has_next else ""
+		if twist != &"":
+			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		_next.get_parent().tooltip_text = tip
 
 
 func _changed(key: StringName, value: Variant) -> bool:

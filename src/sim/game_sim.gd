@@ -49,6 +49,10 @@ var lives := START_LIVES
 var phase := Phase.BUILD
 var hard := false
 var infinite := false
+## Twists mode (WaveTwists): random creep abilities from wave 11, dealt from
+## `twist_seed`. Set both before wave 1.
+var twists := false
+var twist_seed := 0
 ## Last wave started; 0 before wave 1.
 var wave := 0
 ## Seconds until the next wave starts on its own; -1 while one is running.
@@ -67,6 +71,9 @@ var _by_id := {}
 var _spawn_queue: Array = []
 var _spawn_timer := 0.0
 var _next_id := 1
+var _twist_plan := {}
+var _twist_plan_to := 0
+var _twist_plan_seed := 0
 
 
 func _init(map := MapDefs.DEFAULT) -> void:
@@ -82,7 +89,18 @@ func drain_events() -> Array[Dictionary]:
 
 func score() -> int:
 	var s := 10 * kills + 500 * lives + gold
-	return roundi(s * (1.3 if hard else 1.0))
+	return roundi(s * (1.3 if hard else 1.0) * (WaveTwists.SCORE_MULT if twists else 1.0))
+
+
+## The twist on wave `w`, or &"" (none, or Twists mode is off).
+func twist_for(w: int) -> StringName:
+	if not twists:
+		return &""
+	if w > _twist_plan_to or twist_seed != _twist_plan_seed:
+		_twist_plan_to = maxi(w, WaveDefs.count()) + 40
+		_twist_plan_seed = twist_seed
+		_twist_plan = WaveTwists.plan(twist_seed, _twist_plan_to)
+	return _twist_plan.get(w, &"")
 
 
 func creep(id: int) -> SimCreep:
@@ -302,7 +320,11 @@ func _spawn() -> void:
 		return
 	var entry: Array = _spawn_queue.pop_front()
 	var c := spawn_creep(entry[0], entry[1], entry[2], grid.spawn_point)
-	_spawn_timer = FAST_SPAWN_INTERVAL if c.speed >= 4.5 else SPAWN_INTERVAL
+	# Spacing follows the creep type, not a Swift creep's boosted speed.
+	var fast: bool = CreepDefs.CREEPS[c.type].speed >= 4.5
+	_spawn_timer = FAST_SPAWN_INTERVAL if fast else SPAWN_INTERVAL
+	if c.twist == &"stampede":
+		_spawn_timer *= WaveTwists.STAMPEDE_SPAWN
 
 
 static func hard_hp(w: int) -> float:
@@ -332,6 +354,8 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.boss = CreepDefs.is_boss(type)
 	var boss_mult := 25 if type == &"dreadlord" else (10 if c.boss else 1)
 	c.bounty = CreepDefs.bounty(w) * boss_mult
+	if not c.boss:
+		_apply_twist(c, twist_for(w))
 	match type:
 		&"steam_tank":
 			c.ability_timer = TANK_IMMUNE_PERIOD
@@ -343,6 +367,15 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	_by_id[c.id] = c
 	events.append({"type": &"spawned", "id": c.id, "creep": type})
 	return c
+
+
+func _apply_twist(c: SimCreep, twist: StringName) -> void:
+	c.twist = twist
+	match twist:
+		&"swift":
+			c.speed *= WaveTwists.SWIFT_SPEED
+		&"plated":
+			c.armor += WaveTwists.PLATED_ARMOR
 
 
 func _check_wave_cleared() -> void:
@@ -539,6 +572,8 @@ func hit(c: SimCreep, base: float, t: SimTower, aura: float) -> float:
 	events.append({"type": &"hit", "id": c.id, "amount": amount, "counter": counter})
 	if c.hp <= 0.0:
 		_on_zero_hp(c, t)
+	else:
+		_check_second_wind(c)
 	return amount
 
 
@@ -556,10 +591,26 @@ func _apply_dot(c: SimCreep, amount: float, t: SimTower) -> void:
 		c.dot_accum = 0.0
 	if c.hp <= 0.0:
 		_on_zero_hp(c, t)
+	else:
+		_check_second_wind(c)
+
+
+## Second Wind twist: the first time damage leaves a creep alive at half HP
+## or less, it heals a quarter of its max HP (half that while poisoned).
+func _check_second_wind(c: SimCreep) -> void:
+	if c.twist != &"second_wind" or c.second_wind_used:
+		return
+	if c.hp > c.max_hp * WaveTwists.SECOND_WIND_AT:
+		return
+	c.second_wind_used = true
+	var heal := c.max_hp * WaveTwists.SECOND_WIND_HEAL * (0.5 if not c.poison.is_empty() else 1.0)
+	c.hp = minf(c.hp + heal, c.max_hp)
+	events.append({"type": &"second_wind", "id": c.id})
 
 
 func _on_zero_hp(c: SimCreep, t: SimTower) -> void:
-	if c.type == &"ghoul" and not c.revived:
+	_spread_plague(c)
+	if (c.type == &"ghoul" or c.twist == &"undying") and not c.revived:
 		c.revived = true
 		c.revive_time = GHOUL_REVIVE_TIME
 		c.hp = 0.0
@@ -577,7 +628,7 @@ func affectable(c: SimCreep) -> bool:
 
 
 func apply_slow(c: SimCreep, amount: float, duration: float) -> void:
-	if not affectable(c):
+	if not affectable(c) or c.twist == &"unstoppable":
 		return
 	if c.boss:
 		duration *= 0.5
@@ -589,8 +640,45 @@ func apply_slow(c: SimCreep, amount: float, duration: float) -> void:
 
 
 func apply_root(c: SimCreep, duration: float) -> void:
-	if affectable(c) and not c.boss:
+	if affectable(c) and not c.boss and c.twist != &"unstoppable":
 		c.root_time = maxf(c.root_time, duration)
+
+
+## One poison stack from tower `t` (at `level`, with `aura`): its dps after
+## the element wheel and the Bard aura, for its poison_time. A creep holds at
+## most poison_stacks stacks; the oldest drops.
+func add_poison(c: SimCreep, t: SimTower, level: int, aura: float) -> void:
+	if not affectable(c):
+		return
+	var dps: float = TowerDefs.stat(t.id, "poison_dps", level)
+	dps *= Damage.element_mult(TowerDefs.stat(t.id, "element"), c.element)
+	dps *= 1.0 + aura
+	c.poison.append(Vector2(dps, TowerDefs.stat(t.id, "poison_time", level)))
+	c.poison_src.append(t)
+	if c.poison.size() > TowerDefs.stat(t.id, "poison_stacks", level):
+		c.poison.remove_at(0)
+		c.poison_src.remove_at(0)
+
+
+## Plague Necropolis contagion: a creep falling with one of its stacks passes
+## a fresh stack to every other creep within contagion_radius.
+func _spread_plague(c: SimCreep) -> void:
+	var src: SimTower = null
+	for t in c.poison_src:
+		if t != null and t.stat("contagion_radius", 0.0) > 0.0:
+			src = t
+			break
+	if src == null:
+		return
+	var r: float = src.stat("contagion_radius")
+	var n := 0
+	for other in creeps:
+		if other != c and affectable(other) and other.pos.distance_to(c.pos) <= r:
+			add_poison(other, src, src.level, src.aura)
+			n += 1
+	# No burst when nobody was in reach: in a big wave that's one per kill.
+	if n > 0:
+		events.append({"type": &"contagion", "pos": c.pos, "radius": r, "count": n})
 
 
 # --- Towers -----------------------------------------------------------------
@@ -608,6 +696,10 @@ func _targets_in_range(t: SimTower, count: int) -> Array[SimCreep]:
 		if d <= r and d >= min_r:
 			found.append(c)
 	found.sort_custom(func(a: SimCreep, b: SimCreep) -> bool: return a.progress < b.progress)
+	if t.stat("targeting", &"") == &"uninfected":
+		var fresh := found.filter(func(c: SimCreep) -> bool: return not c.carries(t.id))
+		var carriers := found.filter(func(c: SimCreep) -> bool: return c.carries(t.id))
+		found.assign(fresh + carriers)
 	return found.slice(0, count)
 
 
@@ -658,8 +750,12 @@ func _launch(t: SimTower, kind: StringName, c: SimCreep) -> void:
 			p.time_left = p.flight_time
 			p.target_point = c.pos + c.heading * c.effective_speed() * p.flight_time
 		&"bolt":
+			if t.stat("lead", false):
+				var eta := c.pos.distance_to(t.pos) / p.speed
+				var lead := c.pos + c.heading * c.effective_speed() * eta
+				t.aim = (lead - t.pos).normalized()
 			p.direction = t.aim
-			p.max_distance = t.stat("range") + 1.0
+			p.max_distance = t.stat("lance_length", t.stat("range") + 1.0)
 	projectiles.append(p)
 	events.append({"type": &"fired", "tile": t.tile, "kind": kind, "target": c.id})
 
@@ -712,17 +808,8 @@ func _on_direct_hit(p: SimProjectile, c: SimCreep) -> void:
 				if other == c or (radius > 0.0 and other.pos.distance_to(c.pos) <= radius):
 					if other.targetable():
 						apply_slow(other, slow, slow_time)
-		&"plague":
-			if not affectable(c):
-				return
-			var dps: float = TowerDefs.stat(t.id, "poison_dps", lvl)
-			dps *= Damage.element_mult(TowerDefs.stat(t.id, "element"), c.element)
-			dps *= 1.0 + p.aura
-			c.poison.append(Vector2(dps, TowerDefs.stat(t.id, "poison_time", lvl)))
-			c.poison_src.append(t)
-			if c.poison.size() > TowerDefs.stat(t.id, "poison_stacks", lvl):
-				c.poison.remove_at(0)
-				c.poison_src.remove_at(0)
+		&"plague", &"plague_necropolis":
+			add_poison(c, t, lvl, p.aura)
 		&"runesmith":
 			if affectable(c):
 				c.shred = minf(c.shred + TowerDefs.stat(t.id, "shred", lvl), SHRED_MAX)
@@ -763,14 +850,16 @@ func _step_bolt(p: SimProjectile) -> void:
 	var step := p.speed * DT
 	p.pos += p.direction * step
 	p.travelled += step
-	var pierce: int = TowerDefs.stat(p.tower.id, "pierce", p.level)
+	# No pierce limit means the bolt hits everything it passes.
+	var pierce: int = TowerDefs.stat(p.tower.id, "pierce", p.level, 1_000_000)
 	var base: float = TowerDefs.stat(p.tower.id, "damage", p.level)
+	var radius: float = TowerDefs.stat(p.tower.id, "hit_radius", p.level, BOLT_HIT_RADIUS)
 	for c in creeps:
 		if p.hit_ids.size() >= pierce:
 			break
 		if not c.targetable() or c.id in p.hit_ids:
 			continue
-		if c.pos.distance_to(p.pos) <= BOLT_HIT_RADIUS:
+		if c.pos.distance_to(p.pos) <= radius:
 			p.hit_ids.append(c.id)
 			hit(c, base, p.tower, p.aura)
 	if p.travelled >= p.max_distance or p.hit_ids.size() >= pierce:

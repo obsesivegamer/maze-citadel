@@ -217,8 +217,9 @@ func on_heal() -> void:
 	_pulse = HEAL_PULSE
 
 
+## Ghouls and Undying creeps fall; types without a "down" pose use their death.
 func on_downed() -> void:
-	var anim: StringName = _spec.get("down", &"")
+	var anim: StringName = _spec.get("down", _spec.get("death", &""))
 	if anim == &"" or not _rig.ap.has_animation(anim):
 		return
 	_down = true

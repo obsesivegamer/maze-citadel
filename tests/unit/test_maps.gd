@@ -99,8 +99,9 @@ func test_bot_plan_fits_every_map() -> void:
 
 func test_records_are_kept_per_map() -> void:
 	check_eq(Save.mode_key(false, false), "normal", "default map keeps its keys")
-	check_eq(Save.mode_key(true, true, MapDefs.DEFAULT), "hard_infinite", "default map")
-	check_eq(Save.mode_key(true, false, &"rampart"), "rampart_hard", "other maps prefixed")
+	check_eq(Save.mode_key(true, true, false, MapDefs.DEFAULT), "hard_infinite", "default map")
+	check_eq(Save.mode_key(true, false, false, &"rampart"), "rampart_hard", "other maps prefixed")
+	check_eq(Save.mode_key(true, false, true, &"rampart"), "rampart_hard_twists", "map and twists")
 	var sim := GameSim.new(&"rampart")
 	sim.infinite = true
 	check_eq(Save.sim_key(sim), "rampart_normal_infinite", "from a sim")

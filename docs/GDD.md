@@ -76,8 +76,26 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Normal | Base values |
 | Hard | Creep HP +10% on wave 1 rising to +40% on wave 40; no bounty bonus |
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. |
+| Twists | From wave 11, most waves carry one random creep ability (below). Combines with Hard and Infinite. Score × 1.1. |
 
 Mode is picked from a chip in the top bar during the opening build phase and locks when wave 1 spawns.
+
+### 5.1 Twists (random wave abilities)
+
+In the spirit of Element TD's random creep abilities. The schedule comes from a seed (`--twists --seed=N` replays one), so it can't be rerolled by calling waves early. The next-wave chip shows the coming twist a full wave ahead, and the wave banner repeats it.
+
+| Twist | Player text | Effect | Never on |
+|---|---|---|---|
+| Swift | Creeps move 20% faster. | speed × 1.2 | Wolf Rider waves |
+| Plated | Creeps gain +3 armor. | armor + 3 (Poison ignores it, shred strips it) | before wave 15; waves ≥ 75% Armored |
+| Stampede | Creeps arrive twice as tightly packed. | spawn gap × 0.5 | Harpy waves |
+| Unstoppable | Creeps can't be slowed, rooted or frozen. | slows, roots and freezes do nothing | — |
+| Undying | Creeps rise once at a third of their HP. | the Ghoul rule for every creep | Ghoul or Harpy waves |
+| Second Wind | At half HP, creeps heal 25% once. | first time at ≤ 50% HP: +25% max HP (half while poisoned) | — |
+
+- Waves 1–10 teach the basics and stay clean, as do boss waves and the all-Armored waves 22, 23, 33 and 38 (already the hardest regular waves). Bosses never carry a twist.
+- One twist per wave, never the same twist two twisted waves in a row. A twist that has come up less often is likelier (weight 1 / (1 + times so far)), so a run sees all six without any fixed wave for one of them.
+- Twists never change a wave's element, armor class, creep count, bounty or leak cost.
 
 ## 6. Damage model
 
@@ -109,8 +127,8 @@ Each element deals **200%** to the element it points at, **50%** to the element 
 
 | Tower element | Strong vs (200%) | Weak vs (50%) | Towers |
 |---|---|---|---|
-| Light | Dark | Stone | Archer, Ballista |
-| Dark | Aqua | Light | Plague Cauldron, Shadow Obelisk |
+| Light | Dark | Stone | Archer, Ballista, Epic Sunfire Ballista |
+| Dark | Aqua | Light | Plague Cauldron, Shadow Obelisk, Epic Plague Necropolis |
 | Aqua | Flame | Dark | Frost Spire, Epic Frost Wyrm |
 | Flame | Verdant | Aqua | Cannon, Demolisher, Epic Doom Cannon |
 | Verdant | Stone | Flame | Ancient of Roots |
@@ -135,9 +153,9 @@ Every creep element has exactly one counter family. Each wave announces its elem
 - **Poison:** stacks up to 5. Halves healing received.
 - **Armor shred:** −2 per Runesmith hit, up to −10, lasts 6 s, refreshes on hit.
 
-## 7. Towers (12)
+## 7. Towers (14)
 
-10 buildable cards plus 2 Epic fusion cards. Upgrades: L1 → L2 → L3 (two upgrade levels).
+10 buildable cards plus 4 Epic fusion cards, one per family. Upgrades: L1 → L2 → L3 (two upgrade levels).
 
 | Key | Tower | Family | Cost L1 / +L2 / +L3 | Attack · Element | Air? | L1 stats | Signature |
 |---|---|---|---|---|---|---|---|
@@ -153,10 +171,12 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | 0 | Shadow Obelisk | Forsaken | 100 / +80 / +110 | Poison · Dark | — | Cloud r2.5 m for 4 s, 18 dps | Up to 3 clouds overlap, ignores armor |
 | G | **Epic Frost Wyrm** | Elven | Fuse 2 × L3 Elven + 100 g | Magic · Aqua | ✓ | Breath cone 7 m, 60 dmg, 1.2 s | 50% slow 3 s; every 5th breath freezes 1 s. Wyrm coils the spire, 1.4× scale. |
 | G | **Epic Doom Cannon** | Horde | Fuse 2 × L3 Horde + 120 g | Siege · Flame | — | 300 splash r4, 3.5 s, 16 m | Molten crater 5 s at 25 dps, heavy shake, 1.4× scale |
+| G | **Epic Sunfire Ballista** | Alliance | Fuse 2 × L3 Alliance + 120 g | Pierce · Light | ✓ | Lance 150 dmg, 1.8 s, 14 m to aim | The lance flies on 40 m from the tower and hits every creep it passes once (no pierce limit, 1 m wide), so a maze that lines creeps up with it pays off. Leads moving targets. Sun disc on the bow, 1.4× scale. |
+| G | **Epic Plague Necropolis** | Forsaken | Fuse 2 × L3 Forsaken + 100 g | Poison · Dark | ✓ | 25 dps × 4 s per stack, 0.8 s, 10 m | Targets the closest creep not yet carrying its plague. Contagion: a creep that dies (or a Ghoul that goes down) carrying a stack passes one to every creep within 3 m. Shares the 5-stack poison cap; Cauldron stacks don't spread. 1.4× scale. |
 
 **Fusion:** select an L3 tower, press `G`, click a second L3 tower of the same family. The Epic appears on the first tile. The second tile is freed and the path updates (freeing a tile can only open the maze, never block it).
 
-**Stretch (only after M9):** Alliance and Forsaken Epics (Sunfire Ballista, Plague Necropolis).
+**Targeting** is a fixed trait of each tower type; the player never aims. Every tower shoots the creep closest to the gate except the Plague Necropolis (closest uninfected creep first).
 
 ## 8. Creeps
 
@@ -226,7 +246,7 @@ The range ring shows only for the hovered or selected tower (and for the ghost w
 ## 11. HUD
 
 - **Top bar:** gold · lives · wave n/40 with next-wave chip (icons, element, class, skull) · interest ring + next payout · speed · pause · mode · quality · camera presets.
-- **Bottom bar:** 12 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable. Epic cards light up when a fusion is possible.
+- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 
@@ -263,4 +283,4 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/`): best wave and best score per mode, quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/`): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.

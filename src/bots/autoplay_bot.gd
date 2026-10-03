@@ -256,16 +256,23 @@ func _upgrade_one(reserve: int) -> void:
 				return
 
 
+## Fuses between waves only, and only with gold to rebuild the freed wall
+## tile at once, so a fusion never shortens the maze while creeps walk it.
 func _try_fuse() -> void:
-	if strategy != &"smart":
+	if strategy != &"smart" or sim.phase != GameSim.Phase.BUILD:
 		return
-	for family in [&"elven", &"horde"]:
+	for family in TowerDefs.FUSIONS:
 		var ready: Array[Vector2i] = []
 		for tile in plan:
 			var t := sim.tower_at(tile)
 			if t != null and not t.is_epic() and t.family() == family and t.level == 3:
 				ready.append(tile)
-		if ready.size() >= 2 and sim.fuse(ready[0], ready[1]):
+		if ready.size() < 2:
+			continue
+		var refill := TowerDefs.build_cost(_pattern_at(plan.find(ready[1])))
+		if sim.gold < int(TowerDefs.TOWERS[TowerDefs.FUSIONS[family]].fuse_cost) + refill:
+			continue
+		if sim.fuse(ready[0], ready[1]):
 			# Re-fill the freed wall tile so the maze stays long.
 			_next_slot = mini(_next_slot, plan.find(ready[1]))
 

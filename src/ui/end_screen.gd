@@ -61,7 +61,7 @@ func show_result(won: bool, best_before: int) -> void:
 	var sim := _game.sim
 	_title.text = "Victory" if won else "Defeat"
 	_title.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT if won else UiTheme.BAD)
-	_mode.text = TowerInfo.mode_name(sim.hard, sim.infinite).to_upper()
+	_mode.text = TowerInfo.mode_name(sim.hard, sim.infinite, sim.twists).to_upper()
 	for c in _grid.get_children():
 		_grid.remove_child(c)
 		c.queue_free()

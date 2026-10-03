@@ -6,6 +6,10 @@ extends RefCounted
 ##
 ## kind: projectile (homing) · shell (arcing splash) · bolt (piercing line)
 ##       nova (around the tower) · cloud (ground zone) · cone (breath) · aura
+##
+## targeting: fixed per tower type, never chosen by the player. Every tower
+## shoots the creep closest to the gate, unless it names another rule:
+##   uninfected: the closest creep not yet carrying this tower's poison
 
 const BUILD_ORDER: Array[StringName] = [
 	&"archer",
@@ -19,8 +23,15 @@ const BUILD_ORDER: Array[StringName] = [
 	&"roots",
 	&"shadow",
 ]
-const EPICS: Array[StringName] = [&"frost_wyrm", &"doom_cannon"]
-const FUSIONS := {&"elven": &"frost_wyrm", &"horde": &"doom_cannon"}
+const EPICS: Array[StringName] = [
+	&"frost_wyrm", &"doom_cannon", &"sunfire_ballista", &"plague_necropolis"
+]
+const FUSIONS := {
+	&"elven": &"frost_wyrm",
+	&"horde": &"doom_cannon",
+	&"alliance": &"sunfire_ballista",
+	&"forsaken": &"plague_necropolis",
+}
 const MAX_LEVEL := 3
 
 const TOWERS := {
@@ -217,6 +228,46 @@ const TOWERS := {
 		"crater_dps": 25.0,
 		"crater_time": 5.0,
 		"crater_radius": 2.5,
+	},
+	## A lance that flies on 40 m past the tower (the board's full width),
+	## hitting every creep it passes once (no pierce limit).
+	&"sunfire_ballista":
+	{
+		"name": "Epic Sunfire Ballista",
+		"family": &"alliance",
+		"fuse_cost": 120,
+		"kind": &"bolt",
+		"attack": &"pierce",
+		"element": &"light",
+		"air": true,
+		"damage": 150,
+		"cooldown": 1.8,
+		"range": 14.0,
+		"speed": 45.0,
+		"lead": true,
+		"lance_length": 40.0,
+		"hit_radius": 1.0,
+	},
+	## Plague stacks like the Cauldron's; a creep that dies (or a Ghoul that
+	## goes down) carrying one passes a stack to every creep around it.
+	&"plague_necropolis":
+	{
+		"name": "Epic Plague Necropolis",
+		"family": &"forsaken",
+		"fuse_cost": 100,
+		"kind": &"projectile",
+		"targeting": &"uninfected",
+		"attack": &"poison",
+		"element": &"dark",
+		"air": true,
+		"damage": 0,
+		"cooldown": 0.8,
+		"range": 10.0,
+		"speed": 16.0,
+		"poison_dps": 25.0,
+		"poison_time": 4.0,
+		"poison_stacks": 5,
+		"contagion_radius": 3.0,
 	},
 }
 

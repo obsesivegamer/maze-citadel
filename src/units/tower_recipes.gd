@@ -11,6 +11,7 @@ const MOLTEN := Color(1.0, 0.42, 0.08)
 const PLAGUE := Color(0.4, 1.0, 0.18)
 const SHADOW := Color(0.66, 0.3, 1.0)
 const RUNE := Color(1.0, 0.8, 0.3)
+const SUN := Color(1.0, 0.78, 0.3)
 const CAULDRON := ENV + "quaternius_fantasy_props/Cauldron.glb"
 const ANVIL := ENV + "quaternius_fantasy_props/Anvil.glb"
 const BRAZIER := ENV + "kenney_graveyard_kit/fire-basket.glb"
@@ -32,6 +33,7 @@ const BALLISTA_BASES: Array[String] = [
 const WYRM_SEGMENTS := 18
 const WYRM_TURNS := 1.6
 const DOOM_PITCH := -0.7
+const SUN_RAYS := 8
 
 
 static func make(k: TowerVisuals.Kit, id: StringName, lvl: int) -> void:
@@ -60,6 +62,10 @@ static func make(k: TowerVisuals.Kit, id: StringName, lvl: int) -> void:
 			_frost_wyrm(k)
 		&"doom_cannon":
 			_doom_cannon(k)
+		&"sunfire_ballista":
+			_sunfire_ballista(k)
+		&"plague_necropolis":
+			_plague_necropolis(k)
 
 
 static func _archer(k: TowerVisuals.Kit, lvl: int) -> void:
@@ -385,6 +391,101 @@ static func _doom_cannon(k: TowerVisuals.Kit) -> void:
 	TowerVisuals.recoil(k, barrel, &"barrel")
 	_spikes(k, k.y - 0.36)
 	k.idle.append(&"embers")
+
+
+## A tall gilded ballista with a sun disc on its turning head: a glowing ring
+## and rays behind the bow, and a slow halo of crystals around the tower.
+static func _sunfire_ballista(k: TowerVisuals.Kit) -> void:
+	k.stack("tower-square-bottom-c.glb")
+	k.stack("tower-square-middle-a.glb")
+	k.stack("tower-square-middle-c.glb")
+	k.stack("tower-square-top-c.glb")
+	var strip := BoxMesh.new()
+	strip.size = Vector3(0.1, k.y * 0.7, 0.04)
+	for i in 4:
+		var b := Basis(Vector3.UP, TAU * i / 4 + PI * 0.25)
+		k.mesh(strip, Transform3D(b, b * Vector3(0, k.y * 0.45, 1.3)), UnitStyle.glow(SUN, 2.0))
+	k.stack("tower-round-base.glb", 1.05)
+	var s := 1.55
+	var h := TowerVisuals.head(k, k.y, BALLISTA_MUZZLE * KIT * s)
+	var w := TowerVisuals.weapon(k, "weapon-ballista.glb", s)
+	h.add_child(w)
+	TowerVisuals.recoil(k, w.find_child("arrow") as Node3D, &"bolt")
+	# The disc faces along the bow: its local Y is the bow's axis, so the
+	# tower's spin (about local Y) turns it like a wheel.
+	var disc := Node3D.new()
+	disc.position = Vector3(0, BALLISTA_MUZZLE * KIT * s + 0.2, -0.75)
+	disc.rotation.x = PI * 0.5
+	h.add_child(disc)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.62
+	torus.outer_radius = 0.76
+	torus.rings = 24
+	torus.ring_segments = 6
+	ring.mesh = torus
+	ring.material_override = UnitStyle.glow(SUN, 3.0)
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	disc.add_child(ring)
+	k.glow.append(ring)
+	var ray := BoxMesh.new()
+	ray.size = Vector3(0.42, 0.04, 0.09)
+	for i in SUN_RAYS:
+		var a := TAU * i / SUN_RAYS
+		var r := MeshInstance3D.new()
+		r.mesh = ray
+		r.position = Vector3(cos(a), 0, sin(a)) * 0.98
+		r.rotation.y = -a
+		r.material_override = UnitStyle.glow(SUN, 2.4)
+		r.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		disc.add_child(r)
+	k.glow.append(TowerVisuals.crystal_node(disc, Vector3.ZERO, 0.42, SUN))
+	k.spin.append([disc, 0.6])
+	var halo := Node3D.new()
+	halo.position.y = k.y - 0.4
+	k.root.add_child(halo)
+	for i in 3:
+		var a := TAU * i / 3
+		TowerVisuals.crystal_node(halo, Vector3(cos(a), 0, sin(a)) * 1.25, 0.26, SUN)
+	k.spin.append([halo, 0.9])
+	_pennants(k, 4, 0.9, k.y - 0.5)
+	k.idle.append(&"sun_motes")
+
+
+## A plague obelisk ringed by skull-topped pillars, a bubbling cauldron at its
+## foot and a sickly orb turning above it.
+static func _plague_necropolis(k: TowerVisuals.Kit) -> void:
+	k.stack("tower-square-bottom-b.glb")
+	k.stack("tower-square-middle-c.glb")
+	k.stack("tower-square-middle-b.glb")
+	var strip := BoxMesh.new()
+	strip.size = Vector3(0.1, k.y * 0.7, 0.04)
+	for i in 4:
+		var b := Basis(Vector3.UP, TAU * i / 4)
+		k.mesh(strip, Transform3D(b, b * Vector3(0, k.y * 0.45, 0.96)), UnitStyle.glow(PLAGUE, 2.0))
+	k.stack("tower-round-base.glb", 1.05)
+	var y := k.y
+	k.place(OBELISK, Vector3(0, y, -0.2), 1.75)
+	k.place(CAULDRON, Vector3(0, y, 0.62), 0.55)
+	for i in 4:
+		var a := PI * 0.25 + TAU * i / 4
+		var at := Vector3(cos(a), 0, sin(a)) * 0.82 + Vector3(0, y, 0)
+		k.place(PILLAR, at, 0.8)
+		k.place(SKULL, at + Vector3(0, 0.95, 0), 0.24, -a)
+	var top := y + 1.01 * KIT * 1.75
+	var orb := _float(k, top + 0.55, 0.0)
+	k.glow.append(TowerVisuals.crystal_node(orb, Vector3.ZERO, 0.75, PLAGUE))
+	var ring := Node3D.new()
+	orb.add_child(ring)
+	for i in 4:
+		var a := TAU * i / 4
+		k.glow.append(
+			TowerVisuals.crystal_node(ring, Vector3(cos(a), 0, sin(a)) * 0.75, 0.24, SHADOW)
+		)
+	k.spin.append([orb, 1.0])
+	k.spin.append([ring, -1.8])
+	k.idle.append(&"plague_fumes")
+	k.idle.append(&"shadow_wisps")
 
 
 ## A floating node (no aiming) that also sets the muzzle height.

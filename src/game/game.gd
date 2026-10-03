@@ -54,6 +54,8 @@ func _init() -> void:
 	sim = GameSim.new(map)
 	sim.hard = _carry.get("hard", false)
 	sim.infinite = _carry.get("infinite", false)
+	sim.twists = _carry.get("twists", false)
+	sim.twist_seed = _carry.get("twist_seed", 0)
 	_carry = {}
 	Coords.map = map
 
@@ -200,12 +202,16 @@ func set_quality(preset: Quality.Preset) -> void:
 	quality_changed.emit(preset)
 
 
-## Mode can change only before wave 1 spawns (GDD §5).
-func set_mode(hard: bool, infinite: bool) -> bool:
+## Mode can change only before wave 1 spawns (GDD §5). Turning Twists on
+## deals a fresh schedule unless a seed was already given (--seed).
+func set_mode(hard: bool, infinite: bool, twists := false) -> bool:
 	if sim.wave > 0:
 		return false
 	sim.hard = hard
 	sim.infinite = infinite
+	if twists and not sim.twists and sim.twist_seed == 0:
+		sim.twist_seed = randi() | 1
+	sim.twists = twists
 	return true
 
 
@@ -216,7 +222,13 @@ func change_map(id: StringName) -> bool:
 	if sim.wave > 0 or id == sim.grid.map or not MapDefs.has(id):
 		return false
 	Save.set_setting("map", String(id))
-	_carry = {"map": id, "hard": sim.hard, "infinite": sim.infinite}
+	_carry = {
+		"map": id,
+		"hard": sim.hard,
+		"infinite": sim.infinite,
+		"twists": sim.twists,
+		"twist_seed": sim.twist_seed,
+	}
 	restart()
 	return true
 

@@ -37,6 +37,8 @@ const SHORT_NAMES := {
 	&"shadow": "Obelisk",
 	&"frost_wyrm": "Frost Wyrm",
 	&"doom_cannon": "Doom Cannon",
+	&"sunfire_ballista": "Sunfire",
+	&"plague_necropolis": "Necropolis",
 }
 const BLURBS := {
 	&"archer": "Cheap maze filler. Level 3 fires two arrows.",
@@ -51,6 +53,9 @@ const BLURBS := {
 	&"shadow": "Drops poison clouds that ignore armor; up to 3 at once.",
 	&"frost_wyrm": "Breath cone slows 50%; every 5th breath freezes for 1 s.",
 	&"doom_cannon": "Massive splash and a molten crater.",
+	&"sunfire_ballista": "A 40 m lance that hits every creep in its line.",
+	&"plague_necropolis":
+	"Plagues creeps that aren't infected yet. Infected creeps spread it when they fall.",
 }
 ## Tooltip/plaque stat rows: [key, label, short label, format].
 const STAT_ROWS := [
@@ -63,6 +68,8 @@ const STAT_ROWS := [
 	["splash", "Splash", "Splash", "m"],
 	["multishot", "Arrows", "Arrows", "x"],
 	["pierce", "Pierces", "Pierce", "x"],
+	["lance_length", "Lance length", "Lance", "m"],
+	["contagion_radius", "Spreads within", "Spread", "m"],
 	["slow", "Slow", "Slow", "pct"],
 	["root", "Root", "Root", "s"],
 	["shred", "Armor shred", "Shred", "num"],
@@ -253,8 +260,12 @@ static func sell_value(t: SimTower) -> int:
 	return floori(t.invested * GameSim.SELL_REFUND)
 
 
-static func mode_name(hard: bool, infinite: bool) -> String:
-	return ("Hard" if hard else "Normal") + (SEP + "Infinite" if infinite else "")
+static func mode_name(hard: bool, infinite: bool, twists := false) -> String:
+	return (
+		("Hard" if hard else "Normal")
+		+ (SEP + "Twists" if twists else "")
+		+ (SEP + "Infinite" if infinite else "")
+	)
 
 
 static func epic_requirement(epic: StringName) -> String:

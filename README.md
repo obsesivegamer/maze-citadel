@@ -15,11 +15,11 @@ Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon 
 ## Play
 
 - **Build:** pick a tower card (or `1`–`0`) and click a tile. `Shift`+click keeps placing. A red ghost means the spot would block the path; the game never lets you seal the portal off from the gate.
-- **Manage:** click a tower for its plaque: `U` upgrade (two levels), `X` or right-click sell for 75%, `G` fuse two level-3 Elven or Horde towers into an Epic.
+- **Manage:** click a tower for its plaque: `U` upgrade (two levels), `X` or right-click sell for 75%, `G` fuse two level-3 towers of one family into its Epic (Frost Wyrm, Doom Cannon, Sunfire Ballista, Plague Necropolis).
 - **Waves:** they start on a timer; `N` calls the next one early. `Space` pauses, `F` cycles ×1/×2/×3.
 - **Camera:** WASD/arrows or two-finger drag to pan, scroll or pinch to zoom, middle-drag or Option-drag to orbit, `Q`/`E` rotate, `R` reset, `C` cycle portal/gate views, `B` follow the boss.
 - **Counters:** every wave carries an armor class and an element. Pierce beats Light armor and Air, Siege beats Armored, Poison ignores armor; each element deals double damage to the next one in Light → Dark → Aqua → Flame → Verdant → Stone → Light. The banner before each wave tells you what's coming.
-- **Lives:** 20. A leak costs 1 (boss 2), and the creep loops back to the portal for another pass with no bounty. Clear wave 40 to win; Hard and Infinite modes are on the top bar before wave 1. Your best wave per map and mode is saved.
+- **Lives:** 20. A leak costs 1 (boss 2), and the creep loops back to the portal for another pass with no bounty. Clear wave 40 to win; Hard, Infinite and Twists (random creep abilities from wave 11, shown a wave ahead) are on the top bar before wave 1. Your best wave per map and mode is saved.
 - **Maps:** pick one from the MAP panel before wave 1. **Citadel Plateau** is the open board. **Fallen Rampart** puts the portal and gate on opposite corners and splits the board with a broken wall: plug two of its three breaches and every creep comes through the third.
 
 ## Develop

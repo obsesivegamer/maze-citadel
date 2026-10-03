@@ -4,8 +4,9 @@ extends SceneTree
 ## timing, wall order and tower picks the way different players would.
 ## --map=rampart plays the Fallen Rampart (default: Citadel Plateau).
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
-##        [-- --seeds=4 --only=smart:hard --per-wave]
+##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
+## --twists plays Twists mode; bot seed n uses twist schedule n + 1.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -41,7 +42,7 @@ func _initialize() -> void:
 			continue
 		var results: Array[Dictionary] = []
 		for s in seeds:
-			results.append(_play(run[0], run[1], s))
+			results.append(_play(run[0], run[1], s, Cli.has("twists")))
 		print(_row(run, results))
 	quit()
 
@@ -49,10 +50,12 @@ func _initialize() -> void:
 ## One full game. Tracks lives lost per wave and, per wave, the furthest any
 ## creep got along its route (0 = killed at the portal, 1 = leaked), which
 ## shows how close a wave came even when nothing leaked.
-func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
+func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
 	var sim := GameSim.new(StringName(Cli.get_str("map", MapDefs.DEFAULT)))
 	sim.hard = hard
+	sim.twists = twists
+	sim.twist_seed = bot_seed + 1
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
@@ -103,7 +106,7 @@ func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
 			"  %s/%s seed %d: %s, %d lives, %d close calls, leaks %s, gold %d, %d:%02d (%.1f s)"
 			% [
 				strategy,
-				"hard" if hard else "normal",
+				_mode(hard),
 				bot_seed,
 				"won" if out.won else "lost at wave %d" % sim.wave,
 				sim.lives,
@@ -144,7 +147,7 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 		"| %s | %s | %d/%d | %.1f, %d–%d | %.1f | %s | %s |"
 		% [
 			run[0],
-			"hard" if run[1] else "normal",
+			_mode(run[1]),
 			wins,
 			results.size(),
 			lives.reduce(func(a: int, b: int) -> int: return a + b, 0) / float(lives.size()),
@@ -155,3 +158,7 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 			", ".join(losses) if not losses.is_empty() else "–",
 		]
 	)
+
+
+func _mode(hard: bool) -> String:
+	return ("hard" if hard else "normal") + (" twists" if Cli.has("twists") else "")

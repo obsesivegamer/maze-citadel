@@ -16,6 +16,7 @@ const COIN_DARK := Color(0.6, 0.42, 0.1)
 const BLOOD := Color(0.92, 0.2, 0.2)
 const SKY := Color(0.62, 0.87, 1.0)
 const FEL := Color(0.55, 1.0, 0.35)
+const TWIST := Color(1.0, 0.5, 0.82)
 ## AA edge drawn around filled polygons (Godot polygons have no antialiasing).
 const EDGE := 0.8
 
@@ -40,6 +41,7 @@ const SYMBOLS: Array[StringName] = [
 	&"cam_gate",
 	&"boss_track",
 	&"aura",
+	&"twist",
 ]
 const ELEMENT_IDS: Array[StringName] = [
 	&"el_light", &"el_dark", &"el_aqua", &"el_flame", &"el_verdant", &"el_stone"
@@ -116,6 +118,10 @@ static func draw(ci: CanvasItem, id: StringName, r: Rect2, tint := Color.WHITE) 
 		&"infinity":
 			ring(ci, r, Vector2(0.31, 0.5), 0.17, BONE * tint, 0.08)
 			ring(ci, r, Vector2(0.69, 0.5), 0.17, BONE * tint, 0.08)
+		&"twist":
+			arc(ci, r, Vector2(0.5, 0.5), 0.38, -PI * 0.5, PI * 1.15, TWIST * tint, 0.09)
+			arc(ci, r, Vector2(0.5, 0.5), 0.21, PI * 0.5, PI * 2.1, TWIST * tint, 0.08)
+			dot(ci, r, Vector2(0.5, 0.5), 0.07, TWIST * tint)
 		&"upgrade":
 			poly(
 				ci,
