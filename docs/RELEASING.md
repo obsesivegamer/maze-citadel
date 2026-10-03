@@ -35,7 +35,7 @@ tools/export.sh && tools/verify_dmg.sh
 
 ## Download site
 
-`site/index.html` is the page. `tools/build_site.py` fills it from the newest release (version, size, date, checksum, minimum macOS, notarized or not) and writes `build/site/`. Preview it with:
+`site/index.html` is the page. `tools/build_site.py` fills it from the newest release (version, size, date, checksum, minimum macOS, notarized or not) and writes `build/site/`. The tower roster and the tower, Epic, wave and map counts come from the game's own data (`src/data/tower_defs.gd`, `src/data/wave_defs.gd`, `src/data/map_defs.gd` and `src/ui/tower_info.gd`), so a balance change shows up on the site at the next deploy. Preview it with:
 
 ```sh
 python3 tools/build_site.py && open build/site/index.html

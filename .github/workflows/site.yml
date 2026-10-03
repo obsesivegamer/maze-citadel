@@ -1,5 +1,6 @@
 # Builds the download site (site/ + the newest release, via tools/build_site.py)
-# and deploys it to GitHub Pages. Runs when the site changes on main, when the
+# and deploys it to GitHub Pages. The tower roster and counts come from the
+# game's data files. Runs when the site or that data changes on main, when the
 # Mac release workflow publishes a release, or by hand. Pull requests only build
 # it and keep the result as a run artifact. Deploying needs Pages turned on with
 # "GitHub Actions" as the source (docs/RELEASING.md); until then it's skipped.
@@ -12,11 +13,19 @@ on:
       - site/**
       - tools/build_site.py
       - assets/CREDITS.md
+      - src/data/tower_defs.gd
+      - src/data/wave_defs.gd
+      - src/data/map_defs.gd
+      - src/ui/tower_info.gd
       - .github/workflows/site.yml
   pull_request:
     paths:
       - site/**
       - tools/build_site.py
+      - src/data/tower_defs.gd
+      - src/data/wave_defs.gd
+      - src/data/map_defs.gd
+      - src/ui/tower_info.gd
       - .github/workflows/site.yml
   workflow_dispatch:
 
