@@ -10,11 +10,12 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 out="docs/perf/slot-d-$(date +%m%d)"
 mkdir -p "$out"
+# Benches the Citadel Plateau, not the player's last map pick.
 battle=(--autoplay --warp-wave=24 --warp-into=18)
 
 bench() { # preset, seconds, name
   "$GODOT" --path . -m -t --disable-vsync -- --bench="$2" --bench-out="$PWD/$out/$3.json" \
-    --quality="$1" "${battle[@]}" >/dev/null 2>&1
+    --quality="$1" --map=citadel "${battle[@]}" >/dev/null 2>&1
 }
 
 for i in 1 2 3; do

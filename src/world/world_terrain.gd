@@ -3,7 +3,8 @@ extends Node3D
 ## Ground under everything (GDD §1): the lowland heightfield with painted
 ## roads, banks and fields; the raised plateau whose top shows the build grid;
 ## the rock cliff skirt around it; the gate ramp; the river with its bridge;
-## and boulders heaped at the cliff foot.
+## and boulders heaped at the cliff foot. The portal paving, gate ramp and
+## blight follow the map's portal and gate.
 
 const TEX := "res://assets/environment/"
 const GRASS_A := TEX + "tex_pamnawi_handpainted_grass/grass_48.jpg"
@@ -47,8 +48,17 @@ const CLIFF_ROCK_SPACING := 3.3
 const BRIDGE_SCALE := 6.5
 const WATER_HALF_WIDTH := 6.3
 
+## The board being drawn; its ruins darken the plateau under them.
+var grid: Grid
+
 var _macro: NoiseTexture2D
 var _rng := RandomNumberGenerator.new()
+## Performance experiment (PerfFlags): 1 = ground and plateau shaders that
+## skip the texture reads their masks don't need (same look); 2 = also the
+## lowland's coarse macro noise per vertex instead of per pixel (grass blend
+## edges shift slightly); 3 = also trilinear instead of anisotropic filtering
+## on ground, plateau and cliffs (softer far ground).
+var _cheap := PerfFlags.get_int("terrain-cheap", 0)
 
 
 func build() -> void:
@@ -61,11 +71,30 @@ func build() -> void:
 	_build_river()
 	_build_bridge()
 	_build_cliff_rocks()
+	# Diagnostic: hide named parts to price them (--pf-terrain-hide=Lowland,River).
+	for part in PerfFlags.get_str("terrain-hide", "").split(",", false):
+		var node := get_node_or_null(NodePath(part)) as Node3D
+		if node != null:
+			node.visible = false
+
+
+## The stock shader, or its terrain-cheap twin; from level 3 sampled trilinear.
+func _shader(stock: Shader, cheap: Shader) -> Shader:
+	if _cheap <= 0:
+		return stock
+	if _cheap < 3:
+		return cheap
+	var s := Shader.new()
+	s.code = cheap.code.replace("filter_linear_mipmap_anisotropic", "filter_linear_mipmap")
+	return s
 
 
 func _ground_material() -> ShaderMaterial:
 	var m := ShaderMaterial.new()
-	m.shader = preload("res://src/world/shaders/ground.gdshader")
+	m.shader = _shader(
+		preload("res://src/world/shaders/ground.gdshader"),
+		preload("res://src/world/shaders/ground_cheap.gdshader")
+	)
 	m.set_shader_parameter(&"grass_a", WorldKit.texture(GRASS_A))
 	m.set_shader_parameter(&"grass_b", WorldKit.texture(GRASS_B))
 	m.set_shader_parameter(&"dirt", WorldKit.texture(DIRT))
@@ -74,6 +103,8 @@ func _ground_material() -> ShaderMaterial:
 	m.set_shader_parameter(&"macro", _macro)
 	m.set_shader_parameter(&"grass_tint", GRASS_TINT)
 	m.set_shader_parameter(&"meadow_tint", MEADOW_TINT)
+	if _cheap >= 2:
+		m.set_shader_parameter(&"macro_from_uv", true)
 	return m
 
 
@@ -88,6 +119,7 @@ func _build_lowland() -> void:
 	verts.resize(n * n)
 	colors.resize(n * n)
 	var river := WorldLayout.river()
+	var blight := WorldLayout.blight_center()
 	for j in n:
 		var z := _warp(j * 2.0 / (n - 1) - 1.0)
 		for i in n:
@@ -110,7 +142,7 @@ func _build_lowland() -> void:
 					- smoothstep(
 						WorldLayout.BLIGHT_RADIUS * 0.35,
 						WorldLayout.BLIGHT_RADIUS,
-						p.distance_to(WorldLayout.BLIGHT_CENTER)
+						p.distance_to(blight)
 					)
 				),
 				1.0 if WorldLayout.in_rects(p, WorldLayout.FIELDS, -0.5) else 0.0
@@ -133,6 +165,8 @@ func _build_lowland() -> void:
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_INDEX] = idx
+	if _cheap >= 2:
+		arrays[Mesh.ARRAY_TEX_UV] = _macro_per_vertex(verts)
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	mesh.surface_set_material(0, _ground_material())
@@ -141,6 +175,41 @@ func _build_lowland() -> void:
 	mi.mesh = mesh
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+
+
+## The ground shader's coarse macro noise (texture at p × 0.004, ~50 m
+## blobs) sampled at each vertex into UV.x, for ground_cheap.gdshader. The
+## texture's image comes later from a thread, so rebuild it the same way now.
+func _macro_per_vertex(verts: PackedVector3Array) -> PackedVector2Array:
+	var img := _macro.noise.get_seamless_image(
+		_macro.width,
+		_macro.height,
+		_macro.invert,
+		_macro.in_3d_space,
+		_macro.seamless_blend_skirt,
+		_macro.normalize
+	)
+	img.convert(Image.FORMAT_L8)
+	var data := img.get_data()
+	var size := img.get_width()
+	var uvs := PackedVector2Array()
+	uvs.resize(verts.size())
+	for i in verts.size():
+		# Bilinear with wrap, texel centres at (k + 0.5) / size like the GPU.
+		var x := verts[i].x * 0.004 * size - 0.5
+		var y := verts[i].z * 0.004 * size - 0.5
+		var x0 := floori(x)
+		var y0 := floori(y)
+		var fx := x - x0
+		var fy := y - y0
+		var xa := posmod(x0, size)
+		var xb := posmod(x0 + 1, size)
+		var ya := posmod(y0, size) * size
+		var yb := posmod(y0 + 1, size) * size
+		var top := lerpf(data[ya + xa], data[ya + xb], fx)
+		var bottom := lerpf(data[yb + xa], data[yb + xb], fx)
+		uvs[i] = Vector2(lerpf(top, bottom, fy) / 255.0, 0.0)
+	return uvs
 
 
 ## The plateau rim as a closed loop with outward normals, walked SE → SW →
@@ -189,7 +258,10 @@ func _build_plateau() -> void:
 		st.add_vertex(Vector3(a.x, top, a.y))
 		st.add_vertex(Vector3(b.x, top, b.y))
 	var m := ShaderMaterial.new()
-	m.shader = preload("res://src/world/shaders/plateau.gdshader")
+	m.shader = _shader(
+		preload("res://src/world/shaders/plateau.gdshader"),
+		preload("res://src/world/shaders/plateau_cheap.gdshader")
+	)
 	m.set_shader_parameter(&"grass_a", WorldKit.texture(GRASS_A))
 	m.set_shader_parameter(&"grass_b", WorldKit.texture(GRASS_B))
 	m.set_shader_parameter(&"dirt", WorldKit.texture(DIRT))
@@ -198,13 +270,30 @@ func _build_plateau() -> void:
 	m.set_shader_parameter(&"grid_half", Vector2(Grid.WIDTH, Grid.DEPTH) * 0.5)
 	m.set_shader_parameter(&"tile", Grid.TILE)
 	m.set_shader_parameter(&"grass_tint", PLATEAU_GRASS_TINT)
-	m.set_shader_parameter(&"blight_center", Vector2(0, WorldLayout.PLATEAU_MIN.y + 2.0))
+	var px := Coords.portal().x
+	var gx := WorldLayout.gate_x()
+	m.set_shader_parameter(&"blight_center", Vector2(px, WorldLayout.PLATEAU_MIN.y + 2.0))
+	m.set_shader_parameter(&"paved_north", Vector4(px - 2.0, -40.0, px + 2.0, -26.0))
+	m.set_shader_parameter(&"paved_south", Vector4(gx - 2.0, 26.0, gx + 2.0, 40.0))
+	if not grid.obstacles.is_empty():
+		m.set_shader_parameter(&"ruins", _ruin_mask())
+		if _cheap > 0:
+			m.set_shader_parameter(&"has_ruins", true)
 	st.set_material(m)
 	var mi := MeshInstance3D.new()
 	mi.name = "Plateau"
 	mi.mesh = st.commit()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+
+
+## One texel per tile, white under ruins; the plateau shader samples it with
+## linear filtering so the trodden dirt fades out around each ruin.
+func _ruin_mask() -> ImageTexture:
+	var img := Image.create(Grid.COLS, Grid.ROWS, false, Image.FORMAT_L8)
+	for t: Vector2i in grid.obstacles:
+		img.set_pixelv(t, Color.WHITE)
+	return ImageTexture.create_from_image(img)
 
 
 func _rock_material() -> StandardMaterial3D:
@@ -214,7 +303,11 @@ func _rock_material() -> StandardMaterial3D:
 	m.normal_enabled = true
 	m.normal_texture = WorldKit.texture(ROCK_NORMAL)
 	m.roughness = 0.95
-	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	m.texture_filter = (
+		BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		if _cheap >= 3
+		else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	)
 	return m
 
 
@@ -268,15 +361,19 @@ func _build_skirt() -> void:
 ## low stone parapets.
 func _build_ramp() -> void:
 	var hw := WorldLayout.RAMP_HALF_WIDTH
+	var gx := WorldLayout.gate_x()
 	var z0 := WorldLayout.PLATEAU_MAX.y - 0.4
 	var z1 := WorldLayout.RAMP_END_Z
 	var top := Coords.PLATEAU_TOP
-	var low := WorldLayout.ground_y(0, z1) - 0.05
+	var low := WorldLayout.ground_y(gx, z1) - 0.05
 	var base := WorldLayout.LOWLAND_Y - 1.5
 	var road := SurfaceTool.new()
 	road.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var corners := [
-		Vector3(-hw, top, z0), Vector3(hw, top, z0), Vector3(hw, low, z1), Vector3(-hw, low, z1)
+		Vector3(gx - hw, top, z0),
+		Vector3(gx + hw, top, z0),
+		Vector3(gx + hw, low, z1),
+		Vector3(gx - hw, low, z1),
 	]
 	for i in [0, 1, 2, 0, 2, 3]:
 		var v: Vector3 = corners[i]
@@ -294,7 +391,7 @@ func _build_ramp() -> void:
 	var sides := SurfaceTool.new()
 	sides.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for sx in [-1.0, 1.0]:
-		var x: float = sx * hw
+		var x: float = gx + sx * hw
 		var quad := [
 			Vector3(x, top, z0), Vector3(x, low, z1), Vector3(x, base, z1), Vector3(x, base, z0)
 		]
@@ -319,7 +416,7 @@ func _build_ramp() -> void:
 		while z < z1 - seg * 0.3:
 			var y := lerpf(top, low, (z - z0) / (z1 - z0))
 			var b := Basis(Vector3.RIGHT, slope).scaled(Vector3.ONE * fs)
-			xforms.append(Transform3D(b, Vector3(sx * (hw - 0.35), y - 0.1, z)))
+			xforms.append(Transform3D(b, Vector3(gx + sx * (hw - 0.35), y - 0.1, z)))
 			z += seg
 	add_child(WorldKit.multimesh(fence, xforms))
 
@@ -376,7 +473,7 @@ func _build_cliff_rocks() -> void:
 	for k in ring.size():
 		var p: Vector2 = ring[k][0]
 		var nrm: Vector2 = ring[k][1]
-		if absf(p.x) < WorldLayout.RAMP_HALF_WIDTH + 2.5 and p.y > 0:
+		if absf(p.x - WorldLayout.gate_x()) < WorldLayout.RAMP_HALF_WIDTH + 2.5 and p.y > 0:
 			continue
 		var path: String = CLIFF_ROCKS[_rng.randi() % CLIFF_ROCKS.size()]
 		var foot := p + nrm * (WorldLayout.CLIFF_RUN + _rng.randf_range(-0.3, 1.2))

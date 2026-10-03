@@ -36,6 +36,9 @@ var immune_time := 0.0
 ## Per-type ability timer: Steam Tank immunity, Priestess heal, Dreadlord summon.
 var ability_timer := 0.0
 var revived := false
+## Twists mode ability (WaveTwists), or &"".
+var twist: StringName = &""
+var second_wind_used := false
 ## Seconds until a downed Ghoul stands back up; > 0 means down and untargetable.
 var revive_time := 0.0
 var aura_armor := 0.0
@@ -56,3 +59,11 @@ func effective_speed() -> float:
 	if root_time > 0.0 or revive_time > 0.0:
 		return 0.0
 	return speed * (1.0 - slow) * (1.0 + aura_haste)
+
+
+## True while the creep holds a poison stack from a tower of type `tower_id`.
+func carries(tower_id: StringName) -> bool:
+	for t in poison_src:
+		if t != null and t.id == tower_id:
+			return true
+	return false

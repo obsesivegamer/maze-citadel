@@ -88,6 +88,11 @@ const MOUNTAINS: Array[String] = [
 const MOUNTAIN_COUNT := 26
 const MOUNTAIN_RING := Vector2(270.0, 330.0)
 const MOUNTAIN_SCALE := Vector2(30.0, 48.0)
+## Lowland the default camera (106 m, pitch 58°, 40° fov) sees on a 16:9
+## screen, plus ~6 m, for grass-offframe: a trapezoid from the near edge
+## (z, half-width) to the far edge.
+const VIEW_NEAR := Vector2(47.0, 63.0)
+const VIEW_FAR := Vector2(-64.0, 97.0)
 
 var _rng := RandomNumberGenerator.new()
 var _noise := FastNoiseLite.new()
@@ -108,6 +113,20 @@ var _lod_bias := PerfFlags.get_float("nature-lod-bias", 1.0)
 var _tree_range := PerfFlags.get_float("nature-tree-range", 0.0)
 ## Small plants fade out at their range instead of popping.
 var _fade := PerfFlags.get_bool("nature-fade", true)
+## Share (0..1) of grass tufts and of flower clumps kept. Thinning drops the
+## plants whose planting roll was highest, so the rest stay where they were.
+var _grass_share := PerfFlags.get_float("grass-density", 1.0)
+var _flower_share := PerfFlags.get_float("flower-density", 1.0)
+## No grass or flowers beyond this distance (m) from the plateau's centre;
+## 0 = the sets' own radius.
+var _small_radius := PerfFlags.get_float("grass-radius", 0.0)
+## Share (0..1) of grass and flowers kept outside the default camera's view.
+var _offframe_share := PerfFlags.get_float("grass-offframe", 1.0)
+## GeometryInstance3D.lod_bias for grass and flowers alone (< 1 = coarser
+## LODs nearer); 0 = whatever nature-lod-bias gives every set.
+var _small_lod_bias := PerfFlags.get_float("grass-lod-bias", 0.0)
+## Visibility range (m) for grass and flowers; 0 = the sets' own.
+var _small_range := PerfFlags.get_float("grass-range", 0.0)
 
 
 func build() -> void:
@@ -118,8 +137,8 @@ func build() -> void:
 	_scatter(BROADLEAF, _broadleaf_density)
 	_scatter(DEAD, _dead_density)
 	_scatter(BUSHES, _bush_density)
-	_scatter(GRASS, _grass_density)
-	_scatter(FLOWERS, _flower_density)
+	_scatter(GRASS, _grass_density, _small_keep.bind(_grass_share))
+	_scatter(FLOWERS, _flower_density, _small_keep.bind(_flower_share))
 	_scatter(ROCKS, _rock_density)
 	_build_lilies()
 	_build_mountains()
@@ -132,7 +151,7 @@ func set_density(fraction: float) -> void:
 
 ## Probability (0..1) that a candidate point grows a pine.
 func _pine_density(p: Vector2) -> float:
-	if p.distance_to(WorldLayout.BLIGHT_CENTER) < WorldLayout.BLIGHT_RADIUS + 4.0:
+	if p.distance_to(WorldLayout.blight_center()) < WorldLayout.BLIGHT_RADIUS + 4.0:
 		return 0.0
 	var d := 0.12
 	if p.y < -40.0:
@@ -167,7 +186,7 @@ func _broadleaf_density(p: Vector2) -> float:
 
 
 func _dead_density(p: Vector2) -> float:
-	var b := p.distance_to(WorldLayout.BLIGHT_CENTER)
+	var b := p.distance_to(WorldLayout.blight_center())
 	return (
 		0.55
 		* (1.0 - smoothstep(WorldLayout.BLIGHT_RADIUS * 0.5, WorldLayout.BLIGHT_RADIUS + 6.0, b))
@@ -198,14 +217,27 @@ func _flower_density(p: Vector2) -> float:
 
 func _rock_density(p: Vector2) -> float:
 	var d := 0.12
-	if p.distance_to(WorldLayout.BLIGHT_CENTER) < WorldLayout.BLIGHT_RADIUS + 6.0:
+	if p.distance_to(WorldLayout.blight_center()) < WorldLayout.BLIGHT_RADIUS + 6.0:
 		d = 0.5
 	return d
 
 
+## Share (0..1) of a small-plant set kept at `p` by the grass-* experiments.
+func _small_keep(p: Vector2, share: float) -> float:
+	if _small_radius > 0.0 and p.length() > _small_radius:
+		return 0.0
+	if _offframe_share < 1.0:
+		var t := (VIEW_NEAR.x - p.y) / (VIEW_NEAR.x - VIEW_FAR.x)
+		if t < 0.0 or t > 1.0 or absf(p.x) > lerpf(VIEW_NEAR.y, VIEW_FAR.y, t):
+			share *= _offframe_share
+	return share
+
+
 ## Jittered-grid sampling of one set; points pass `density` and the layout's
 ## keep-out zones, then land in per-chunk, per-model MultiMeshes.
-func _scatter(spec: Dictionary, density: Callable) -> void:
+## `keep_share` (point → 0..1) marks a small-plant set for the grass-*
+## experiments and thins it without moving the plants that stay.
+func _scatter(spec: Dictionary, density: Callable, keep_share := Callable()) -> void:
 	var models: Array = spec.models
 	var step: float = spec.step
 	var radius: float = spec.radius
@@ -223,7 +255,8 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 			if p.length() > radius:
 				continue
 			var roll := _rng.randf()
-			if roll >= density.call(p) or not WorldLayout.is_open(p, margin):
+			var chance: float = density.call(p)
+			if roll >= chance or not WorldLayout.is_open(p, margin):
 				continue
 			var mi := _rng.randi() % models.size()
 			var path: String = models[mi]
@@ -231,6 +264,9 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 			var pos := WorldLayout.ground_point(p) - Vector3(0, 0.1 * s, 0)
 			var t := WorldKit.placed(pos, _rng.randf() * TAU, s, _rng.randf_range(-0.05, 0.05))
 			if p.length() > keep:
+				continue
+			# A passing roll is uniform below `chance`, so this keeps the share.
+			if keep_share.is_valid() and roll >= chance * keep_share.call(p):
 				continue
 			var cast: bool = (
 				spec.shadows
@@ -257,7 +293,10 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 			_thinned.append(proxy)
 			cast = false
 		var mmi := WorldKit.multimesh(mesh, xforms, cast, seed_value)
+		var small := keep_share.is_valid()
 		var view_range: float = spec.view_range if spec.view_range > 0.0 else _tree_range
+		if small and _small_range > 0.0:
+			view_range = _small_range
 		if view_range > 0.0:
 			mmi.visibility_range_end = view_range
 			mmi.visibility_range_end_margin = 20.0
@@ -265,6 +304,8 @@ func _scatter(spec: Dictionary, density: Callable) -> void:
 				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		if _lod_bias != 1.0:
 			mmi.lod_bias = _lod_bias
+		if small and _small_lod_bias > 0.0:
+			mmi.lod_bias = _small_lod_bias
 		add_child(mmi)
 		_thinned.append(mmi)
 

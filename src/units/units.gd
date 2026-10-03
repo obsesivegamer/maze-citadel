@@ -182,7 +182,7 @@ func _on_sim_event(e: Dictionary) -> void:
 			var v := _creep_view(e.id)
 			if v:
 				v.on_revived()
-		&"heal":
+		&"heal", &"second_wind":
 			var v := _creep_view(e.id)
 			if v:
 				v.on_heal()

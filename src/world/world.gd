@@ -2,9 +2,10 @@ class_name World
 extends Node3D
 ## The citadel around the plateau (GDD §1, §12): sky and sun, terrain and
 ## cliffs, outer walls and gate, the demon portal, forests, the village and
-## its people. Owns `env` and `sun`, which Quality tunes, and reacts to the
-## match: the gate flashes on a leak, villagers cheer cleared waves and run
-## from leaking bosses, gryphons circle on victory.
+## its people, and the map's ruins on the plateau. Owns `env` and `sun`, which
+## Quality tunes, and reacts to the match: the gate flashes on a leak,
+## villagers cheer cleared waves and run from leaking bosses, gryphons circle
+## on victory.
 
 var env: Environment
 var sun: DirectionalLight3D
@@ -16,6 +17,7 @@ var _village := WorldVillage.new()
 var _citadel := WorldCitadel.new()
 var _portal := WorldPortal.new()
 var _crowd := WorldCrowd.new()
+var _ruins := WorldRuins.new()
 
 
 func setup(game: Game) -> void:
@@ -27,6 +29,8 @@ func setup(game: Game) -> void:
 ## one per frame.
 func setup_steps(game: Game) -> Array:
 	_game = game
+	_terrain.grid = game.sim.grid
+	_ruins.grid = game.sim.grid
 	var steps: Array = [["Lighting the sky", _build_lighting]]
 	var parts := [
 		[_terrain, "Raising the plateau and cliffs"],
@@ -35,6 +39,7 @@ func setup_steps(game: Game) -> Array:
 		[_citadel, "Raising the citadel walls"],
 		[_portal, "Opening the demon portal"],
 		[_crowd, "Waking the villagers"],
+		[_ruins, "Scattering the ruins"],
 	]
 	for entry in parts:
 		steps.append([entry[1], _add_part.bind(entry[0])])

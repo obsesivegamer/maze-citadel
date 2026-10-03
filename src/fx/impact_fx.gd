@@ -2,8 +2,8 @@ class_name ImpactFx
 extends Node3D
 ## Impacts and flourishes driven by sim events (GDD §12): explosions, scorch
 ## craters, burning craters, frost rings, root novas, shadow clouds, frost
-## breath, poison puffs, leak poofs, build dust, upgrade sparkle, sell coins
-## and fuse flash. Emitters are pooled per effect and re-fired in place;
+## breath, plague contagion bursts, poison puffs, leak poofs, build dust,
+## upgrade sparkle, sell coins and fuse flash. Emitters are pooled per effect and re-fired in place;
 ## lingering effects (fire, clouds, scorch) run on timers.
 
 const POOL := {
@@ -19,6 +19,7 @@ const POOL := {
 	&"sparkle": 3,
 	&"coins": 3,
 	&"fuse": 2,
+	&"contagion": 6,
 }
 const LOOP_POOL := {&"fire": 6, &"cloud": 9}
 ## Radius each spec is authored at; emitters scale to the event's radius.
@@ -116,6 +117,22 @@ const SPECS := {
 		"scale": Vector2(0.35, 0.6),
 		"color": Color(0.6, 0.9, 1.0),
 		"energy": 2.0,
+	},
+	&"contagion":
+	{
+		"key": "fx_contagion",
+		"amount": 40,
+		"lifetime": 0.7,
+		"one_shot": true,
+		"shape": "ring",
+		"radius": BASE_RADIUS * 0.3,
+		"spread": 90.0,
+		"dir": Vector3(0, 0.3, 0),
+		"vel": Vector2(3.5, 4.5),
+		"radial": Vector2(2.0, 3.0),
+		"scale": Vector2(0.4, 0.7),
+		"color": Color(0.6, 1.0, 0.25),
+		"energy": 2.2,
 	},
 	&"roots":
 	{

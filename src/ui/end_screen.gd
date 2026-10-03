@@ -61,7 +61,7 @@ func show_result(won: bool, best_before: int) -> void:
 	var sim := _game.sim
 	_title.text = "Victory" if won else "Defeat"
 	_title.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT if won else UiTheme.BAD)
-	_mode.text = TowerInfo.mode_name(sim.hard, sim.infinite).to_upper()
+	_mode.text = TowerInfo.mode_name(sim.hard, sim.infinite, sim.twists).to_upper()
 	for c in _grid.get_children():
 		_grid.remove_child(c)
 		c.queue_free()
@@ -78,7 +78,7 @@ func show_result(won: bool, best_before: int) -> void:
 		var v := UiKit.label(row[1], &"Number", UiTheme.SIZE_LARGE)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_grid.add_child(v)
-	var mode := Save.mode_key(sim.hard, sim.infinite)
+	var mode := Save.sim_key(sim)
 	if sim.wave > best_before:
 		_best.text = "New best wave!"
 		_best.add_theme_color_override("font_color", UiTheme.GOOD)

@@ -14,6 +14,7 @@ const ANNOUNCE_LEAD := 3.0
 var _game: Game
 var _root := Control.new()
 var _top := HudTopBar.new()
+var _map_picker := HudMapPicker.new()
 var _cards := {}
 var _tooltip := TowerTooltip.new()
 var _banner := WaveBanner.new()
@@ -37,6 +38,8 @@ func setup(game: Game) -> void:
 	_root.add_child(_top)
 	_top.setup(game)
 	_top.settings_pressed.connect(_settings.toggle)
+	_root.add_child(_map_picker)
+	_map_picker.setup(game, _top.left_panel)
 	_build_cards()
 	_root.add_child(_banner)
 	_root.add_child(_plaque)
@@ -53,7 +56,7 @@ func setup(game: Game) -> void:
 	_settings.setup(game)
 	_root.add_child(_end)
 	_end.setup(game)
-	_best_before = Save.best_wave(Save.mode_key(game.sim.hard, game.sim.infinite))
+	_best_before = Save.best_wave(Save.sim_key(game.sim))
 	game.sim_event.connect(_on_sim_event)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
@@ -111,7 +114,7 @@ func _on_sim_event(e: Dictionary) -> void:
 	match e.type:
 		&"wave_started":
 			if e.wave == 1:
-				_best_before = Save.best_wave(Save.mode_key(_game.sim.hard, _game.sim.infinite))
+				_best_before = Save.best_wave(Save.sim_key(_game.sim))
 			if _announced < e.wave:
 				_announce(e.wave)
 		&"wave_cleared":
@@ -130,7 +133,7 @@ func _on_sim_event(e: Dictionary) -> void:
 
 func _announce(wave: int) -> void:
 	_announced = wave
-	_banner.announce(wave)
+	_banner.announce(wave, _game.sim.twist_for(wave))
 
 
 func _process(delta: float) -> void:

@@ -132,7 +132,7 @@ bench_cmd() { # json engine scene game
   if [[ -n "$4" ]]; then read -r -a usr <<< "$4"; fi
   if [[ "$3" == battle ]]; then sc=("${battle[@]}"); fi
   printf '%s\n' "$GODOT" ${eng[@]+"${eng[@]}"} --path . "${window[@]}" --disable-vsync -- \
-    --bench="$secs" --bench-out="$1" --quality="$preset" ${sc[@]+"${sc[@]}"} \
+    --bench="$secs" --bench-out="$1" --quality="$preset" --map=citadel ${sc[@]+"${sc[@]}"} \
     ${usr[@]+"${usr[@]}"}
 }
 

@@ -2,9 +2,11 @@ extends SceneTree
 ## Headless balance run: every strategy × mode over several bot seeds, prints
 ## a markdown table. Seed 0 is the bot's plain plan; other seeds vary its
 ## timing, wall order and tower picks the way different players would.
+## --map=rampart plays the Fallen Rampart (default: Citadel Plateau).
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
-##        [-- --seeds=4 --only=smart:hard --per-wave]
+##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
+## --twists plays Twists mode; bot seed n uses twist schedule n + 1.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -22,6 +24,11 @@ const BOSS_WAVES: Array[int] = [10, 20, 30, 40]
 func _initialize() -> void:
 	var seeds := int(Cli.get_str("seeds", "4"))
 	var only := Cli.get_str("only")
+	var map := StringName(Cli.get_str("map", MapDefs.DEFAULT))
+	if not MapDefs.has(map):
+		printerr("unknown map %s (maps: %s)" % [map, ", ".join(MapDefs.ORDER)])
+		quit(1)
+		return
 	print(
 		(
 			"| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | "
@@ -35,7 +42,7 @@ func _initialize() -> void:
 			continue
 		var results: Array[Dictionary] = []
 		for s in seeds:
-			results.append(_play(run[0], run[1], s))
+			results.append(_play(run[0], run[1], s, Cli.has("twists")))
 		print(_row(run, results))
 	quit()
 
@@ -43,16 +50,18 @@ func _initialize() -> void:
 ## One full game. Tracks lives lost per wave and, per wave, the furthest any
 ## creep got along its route (0 = killed at the portal, 1 = leaked), which
 ## shows how close a wave came even when nothing leaked.
-func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
+func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
-	var sim := GameSim.new()
+	var sim := GameSim.new(StringName(Cli.get_str("map", MapDefs.DEFAULT)))
 	sim.hard = hard
+	sim.twists = twists
+	sim.twist_seed = bot_seed + 1
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
 	var boss_walked := {}
 	var start := {}
-	var fly_route := Grid.SPAWN_POINT.distance_to(Grid.GATE_POINT)
+	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
 	while sim.time < MAX_GAME_SECONDS:
 		bot.step()
 		for e in sim.drain_events():
@@ -97,7 +106,7 @@ func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
 			"  %s/%s seed %d: %s, %d lives, %d close calls, leaks %s, gold %d, %d:%02d (%.1f s)"
 			% [
 				strategy,
-				"hard" if hard else "normal",
+				_mode(hard),
 				bot_seed,
 				"won" if out.won else "lost at wave %d" % sim.wave,
 				sim.lives,
@@ -138,7 +147,7 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 		"| %s | %s | %d/%d | %.1f, %d–%d | %.1f | %s | %s |"
 		% [
 			run[0],
-			"hard" if run[1] else "normal",
+			_mode(run[1]),
 			wins,
 			results.size(),
 			lives.reduce(func(a: int, b: int) -> int: return a + b, 0) / float(lives.size()),
@@ -149,3 +158,7 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 			", ".join(losses) if not losses.is_empty() else "–",
 		]
 	)
+
+
+func _mode(hard: bool) -> String:
+	return ("hard" if hard else "normal") + (" twists" if Cli.has("twists") else "")

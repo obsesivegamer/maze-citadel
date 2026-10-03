@@ -1,8 +1,9 @@
 class_name WaveBanner
 extends Control
 ## The pre-wave announcement (GDD §3): 3 s before a wave spawns, a band across
-## the top with the wave number, creep icons and counts, element, armor class
-## and a skull for bosses. Also shows a short "wave cleared" note.
+## the top with the wave number, creep icons and counts, element, armor class,
+## a skull for bosses and the wave's twist (Twists mode) on its own line. Also
+## shows a short "wave cleared" note.
 
 ## Sits below the portal (fraction of screen height) so spawning creeps stay
 ## visible, as a centred plate rather than a full-width band.
@@ -16,12 +17,15 @@ const CLEARED_HOLD := 1.4
 const FADE_OUT := 0.7
 const SLIDE := 14.0
 const ICON_PX := 30.0
+## Extra band height for the twist line.
+const TWIST_HEIGHT := 28.0
 
 var _title := UiKit.label("", &"Title", UiTheme.SIZE_BANNER)
 var _skull_l := UiIcon.new(&"skull", 38.0)
 var _skull_r := UiIcon.new(&"skull", 38.0)
 var _icons := WaveIcons.new(ICON_PX, 18)
 var _detail := UiKit.rich(UiTheme.SIZE_BODY)
+var _twist := UiKit.rich(UiTheme.SIZE_BODY)
 var _tween: Tween
 
 
@@ -48,9 +52,14 @@ func _init() -> void:
 	_detail.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_detail.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(_detail)
+	_twist.fit_content = true
+	_twist.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_twist.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_twist.visible = false
+	box.add_child(_twist)
 
 
-func announce(wave: int) -> void:
+func announce(wave: int, twist: StringName = &"") -> void:
 	var boss := WaveDefs.has_boss(wave)
 	_title.text = "Wave %d" % wave
 	_title.add_theme_color_override("font_color", UiTheme.BAD if boss else UiTheme.GOLD_BRIGHT)
@@ -70,6 +79,13 @@ func announce(wave: int) -> void:
 		text += "   ·   [color=#%s]BOSS — leaks cost 2 lives[/color]" % UiTheme.hex(UiTheme.BAD)
 	_detail.text = "[center]%s[/center]" % text
 	_detail.visible = true
+	_twist.visible = twist != &""
+	if _twist.visible:
+		_twist.text = (
+			"[center][color=#%s]Twist: [b]%s[/b]. %s[/color][/center]"
+			% [UiTheme.hex(UiGlyphs.TWIST), WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		)
+	size = Vector2(WIDTH, HEIGHT + (TWIST_HEIGHT if _twist.visible else 0.0))
 	_play(HOLD)
 
 
@@ -80,6 +96,8 @@ func cleared(wave: int) -> void:
 	_skull_r.visible = false
 	_icons.visible = false
 	_detail.visible = false
+	_twist.visible = false
+	size = Vector2(WIDTH, HEIGHT)
 	_play(CLEARED_HOLD)
 
 

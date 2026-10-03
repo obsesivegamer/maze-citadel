@@ -2,7 +2,8 @@ class_name ProjectileViews
 extends Node3D
 ## Shots in flight (GDD §12): arrow tracers, ballista bolt streaks, cannon
 ## shells, demolisher boulders and Doom shells on arcs with trails, frost
-## bolts, plague lobs and spinning rune hammers. Each frame places every
+## bolts, plague lobs, spinning rune hammers, the Sunfire lance and the
+## Necropolis's plague orbs. Each frame places every
 ## pooled visual from its SimProjectile (homing, shell or bolt timing).
 
 const TD := TowerVisuals.TD
@@ -42,6 +43,23 @@ const LOOKS := {
 	},
 	&"plague":
 	{"mesh": "orb", "scale": 0.5, "glow": Color(0.4, 1, 0.2), "trail": &"plague_trail", "lob": 1.8},
+	&"plague_necropolis":
+	{
+		"mesh": "orb",
+		"scale": 0.8,
+		"glow": Color(0.62, 0.3, 1),
+		"trail": &"plague_trail",
+		"lob": 2.2
+	},
+	&"sunfire_ballista":
+	{
+		"mesh": "arrow",
+		"scale": 3.4,
+		"glow": Color(1, 0.8, 0.35),
+		"trail": &"sun_trail",
+		"streak": Vector3(0.4, 0.4, 6.0),
+		"tint": Color(1, 0.85, 0.4),
+	},
 	&"runesmith":
 	{"mesh": "hammer", "scale": 0.8, "trail": &"rune_trail", "spin": 14.0, "lob": 0.6},
 }

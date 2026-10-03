@@ -167,7 +167,10 @@ static func swaying(path: String, amp: float, flutter := 0.03) -> ArrayMesh:
 
 ## The model's materials ship without mipmaps; distant foliage and roofs then
 ## shimmer. Rebuild the texture with mipmaps where the renderer allows it
-## (no-op under the headless dummy renderer).
+## (no-op under the headless dummy renderer). The rebuilt textures are
+## uncompressed; the world-tex-compress experiment (PerfFlags) makes them S3TC
+## (the editor binary only: export templates have no compressor), normal
+## maps excepted.
 static func mipmapped_texture(tex: Texture2D) -> Texture2D:
 	if tex == null:
 		return null
@@ -180,6 +183,9 @@ static func mipmapped_texture(tex: Texture2D) -> Texture2D:
 			img.decompress()
 		if not img.has_mipmaps():
 			img.generate_mipmaps()
+			var normal := tex.resource_path.get_basename().ends_with("_norm")
+			if not normal and PerfFlags.get_bool("world-tex-compress", false):
+				img.compress(Image.COMPRESS_S3TC, Image.COMPRESS_SOURCE_SRGB)
 			out = ImageTexture.create_from_image(img)
 	_textures[tex] = out
 	return out

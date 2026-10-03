@@ -17,11 +17,12 @@ func _wall(grid: Grid, row: int, gaps: Array) -> void:
 
 
 func test_open_board_route_is_straight() -> void:
-	var f := _field(Grid.new())
+	var grid := Grid.new()
+	var f := _field(grid)
 	check_eq(f.distance(Vector2i(9, 0)), float(Grid.ROWS - 1), "spawn distance")
 	# The portal sits between the two middle columns, so the walk in and out
 	# adds a small sideways step to the straight line.
-	var straight := Grid.GATE_POINT.y - Grid.SPAWN_POINT.y
+	var straight := grid.gate_point.y - grid.spawn_point.y
 	check_near(f.route_length(), straight, 0.5, "route length")
 
 
@@ -58,8 +59,8 @@ func test_route_never_enters_blocked_tiles() -> void:
 
 func test_placement_refuses_reserved_and_occupied() -> void:
 	var grid := Grid.new()
-	check_eq(Placement.check(grid, Grid.SPAWN_TILES[0], []), R.RESERVED, "portal")
-	check_eq(Placement.check(grid, Grid.GOAL_TILES[1], []), R.RESERVED, "gate")
+	check_eq(Placement.check(grid, grid.spawn_tiles[0], []), R.RESERVED, "portal")
+	check_eq(Placement.check(grid, grid.goal_tiles[1], []), R.RESERVED, "gate")
 	check_eq(Placement.check(grid, Vector2i(-1, 3), []), R.OUT_OF_BOUNDS, "outside")
 	grid.set_blocked(Vector2i(3, 3), true)
 	check_eq(Placement.check(grid, Vector2i(3, 3), []), R.OCCUPIED, "occupied")
@@ -106,10 +107,12 @@ func test_fuzz_never_disconnects_portal() -> void:
 		if r == R.OK:
 			grid.set_blocked(t, true)
 			accepted += 1
-			check(Grid.SPAWN_TILES.any(_field(grid).reachable), "connected after %s" % t)
+			var f := _field(grid)
+			check(grid.spawn_tiles.any(f.reachable), "connected after %s" % t)
 		elif r == R.BLOCKS_PATH:
 			refused += 1
 			grid.set_blocked(t, true)
-			check(not Grid.SPAWN_TILES.any(_field(grid).reachable), "refusal %s was real" % t)
+			var f := _field(grid)
+			check(not grid.spawn_tiles.any(f.reachable), "refusal %s was real" % t)
 			grid.set_blocked(t, false)
 	check(accepted > 150 and refused > 20, "fuzz exercised both (%d/%d)" % [accepted, refused])
