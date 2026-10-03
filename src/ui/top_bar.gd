@@ -179,7 +179,9 @@ func _build_right() -> void:
 	_boss.toggled.connect(func(on: bool) -> void: _game.camera.set_boss_tracking(on))
 	row.add_child(_boss)
 	row.add_child(UiKit.divider())
-	var guide := FieldGuide.book_button(_game, BUTTON_PX)
+	var guide := UiKit.icon_button(
+		_game, &"book", "Field Guide: elements, armor and the next wave (H)", BUTTON_PX
+	)
 	guide.pressed.connect(guide_pressed.emit)
 	row.add_child(guide)
 	var gear := UiKit.icon_button(_game, &"gear", "Settings (F10)", BUTTON_PX)

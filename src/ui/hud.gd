@@ -184,7 +184,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		&"":
 			return
 		&"close_guide":
-			_guide.close_panel()
+			_guide.close_modal()
 		&"open_guide":
 			_guide.open()
 		&"begin":

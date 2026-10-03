@@ -19,6 +19,7 @@ const BLOOD := Color(0.92, 0.2, 0.2)
 const SKY := Color(0.62, 0.87, 1.0)
 const FEL := Color(0.55, 1.0, 0.35)
 const TWIST := Color(1.0, 0.5, 0.82)
+const LEATHER := Color(0.55, 0.16, 0.12)
 ## AA edge drawn around filled polygons (Godot polygons have no antialiasing).
 const EDGE := 0.8
 
@@ -44,6 +45,7 @@ const SYMBOLS: Array[StringName] = [
 	&"boss_track",
 	&"aura",
 	&"twist",
+	&"book",
 ]
 const ELEMENT_IDS: Array[StringName] = [
 	&"el_light", &"el_dark", &"el_aqua", &"el_flame", &"el_verdant", &"el_stone"
@@ -124,6 +126,8 @@ static func draw(ci: Object, id: StringName, r: Rect2, tint := Color.WHITE) -> v
 			arc(ci, r, Vector2(0.5, 0.5), 0.38, -PI * 0.5, PI * 1.15, TWIST * tint, 0.09)
 			arc(ci, r, Vector2(0.5, 0.5), 0.21, PI * 0.5, PI * 2.1, TWIST * tint, 0.08)
 			dot(ci, r, Vector2(0.5, 0.5), 0.07, TWIST * tint)
+		&"book":
+			_book(ci, r, tint)
 		&"upgrade":
 			poly(
 				ci,
@@ -367,6 +371,19 @@ static func _eye(ci: Object, r: Rect2, color: Color) -> void:
 	poly_pts(ci, pts, Color(0.95, 0.92, 0.85) * Color(1, 1, 1, color.a))
 	dot(ci, r, Vector2(0.5, 0.5), 0.17, color)
 	dot(ci, r, Vector2(0.5, 0.5), 0.07, INK * Color(1, 1, 1, color.a))
+
+
+## An open book (the Field Guide).
+static func _book(ci: Object, r: Rect2, tint: Color) -> void:
+	var cover := [0.03, 0.24, 0.5, 0.32, 0.97, 0.24, 0.97, 0.84, 0.5, 0.93, 0.03, 0.84]
+	poly(ci, r, cover, LEATHER * tint)
+	poly(ci, r, [0.09, 0.16, 0.48, 0.25, 0.48, 0.85, 0.09, 0.76], BONE * tint)
+	poly(ci, r, [0.52, 0.25, 0.91, 0.16, 0.91, 0.76, 0.52, 0.85], BONE * tint)
+	var ink := Color(INK, 0.55) * tint
+	for y in [0.36, 0.48, 0.6]:
+		line(ci, r, Vector2(0.16, y - 0.06), Vector2(0.42, y), ink, 0.045)
+		line(ci, r, Vector2(0.58, y), Vector2(0.84, y - 0.06), ink, 0.045)
+	line(ci, r, Vector2(0.5, 0.27), Vector2(0.5, 0.88), COIN_DARK * tint, 0.05)
 
 
 static func _board(ci: Object, r: Rect2, tint: Color) -> void:
