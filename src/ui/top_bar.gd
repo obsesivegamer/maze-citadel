@@ -2,11 +2,12 @@ class_name HudTopBar
 extends Control
 ## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout.
 ## Centre: wave n/40 and the next-wave chip with its countdown and a call
-## button. Right: mode chip, speed, pause, camera presets, boss tracking and
-## settings. refresh() runs every frame but only touches a node when the value
+## button. Right: mode chip, speed, pause, camera presets, boss tracking, the
+## Field Guide and settings. refresh() runs every frame but only touches a node when the value
 ## it shows has changed.
 
 signal settings_pressed
+signal guide_pressed
 
 const MARGIN := Vector2(10, 8)
 const ICON_PX := 22.0
@@ -178,6 +179,9 @@ func _build_right() -> void:
 	_boss.toggled.connect(func(on: bool) -> void: _game.camera.set_boss_tracking(on))
 	row.add_child(_boss)
 	row.add_child(UiKit.divider())
+	var guide := FieldGuide.book_button(_game, BUTTON_PX)
+	guide.pressed.connect(guide_pressed.emit)
+	row.add_child(guide)
 	var gear := UiKit.icon_button(_game, &"gear", "Settings (F10)", BUTTON_PX)
 	gear.pressed.connect(settings_pressed.emit)
 	row.add_child(gear)
@@ -299,6 +303,8 @@ func _refresh_next(sim: GameSim) -> void:
 		var tip := "Wave %d: %s" % [next, TowerInfo.wave_summary(next)] if has_next else ""
 		if twist != &"":
 			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		if has_next:
+			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next)
 		_next.get_parent().tooltip_text = tip
 
 

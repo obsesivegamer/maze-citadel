@@ -1,8 +1,11 @@
 class_name SettingsPanel
 extends Control
 ## Settings (GDD §13–§15): quality preset, master/music/effects/ambience
-## volume, camera shake and edge pan. Every change is saved at once through
-## game.set_quality, game.audio.set_volume or Save.set_setting.
+## volume, camera shake, edge pan and the tutorial. Every change is saved at
+## once through game.set_quality, game.audio.set_volume or Save.set_setting.
+
+## A toggle changed (key from TOGGLES or HELP_TOGGLES).
+signal setting_changed(key: String, on: bool)
 
 const PANEL_WIDTH := 400.0
 const SLIDER_WIDTH := 190.0
@@ -14,6 +17,13 @@ const VOLUMES := [
 const TOGGLES := [
 	["camera_shake", "Camera shake", "Shake on big impacts and leaks"],
 	["edge_pan", "Edge pan", "Move the camera when the mouse touches the window edge"],
+]
+const HELP_TOGGLES := [
+	[
+		"tutorial",
+		"Tutorial",
+		"Counsel cards on the element and armor counters for waves 1 to 10 (H opens the Field Guide)",
+	],
 ]
 
 var _game: Game
@@ -53,6 +63,9 @@ func setup(game: Game) -> void:
 		box.add_child(_build_slider(v[0], v[1]))
 	box.add_child(UiKit.label("CAMERA", &"Caption"))
 	for t in TOGGLES:
+		box.add_child(_build_toggle(t[0], t[1], t[2]))
+	box.add_child(UiKit.label("HELP", &"Caption"))
+	for t in HELP_TOGGLES:
 		box.add_child(_build_toggle(t[0], t[1], t[2]))
 	var close := UiKit.text_button(game, "Close")
 	close.custom_minimum_size = Vector2(140, 32)
@@ -133,7 +146,7 @@ func open() -> void:
 		var s: HSlider = _sliders[v[0]]
 		s.set_value_no_signal(_game.audio.volume(v[0]))
 		_show_value(v[0], s.value)
-	for t in TOGGLES:
+	for t in TOGGLES + HELP_TOGGLES:
 		var b: Button = _toggles[t[0]]
 		var on: bool = Save.setting(t[0], true)
 		b.set_pressed_no_signal(on)
@@ -175,3 +188,4 @@ func _show_value(bus: StringName, v: float) -> void:
 func _on_toggle(on: bool, key: String, b: Button) -> void:
 	Save.set_setting(key, on)
 	b.text = "On" if on else "Off"
+	setting_changed.emit(key, on)

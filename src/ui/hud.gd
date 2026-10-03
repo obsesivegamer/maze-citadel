@@ -1,9 +1,10 @@
 class_name Hud
 extends CanvasLayer
 ## The HUD (GDD §11): top bar, 12 tower cards with tooltips, the pre-wave
-## banner, the plaque over the selected tower, a key-hint strip, settings and
-## the end screen. Composes the components in src/ui/ and routes game signals
-## to them; per-frame work is limited to values that changed.
+## banner, the plaque over the selected tower, a key-hint strip, the
+## first-run tutorial, the Field Guide, settings and the end screen. Composes
+## the components in src/ui/ and routes game signals to them; per-frame work
+## is limited to values that changed.
 
 const CARD_GAP := 6
 const CARD_BOTTOM := 10.0
@@ -20,6 +21,8 @@ var _tooltip := TowerTooltip.new()
 var _banner := WaveBanner.new()
 var _plaque := TowerPlaque.new()
 var _hints := UiKit.label("", &"Dim", UiTheme.SIZE_TINY)
+var _tutorial := Tutorial.new()
+var _guide := FieldGuide.new()
 var _settings := SettingsPanel.new()
 var _end := EndScreen.new()
 var _announced := 0
@@ -50,16 +53,25 @@ func setup(game: Game) -> void:
 	# Above the card bar: at 16:10 the centred cards reach the left corner.
 	_hints.offset_bottom = -(TowerCard.SIZE.y + CARD_BOTTOM + HINT_MARGIN.y)
 	_root.add_child(_hints)
+	_root.add_child(_tutorial)
+	_tutorial.setup(game, _cards)
+	_root.add_child(_guide)
+	_guide.setup(game)
+	_tutorial.guide_requested.connect(_guide.open)
+	_top.guide_pressed.connect(_guide.toggle)
 	_tooltip.visible = false
 	_root.add_child(_tooltip)
 	_root.add_child(_settings)
 	_settings.setup(game)
+	_settings.setting_changed.connect(_tutorial.on_setting)
 	_root.add_child(_end)
 	_end.setup(game)
 	_best_before = Save.best_wave(Save.sim_key(game.sim))
 	game.sim_event.connect(_on_sim_event)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
+	if Tutorial.wanted():
+		_start_tutorial.call_deferred()
 
 
 func _build_cards() -> void:
@@ -153,6 +165,47 @@ func _process(delta: float) -> void:
 		_fusing = fusing
 		_plaque.set_fusing(fusing)
 	_refresh_hints()
+
+
+## After the caller's own setup, so a bot attached right after the Game is
+## added still keeps the welcome card away.
+func _start_tutorial() -> void:
+	if _game.autoplay == null:
+		_tutorial.start()
+
+
+## The HUD gets input before the builder and camera, so keys stop here while
+## a modal is up.
+func _unhandled_input(event: InputEvent) -> void:
+	var action := modal_action(event, _guide.visible, _tutorial.welcome_visible())
+	match action:
+		&"":
+			return
+		&"close_guide":
+			_guide.close_panel()
+		&"open_guide":
+			_guide.open()
+		&"begin":
+			_tutorial.begin()
+	get_viewport().set_input_as_handled()
+
+
+## What a key does with the Field Guide or the welcome card up. Both are
+## modal: the topmost takes Esc and nothing else reaches the game behind
+## (&"swallow"); Space and Enter also begin from the welcome. Without either,
+## only H is the HUD's (&"" passes the key on).
+static func modal_action(event: InputEvent, guide_open: bool, welcome_open: bool) -> StringName:
+	var guide_key := event.is_action_pressed(&"field_guide")
+	if guide_open:
+		return &"close_guide" if guide_key or event.is_action_pressed(&"deselect") else &"swallow"
+	if welcome_open:
+		if guide_key:
+			return &"open_guide"
+		for a in [&"deselect", &"pause", &"ui_accept"]:
+			if event.is_action_pressed(a):
+				return &"begin"
+		return &"swallow"
+	return &"open_guide" if guide_key else &""
 
 
 func _refresh_hints() -> void:

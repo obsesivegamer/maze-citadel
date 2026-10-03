@@ -1,8 +1,8 @@
 class_name TowerTooltip
 extends PanelContainer
-## Hover card for a tower card: name, family, blurb, stats per level, range and
-## counters ("Strong vs Dark · Weak vs Stone · Bonus vs Air/Light"). Rebuilt
-## only when a different card is hovered.
+## Hover card for a tower card: name, family, blurb, stats per level, range,
+## counters ("Strong vs Dark · Weak vs Stone · Bonus vs Air/Light") and how it
+## fares against the next wave. Rebuilt only when a different card is hovered.
 
 const WIDTH := 330.0
 const ICON_PX := 34.0
@@ -23,6 +23,7 @@ var _subtitle := UiKit.label("", &"Dim")
 var _blurb := UiKit.label("", &"", UiTheme.SIZE_SMALL)
 var _grid := GridContainer.new()
 var _counters := UiKit.rich(UiTheme.SIZE_SMALL, WIDTH)
+var _vs_next := UiKit.rich(UiTheme.SIZE_SMALL, WIDTH)
 var _footer := UiKit.label("", &"Dim")
 
 
@@ -48,6 +49,7 @@ func _init() -> void:
 	_grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_grid)
 	box.add_child(_counters)
+	box.add_child(_vs_next)
 	_footer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_footer.custom_minimum_size.x = WIDTH
 	box.add_child(_footer)
@@ -55,6 +57,7 @@ func _init() -> void:
 
 func show_for(id: StringName, sim: GameSim) -> void:
 	_footer_for(id, sim)
+	_vs_next_for(id, sim)
 	if id == shown:
 		return
 	shown = id
@@ -92,6 +95,22 @@ func _fill_grid(id: StringName) -> void:
 			cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			cell.custom_minimum_size.x = COLUMN_WIDTH
 			_grid.add_child(cell)
+
+
+## Counter multipliers on the next wave's creeps, e.g. "Next wave 3: 350% vs
+## Shield Footman"; hidden for the Bard and after the last wave.
+func _vs_next_for(id: StringName, sim: GameSim) -> void:
+	var next := sim.wave + 1
+	var text := ""
+	if next <= sim.last_wave() and TowerDefs.TOWERS[id].has("attack"):
+		text = (
+			"[color=#%s]Next wave %d:[/color] %s"
+			% [UiTheme.hex(UiTheme.GOLD), next, Counsel.tower_vs_wave(id, next)]
+		)
+	if text != _vs_next.text:
+		_vs_next.text = text
+		_vs_next.visible = text != ""
+		reset_size()
 
 
 ## The changing last line: why a card is dim, or how to fuse an Epic.
