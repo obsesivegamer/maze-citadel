@@ -51,7 +51,6 @@ var _graduation := UiKit.rich(UiTheme.SIZE_SMALL, CARD_WIDTH)
 var _end_button: Button
 var _hide_button: Button
 var _marks := Control.new()
-var _mark_style := UiTheme.box(Color(MARK_COLOR, 0.08), MARK_COLOR, 3, 7, Vector2.ZERO, 16)
 var _marked: Array[StringName] = []
 var _tips_shown := {}
 var _paused_here := false
@@ -82,8 +81,6 @@ func setup(game: Game, cards: Dictionary) -> void:
 	_marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_marks.draw.connect(_draw_marks)
-	_mark_style.shadow_color = Color(MARK_COLOR, 0.75)
-	_mark_style.shadow_offset = Vector2.ZERO
 	add_child(_marks)
 	_build_card()
 	_build_welcome()
@@ -377,4 +374,7 @@ func _draw_marks() -> void:
 			continue
 		var r := card.get_global_rect()
 		r.position -= _marks.get_global_rect().position
-		_marks.draw_style_box(_mark_style, r.grow(3.0))
+		# Rings fading outward make the glow without covering the card.
+		for i in 4:
+			var a := 1.0 - i * 0.28
+			_marks.draw_rect(r.grow(2.0 + i * 2.5), Color(MARK_COLOR, a), false, 2.5, true)
