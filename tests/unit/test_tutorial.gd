@@ -19,6 +19,8 @@ func test_walks_waves_one_to_ten() -> void:
 	tut.start()
 	check(tut.welcome_visible(), "welcome first")
 	check(game.paused, "the opening countdown waits behind the welcome")
+	tut._welcome._on_dim_input(_click())
+	check(tut.welcome_visible(), "a click beside the welcome doesn't dismiss it")
 	tut.begin()
 	check(not tut.welcome_visible() and not game.paused, "begin resumes")
 	check_eq(tut.counsel_wave(), 1)
@@ -119,6 +121,10 @@ func test_field_guide_pauses_and_shows_the_next_wave() -> void:
 	guide.toggle()
 	guide.toggle()
 	check(game.paused, "a game paused before opening stays paused")
+	game.toggle_pause()
+	guide.open()
+	guide._on_dim_input(_click())
+	check(not guide.visible and not game.paused, "a click beside the guide closes it")
 	check_eq(
 		FieldGuide.towers_with("element", &"flame"),
 		PackedStringArray(["Cannon", "Demolisher", "Doom Cannon"])
@@ -139,6 +145,13 @@ func _key(code: Key) -> InputEventKey:
 	var e := InputEventKey.new()
 	e.keycode = code
 	e.physical_keycode = code
+	e.pressed = true
+	return e
+
+
+func _click() -> InputEventMouseButton:
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
 	e.pressed = true
 	return e
 

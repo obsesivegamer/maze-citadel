@@ -18,7 +18,6 @@ const CARD_TOP := 60.0
 const CARD_RIGHT := 10.0
 const WELCOME_WIDTH := 700.0
 const WHEEL_PX := 200.0
-const DIM := Color(0, 0, 0, 0.45)
 const MARK_PERIOD := 1.1
 const MARK_COLOR := Color(0.55, 0.92, 0.45)
 ## Command-line flags of scripted runs (bots, captures, benchmarks, probes).
@@ -44,7 +43,7 @@ var persist := true
 
 var _game: Game
 var _cards := {}
-var _welcome := Control.new()
+var _welcome := UiModal.new()
 var _card := UiKit.panel()
 var _card_caption := UiKit.label("", &"Caption")
 var _card_title := UiKit.label("", &"Heading")
@@ -56,7 +55,6 @@ var _hide_button: Button
 var _marks := Control.new()
 var _marked: Array[StringName] = []
 var _tips_shown := {}
-var _paused_here := false
 var _time := 0.0
 
 
@@ -119,7 +117,7 @@ func start() -> void:
 
 ## Ends the tutorial now; `remember` keeps it off for the next launch.
 func finish(remember := true) -> void:
-	_hide_welcome()
+	_welcome.close_modal()
 	step = Step.OFF
 	_card.visible = false
 	_mark(_empty())
@@ -160,27 +158,8 @@ func tip_text() -> String:
 
 
 func _build_welcome() -> void:
-	_welcome.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_welcome.mouse_filter = Control.MOUSE_FILTER_STOP
-	_welcome.visible = false
 	add_child(_welcome)
-	var dim := ColorRect.new()
-	dim.color = DIM
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_welcome.add_child(dim)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_welcome.add_child(center)
-	var panel := UiKit.panel()
-	panel.custom_minimum_size.x = WELCOME_WIDTH
-	center.add_child(panel)
-	var box := UiKit.vbox(12)
-	panel.add_child(box)
-	var title := UiKit.label("Welcome to the Citadel", &"Title")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	var box := _welcome.build(_game, "Welcome to the Citadel", WELCOME_WIDTH, 12)
 	var intro := UiKit.rich(UiTheme.SIZE_BODY, WELCOME_WIDTH - 30.0)
 	intro.text = (
 		"Wall the plateau with towers to stretch the creeps' road from the red portal to the"
@@ -267,24 +246,12 @@ func _show_welcome() -> void:
 	step = Step.WELCOME
 	_welcomed = true
 	_card.visible = false
-	_welcome.visible = true
-	if not _game.paused:
-		_game.toggle_pause()
-		_paused_here = true
-
-
-func _hide_welcome() -> void:
-	if not _welcome.visible:
-		return
-	_welcome.visible = false
-	if _paused_here and _game.paused:
-		_game.toggle_pause()
-	_paused_here = false
+	_welcome.open_modal()
 
 
 ## Closes the welcome card and shows the first counsel.
 func begin() -> void:
-	_hide_welcome()
+	_welcome.close_modal()
 	_advance(_game.sim.wave)
 
 
