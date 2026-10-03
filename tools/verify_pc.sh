@@ -154,14 +154,18 @@ if [[ "$launch_check" != 0 ]]; then
   done
   kill "$pid" 2>/dev/null || true
   wait "$pid" 2>/dev/null || true
-  if [[ -s "$out_dir/launch-linux-full.png" ]]; then
+  # Godot drops to its OpenGL renderer if Vulkan fails to start; that window
+  # proves nothing about the Forward+ path the game ships with.
+  if [[ -s "$out_dir/launch-linux-full.png" ]] \
+    && grep -qE '^Vulkan .* - Forward\+ - Using Device' "$out_dir/launch-linux.log"; then
     launch=ok
-    ok "window opened and rendered (launch-linux-full.png)"
+    ok "window opened and rendered with Vulkan Forward+ (launch-linux-full.png)"
   else
+    grep -E '^(Vulkan|OpenGL) ' "$out_dir/launch-linux.log" || true
     launch=failed
     tail -20 "$out_dir/launch-linux.log"
-    [[ "$launch_check" == soft ]] || fail "the game did not open a window and render a frame"
-    echo "  warn the game did not render a frame in a window (LAUNCH_CHECK=soft, not fatal)"
+    [[ "$launch_check" == soft ]] || fail "the game did not render a frame with Vulkan Forward+"
+    echo "  warn the game did not render a frame with Vulkan Forward+ (LAUNCH_CHECK=soft, not fatal)"
   fi
 fi
 

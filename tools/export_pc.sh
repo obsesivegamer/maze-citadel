@@ -36,9 +36,14 @@ for platform in "${platforms[@]}"; do
   if [[ "$ext" == zip ]]; then
     (cd "$stage" && zip -qr -X "../$archive" MazeCitadel)
   else
-    owner=()
-    tar --version 2>/dev/null | grep -q "GNU tar" && owner=(--owner=0 --group=0 --numeric-owner)
-    tar -C "$stage" ${owner[@]+"${owner[@]}"} -czf "dist/$archive" MazeCitadel
+    # Root-owned entries and, on a Mac, no AppleDouble ._ files or xattrs,
+    # which GNU tar would unpack as stray files next to the game.
+    if tar --version 2>/dev/null | grep -q "GNU tar"; then
+      tar -C "$stage" --owner=0 --group=0 --numeric-owner -czf "dist/$archive" MazeCitadel
+    else
+      COPYFILE_DISABLE=1 tar -C "$stage" --no-mac-metadata --no-xattrs --uid 0 --gid 0 \
+        --uname "" --gname "" -czf "dist/$archive" MazeCitadel
+    fi
   fi
   du -h "$stage/MazeCitadel/$bin" "dist/$archive"
 done
