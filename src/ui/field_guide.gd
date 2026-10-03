@@ -22,8 +22,8 @@ var _counsel: CounselView
 
 
 func setup(game: Game) -> void:
-	var box := build(game, "Field Guide", PANEL_WIDTH)
-	dim_pressed.connect(close_panel)
+	var box := build_frame(game, "Field Guide", PANEL_WIDTH)
+	dim_pressed.connect(close_modal)
 	var sub := UiKit.label(
 		"Every wave has an element and an armor class. Towers that counter both hit far harder.",
 		&"Dim",
@@ -53,7 +53,7 @@ func setup(game: Game) -> void:
 	)
 	var close := UiKit.text_button(game, "Close")
 	close.custom_minimum_size = Vector2(120, 30)
-	close.pressed.connect(close_panel)
+	close.pressed.connect(close_modal)
 	foot.add_child(close)
 	box.add_child(foot)
 	_wheel.focus_changed.connect(_on_wheel_focus)
@@ -152,7 +152,7 @@ func _build_next() -> Control:
 	var col := UiKit.vbox(6)
 	col.add_child(_next_caption)
 	_counsel = CounselView.new(_game, COUNSEL_WIDTH)
-	_counsel.picked.connect(func(_id: StringName) -> void: close_panel())
+	_counsel.picked.connect(func(_id: StringName) -> void: close_modal())
 	col.add_child(_counsel)
 	return col
 
@@ -240,13 +240,13 @@ func open() -> void:
 	open_modal()
 
 
-func close_panel() -> void:
+func close_modal() -> void:
 	_wheel.focus = &""
-	close_modal()
+	super()
 
 
 func toggle() -> void:
 	if visible:
-		close_panel()
+		close_modal()
 	else:
 		open()
