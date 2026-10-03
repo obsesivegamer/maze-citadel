@@ -63,6 +63,9 @@ const FAMILY_COLORS := {
 	&"support": Color(1.0, 0.84, 0.42),
 }
 
+## --pf-hud-lite: no text shadows, panel shadows or trim, to price them on
+## the target Mac. A visible change, so off in the shipped look.
+static var lite := PerfFlags.get_bool("hud-lite", false)
 static var _theme: Theme
 static var _fonts := {}
 
@@ -114,8 +117,10 @@ static func theme() -> Theme:
 
 
 static func _labels(t: Theme) -> void:
+	# A transparent shadow makes Label and RichTextLabel skip both shadow passes.
+	var shadow := Color(SHADOW, 0.0) if lite else SHADOW
 	t.set_color("font_color", "Label", TEXT)
-	t.set_color("font_shadow_color", "Label", SHADOW)
+	t.set_color("font_shadow_color", "Label", shadow)
 	t.set_constant("shadow_offset_x", "Label", 1)
 	t.set_constant("shadow_offset_y", "Label", 1)
 	t.set_constant("shadow_outline_size", "Label", 3)
@@ -125,7 +130,7 @@ static func _labels(t: Theme) -> void:
 	_label_variant(t, &"Number", bold(), SIZE_NUMBER, TEXT)
 	_label_variant(t, &"Dim", body(), SIZE_SMALL, TEXT_DIM)
 	t.set_color("default_color", "RichTextLabel", TEXT)
-	t.set_color("font_shadow_color", "RichTextLabel", SHADOW)
+	t.set_color("font_shadow_color", "RichTextLabel", shadow)
 	t.set_constant("shadow_offset_x", "RichTextLabel", 1)
 	t.set_constant("shadow_offset_y", "RichTextLabel", 1)
 	t.set_font("bold_font", "RichTextLabel", bold())
@@ -237,7 +242,7 @@ static func box(
 	s.content_margin_right = margin.x
 	s.content_margin_top = margin.y
 	s.content_margin_bottom = margin.y
-	s.shadow_size = shadow
+	s.shadow_size = 0 if lite else shadow
 	s.shadow_color = Color(0, 0, 0, 0.45)
 	s.shadow_offset = Vector2(0, 2)
 	return s
@@ -259,6 +264,8 @@ static func tooltip_box() -> StyleBoxFlat:
 ## Inner hairline and corner studs drawn over a panel's stylebox, for the
 ## carved-frame look StyleBoxFlat can't do on its own.
 static func add_trim(c: Control) -> void:
+	if lite:
+		return
 	c.draw.connect(func() -> void: draw_trim(c))
 
 
