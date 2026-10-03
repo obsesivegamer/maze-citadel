@@ -22,6 +22,8 @@ const SKULL := ENV + "kaykit_halloween_bits/skull.glb"
 const SPIKE := ENV + "kenney_nature_kit/rock_tallE.glb"
 const ROCK := ENV + "kenney_nature_kit/rock_smallA.glb"
 const SHARD := TowerVisuals.TD + "detail-crystal.glb"
+## Small ornaments (UnitPerf tower-shadow-parts=details casts no shadow).
+const DETAILS: Array[String] = [SKULL, SPIKE, ROCK, SHARD]
 ## Weapon pivot heights (kit units) where the projectile leaves.
 const BALLISTA_MUZZLE := 0.41
 const CANNON_MUZZLE := 0.38
@@ -197,7 +199,12 @@ static func _runesmith(k: TowerVisuals.Kit, lvl: int) -> void:
 	var coal := SphereMesh.new()
 	coal.radius = 0.22
 	coal.height = 0.2
+	if UnitPerf.tower_lod() > 0.0:
+		# The default sphere is 4 k triangles for a 0.4 m ember.
+		coal.radial_segments = 12
+		coal.rings = 6
 	coals.mesh = coal
+	coals.set_meta("detail", true)
 	coals.material_override = UnitStyle.glow(MOLTEN, 3.0)
 	coals.position = Vector3(-0.5, y + 0.22, -0.5)
 	k.root.add_child(coals)
