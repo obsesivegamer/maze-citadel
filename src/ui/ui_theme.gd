@@ -178,6 +178,8 @@ static func _buttons(t: Theme) -> void:
 		t.set_color("font_disabled_color", type, Color(TEXT_DIM, 0.6))
 		t.set_color("font_focus_color", type, TEXT)
 	var flat := box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 5, Vector2(5, 4), 0)
+	# Fully transparent anyway; without a centre StyleBoxFlat skips the draw call.
+	flat.draw_center = false
 	t.set_stylebox("normal", &"IconButton", flat)
 	var icon_hover := box(Color(1, 1, 1, 0.06), GOLD, 1, 5, Vector2(5, 4), 0)
 	t.set_stylebox("hover", &"IconButton", icon_hover)
@@ -260,18 +262,23 @@ static func add_trim(c: Control) -> void:
 	c.draw.connect(func() -> void: draw_trim(c))
 
 
+## One draw call. Not cached: panels resize as their text changes, and the
+## trim is cheap to build.
 static func draw_trim(c: Control) -> void:
-	var r := Rect2(Vector2.ZERO, c.size).grow(-TRIM_INSET)
+	var size := c.size
+	var r := Rect2(Vector2.ZERO, size).grow(-TRIM_INSET)
 	if r.size.x < 12.0 or r.size.y < 12.0:
 		return
-	c.draw_rect(r, Color(GOLD_DIM, 0.55), false, 1.0, true)
-	c.draw_line(
-		Vector2(RADIUS + 2.0, 2.5), Vector2(c.size.x - RADIUS - 2.0, 2.5), Color(1, 1, 1, 0.07), 1.0
+	var mesh := UiMesh.new()
+	mesh.draw_rect(r, Color(GOLD_DIM, 0.55), false, 1.0, true)
+	mesh.draw_line(
+		Vector2(RADIUS + 2.0, 2.5), Vector2(size.x - RADIUS - 2.0, 2.5), Color(1, 1, 1, 0.07), 1.0
 	)
 	for corner in [
 		r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)
 	]:
-		UiGlyphs.diamond(c, corner, 2.6, GOLD)
+		UiGlyphs.diamond(mesh, corner, 2.6, GOLD)
+	mesh.submit(c)
 
 
 static func element_color(element: StringName) -> Color:

@@ -201,20 +201,29 @@ func follow(delta: float) -> void:
 
 
 func _draw_pointer() -> void:
+	UiMesh.cached([&"plaque_pointer"], _build_pointer).submit(_pointer)
+
+
+static func _build_pointer(mesh: UiMesh) -> void:
 	var pts := PackedVector2Array(
 		[Vector2.ZERO, Vector2(POINTER.x, 0), Vector2(POINTER.x / 2.0, POINTER.y)]
 	)
-	_pointer.draw_colored_polygon(pts, UiTheme.STONE)
-	_pointer.draw_polyline(PackedVector2Array([pts[0], pts[2], pts[1]]), UiTheme.GOLD, 2.0, true)
+	mesh.draw_colored_polygon(pts, UiTheme.STONE)
+	mesh.draw_polyline(PackedVector2Array([pts[0], pts[2], pts[1]]), UiTheme.GOLD, 2.0, true)
 
 
 func _draw_pips() -> void:
-	var c := Vector2(_pips.size.x - PIP * 1.5, _pips.size.y / 2.0)
-	if _epic:
+	var key := [&"plaque_pips", _pips.size, _epic, _level]
+	UiMesh.cached(key, _build_pips.bind(_pips.size, _epic, _level)).submit(_pips)
+
+
+static func _build_pips(mesh: UiMesh, size: Vector2, epic: bool, level: int) -> void:
+	var c := Vector2(size.x - PIP * 1.5, size.y / 2.0)
+	if epic:
 		var r := Rect2(c - Vector2(9, 9), Vector2(18, 18))
-		UiGlyphs.star(_pips, r, Vector2(0.5, 0.5), 0.5, 0.2, 5, UiTheme.GOLD_BRIGHT)
+		UiGlyphs.star(mesh, r, Vector2(0.5, 0.5), 0.5, 0.2, 5, UiTheme.GOLD_BRIGHT)
 		return
 	for i in range(TowerDefs.MAX_LEVEL - 1, -1, -1):
-		var color := UiTheme.GOLD_BRIGHT if i < _level else Color(UiTheme.GOLD_DIM, 0.7)
-		UiGlyphs.diamond(_pips, c, PIP, color)
+		var color := UiTheme.GOLD_BRIGHT if i < level else Color(UiTheme.GOLD_DIM, 0.7)
+		UiGlyphs.diamond(mesh, c, PIP, color)
 		c.x -= PIP * 2.3

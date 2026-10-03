@@ -1,7 +1,8 @@
 class_name TowerCard
 extends Button
 ## One bottom-bar card (GDD §11): icon, name, cost, hotkey, attack/element
-## pips and an air icon. Draws itself and redraws only when its state changes.
+## pips and an air icon. Draws itself and redraws only when its state changes;
+## the shapes between two texts go out as one draw call (UiMesh).
 ## Dims when unaffordable; Epic cards pulse when a fusion is possible.
 
 const SIZE := Vector2(88, 112)
@@ -32,6 +33,7 @@ var lit := false:
 	set = set_lit
 
 var _hover := false
+var _warm_size := -Vector2.ONE
 var _glow := Control.new()
 var _glow_tween: Tween
 
@@ -83,19 +85,24 @@ func _set_hover(value: bool) -> void:
 
 
 func _draw() -> void:
-	var def: Dictionary = TowerDefs.TOWERS[id]
 	var epic := TowerInfo.is_epic(id)
 	draw_style_box(_frame(epic), Rect2(Vector2.ZERO, size))
 	var usable := lit if epic else (affordable or chosen)
 	var tint := Color.WHITE if usable else DIM
-	var fam: Color = UiTheme.FAMILY_COLORS[def.family]
-	var icon_center := Vector2(size.x / 2.0, ICON_TOP + ICON_PX / 2.0)
-	draw_circle(icon_center, ICON_PX * 0.56, Color(fam, 0.13 * tint.a), true, -1.0, true)
-	var icon_rect := Rect2(Vector2((size.x - ICON_PX) / 2.0, ICON_TOP), Vector2(ICON_PX, ICON_PX))
-	UiGlyphs.draw(self, id, icon_rect, tint)
+	var font := UiTheme.bold()
+	var cost := ("+%d" if epic else "%d") % TowerInfo.card_cost(id)
+	var tw := font.get_string_size(cost, HORIZONTAL_ALIGNMENT_LEFT, -1, COST_SIZE).x
+	var cost_x := (size.x - tw - COIN_PX - 3.0) / 2.0
+	if _warm_size != size:
+		# Build the other look too, so turning affordable or not never builds
+		# geometry mid-game (first draws happen behind the loading screen).
+		_warm_size = size
+		_meshes(DIM if usable else Color.WHITE, cost_x)
+	var meshes := _meshes(tint, cost_x)
+	meshes[0].submit(self)
 	draw_style_box(_badge(), BADGE)
 	draw_string(
-		UiTheme.bold(),
+		font,
 		BADGE.position + Vector2(0, 12),
 		"G" if epic else TowerDefs.hotkey(id),
 		HORIZONTAL_ALIGNMENT_CENTER,
@@ -103,9 +110,7 @@ func _draw() -> void:
 		11,
 		UiTheme.GOLD_BRIGHT * tint
 	)
-	if def.get("air", false):
-		var air := Rect2(Vector2(size.x - AIR_PX - 5.0, 5.0), Vector2(AIR_PX, AIR_PX))
-		UiGlyphs.draw(self, &"cls_air", air, tint)
+	meshes[1].submit(self)
 	draw_string(
 		UiTheme.body(),
 		Vector2(0, NAME_Y),
@@ -115,11 +120,47 @@ func _draw() -> void:
 		NAME_SIZE,
 		(UiTheme.GOLD_BRIGHT if chosen else UiTheme.TEXT) * tint
 	)
-	_draw_pips(def, tint)
-	_draw_cost(epic, tint)
+	meshes[2].submit(self)
+	var ok := lit if epic else affordable
+	var color := UiTheme.GOLD_BRIGHT if ok else UiTheme.BAD
+	draw_string(
+		font,
+		Vector2(cost_x + COIN_PX + 3.0, COST_Y),
+		cost,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		COST_SIZE,
+		Color(color, tint.a)
+	)
 
 
-func _draw_pips(def: Dictionary, tint: Color) -> void:
+## The shapes between the card's texts, one draw call each: icon disc and
+## glyph; the air badge; attack/element pips and the cost coin.
+func _meshes(tint: Color, cost_x: float) -> Array[UiMesh]:
+	var key := [id, size, tint, cost_x]
+	return [
+		UiMesh.cached([&"card_icon"] + key, _build_icon.bind(tint)),
+		UiMesh.cached([&"card_air"] + key, _build_air.bind(tint)),
+		UiMesh.cached([&"card_tail"] + key, _build_tail.bind(tint, cost_x)),
+	]
+
+
+func _build_icon(mesh: UiMesh, tint: Color) -> void:
+	var fam: Color = UiTheme.FAMILY_COLORS[TowerDefs.TOWERS[id].family]
+	var icon_center := Vector2(size.x / 2.0, ICON_TOP + ICON_PX / 2.0)
+	mesh.draw_circle(icon_center, ICON_PX * 0.56, Color(fam, 0.13 * tint.a), true, -1.0, true)
+	var icon_rect := Rect2(Vector2((size.x - ICON_PX) / 2.0, ICON_TOP), Vector2(ICON_PX, ICON_PX))
+	UiGlyphs.draw(mesh, id, icon_rect, tint)
+
+
+func _build_air(mesh: UiMesh, tint: Color) -> void:
+	if TowerDefs.TOWERS[id].get("air", false):
+		var air := Rect2(Vector2(size.x - AIR_PX - 5.0, 5.0), Vector2(AIR_PX, AIR_PX))
+		UiGlyphs.draw(mesh, &"cls_air", air, tint)
+
+
+func _build_tail(mesh: UiMesh, tint: Color, cost_x: float) -> void:
+	var def: Dictionary = TowerDefs.TOWERS[id]
 	var glyphs: Array[StringName] = []
 	if def.has("attack"):
 		glyphs.append(UiGlyphs.attack(def.attack))
@@ -129,28 +170,10 @@ func _draw_pips(def: Dictionary, tint: Color) -> void:
 	var w := glyphs.size() * PIP_PX + (glyphs.size() - 1) * 4.0
 	var x := (size.x - w) / 2.0
 	for g in glyphs:
-		UiGlyphs.draw(self, g, Rect2(Vector2(x, PIPS_Y), Vector2(PIP_PX, PIP_PX)), tint)
+		UiGlyphs.draw(mesh, g, Rect2(Vector2(x, PIPS_Y), Vector2(PIP_PX, PIP_PX)), tint)
 		x += PIP_PX + 4.0
-
-
-func _draw_cost(epic: bool, tint: Color) -> void:
-	var font := UiTheme.bold()
-	var text := ("+%d" if epic else "%d") % TowerInfo.card_cost(id)
-	var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, COST_SIZE).x
-	var x := (size.x - tw - COIN_PX - 3.0) / 2.0
-	var coin := Rect2(Vector2(x, COST_Y - COIN_PX + 1.0), Vector2(COIN_PX, COIN_PX))
-	UiGlyphs.coin(self, coin, tint)
-	var ok := lit if epic else affordable
-	var color := UiTheme.GOLD_BRIGHT if ok else UiTheme.BAD
-	draw_string(
-		font,
-		Vector2(x + COIN_PX + 3.0, COST_Y),
-		text,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		COST_SIZE,
-		Color(color, tint.a)
-	)
+	var coin := Rect2(Vector2(cost_x, COST_Y - COIN_PX + 1.0), Vector2(COIN_PX, COIN_PX))
+	UiGlyphs.coin(mesh, coin, tint)
 
 
 func _draw_glow() -> void:
