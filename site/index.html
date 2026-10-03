@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Maze Citadel</title>
-<!-- Template for tools/build_site.py, which fills the double-brace values and
-     keeps or drops the if/end blocks using the newest release. -->
+<!-- Template for tools/build_site.py, which fills the double-brace values,
+     keeps or drops the if/end blocks using the newest release, and puts the
+     tower roster (built from the game's data files) at the roster marker. -->
 <meta name="description" content="A maze tower defense for Apple silicon Macs. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Maze Citadel">
@@ -19,13 +20,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Fira+Sans:wght@400;500;700&display=swap">
 <style>
-/* Layout: the battlefield screenshot is the hero; the title is set like the
-   in-game wave banner, and the one framed object on the page is the download
-   panel, trimmed like the game's HUD. Palette from src/ui/ui_theme.gd. */
+/* War-banner layout: the battlefield is the hero, the title is set like the
+   in-game wave banner, and framed panels are trimmed like the game's HUD.
+   Palette from src/ui/ui_theme.gd. */
 :root {
   color-scheme: dark;
   --stone: #181513;
   --stone-hi: #2a2620;
+  --stone-line: #3a332b;
   --stone-deep: #0d0b0a;
   --gold: #c79e52;
   --gold-bright: #ffdb7a;
@@ -41,19 +43,30 @@
   --el-flame: #ff8538;
   --el-verdant: #80e059;
   --el-stone: #c7ad8a;
+  /* The practice board, in the game's own colors. */
+  --grass: #6fae4f;
+  --grass-alt: #67a548;
+  --grass-edge: #2f4a22;
+  --road: #b46c45;
+  --road-stone: #e8b98a;
+  --roof: #3f73d6;
+  --roof-deep: #1d3f86;
+  --portal: #ff7a2f;
+  --portal-core: #a8320a;
+  --refused: #d93b3f;
   --display: "Cinzel", "Trajan Pro", "Times New Roman", serif;
   --body: "Fira Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
   --step--1: 0.875rem;
   --step-0: 1.0625rem;
   --step-1: 1.3rem;
-  --step-2: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
-  --step-4: clamp(2.8rem, 1.6rem + 6vw, 5.6rem);
+  --step-2: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
+  --step-4: clamp(2.8rem, 1.6rem + 6vw, 6rem);
   --radius: 6px;
 }
 
 * { box-sizing: border-box; }
-html { background: var(--stone); }
+html { background: var(--stone); scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--stone);
@@ -67,7 +80,22 @@ a:hover { color: var(--text); }
 :focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 2px; }
 h1, h2, h3 { text-wrap: balance; margin: 0; }
 p { margin: 0; }
-.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
+.wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+
+/* Top bar */
+.top { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 28px; padding-block: 14px; }
+.brand {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
+  font: 800 1.2rem/1 var(--display); letter-spacing: 0.04em; color: var(--gold-bright); text-decoration: none;
+}
+.brand svg { width: 26px; height: 26px; flex: none; }
+.top nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0 22px; font-size: var(--step--1); font-weight: 500; }
+.top nav a { color: var(--text); text-decoration: none; padding-block: 12px; }
+.top nav a:hover { color: var(--gold-bright); }
+.top nav .nav-get {
+  padding: 8px 16px; border: 1px solid var(--gold-dim); border-radius: var(--radius);
+  background: var(--shade); color: var(--gold-bright);
+}
 
 /* Hero */
 .hero { position: relative; isolation: isolate; overflow: hidden; background: var(--stone-deep); }
@@ -80,34 +108,37 @@ p { margin: 0; }
 .hero::after {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background:
-    linear-gradient(to top, var(--stone) 0%, var(--shade) 30%, var(--shade-soft) 72%),
-    linear-gradient(to right, var(--shade) 0%, var(--shade-soft) 62%);
+    linear-gradient(to bottom, var(--shade) 0, var(--shade-soft) 9rem),
+    linear-gradient(to top, var(--stone) 0%, var(--shade) 30%, var(--shade-soft) 70%),
+    linear-gradient(to right, var(--shade) 0%, var(--shade-soft) 60%);
 }
-.hero-inner { display: grid; gap: 22px; padding-block: clamp(200px, 26vw, 320px) 64px; }
+.hero-inner { display: grid; gap: 22px; padding-block: clamp(120px, 20vw, 280px) 72px; }
 .eyebrow {
   font: 500 var(--step--1)/1.2 var(--body);
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold);
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
 }
 .title {
-  font: 800 var(--step-4)/0.95 var(--display);
+  font: 800 var(--step-4)/0.92 var(--display);
   letter-spacing: 0.02em;
   background: linear-gradient(180deg, var(--gold-bright) 20%, var(--gold) 95%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 3px 0 var(--stone-deep)) drop-shadow(0 8px 22px var(--shade));
 }
-.lede { max-width: 34rem; font-size: var(--step-1); line-height: 1.5; color: var(--text); }
+.lede { max-width: 34rem; font-size: var(--step-1); line-height: 1.5; }
 
-/* Download panel, trimmed like the in-game HUD */
-.get {
-  justify-self: start; display: grid; gap: 12px; max-width: 100%;
-  padding: 20px 22px 18px;
+/* Framed panels, trimmed like the in-game HUD */
+.framed {
   background: var(--shade);
   border: 1px solid var(--gold-dim); border-radius: var(--radius);
   box-shadow: inset 0 0 0 4px var(--stone), inset 0 0 0 5px var(--trim), 0 12px 32px var(--shade);
 }
+.get {
+  justify-self: start; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px;
+  max-width: 100%; margin-top: 4px; padding: 18px 22px;
+}
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 14px 26px; border-radius: var(--radius);
+  min-height: 52px; padding: 0 28px; border-radius: var(--radius);
   font: 700 var(--step-1)/1 var(--body); color: var(--stone-deep); text-decoration: none;
   background: linear-gradient(180deg, var(--gold-bright), var(--gold));
   box-shadow: inset 0 -2px 0 var(--gold-dim), 0 2px 0 var(--stone-deep);
@@ -117,7 +148,7 @@ p { margin: 0; }
 .btn svg { width: 20px; height: 20px; flex: none; }
 .btn.is-off { background: var(--stone-hi); color: var(--text-dim); box-shadow: none; cursor: default; }
 .btn.is-off:hover { transform: none; filter: none; }
-.get-meta { font-size: var(--step--1); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.get-meta { display: grid; gap: 6px; font-size: var(--step--1); line-height: 1.5; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .get-meta strong { color: var(--text); font-weight: 500; }
 .pill {
   justify-self: start; padding: 2px 10px; border-radius: 999px;
@@ -125,34 +156,128 @@ p { margin: 0; }
   color: var(--gold-bright); border: 1px solid var(--gold-dim);
 }
 
+/* At a glance */
+.facts { background: var(--stone-deep); border-block: 1px solid var(--stone-hi); }
+.facts .wrap { display: flex; flex-wrap: wrap; gap: 18px 0; padding-block: 26px; }
+.fact { flex: 1 1 220px; display: flex; align-items: baseline; gap: 14px; padding-right: 20px; }
+.fact b { font: 800 2.6rem/1 var(--display); color: var(--gold-bright); }
+.fact span { font-size: var(--step--1); line-height: 1.35; color: var(--text-dim); }
+
 /* Sections */
-section { padding-block: 72px; }
-section + section { border-top: 1px solid var(--stone-hi); }
+main section { padding-block: 88px; }
+main section + section { border-top: 1px solid var(--stone-hi); }
 .kicker {
-  font: 500 var(--step--1)/1.2 var(--body); letter-spacing: 0.16em;
+  font: 500 var(--step--1)/1.2 var(--body); letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
 }
 h2 { font: 600 var(--step-2)/1.15 var(--display); color: var(--text); }
 h3 { font: 600 var(--step-1)/1.2 var(--display); color: var(--gold-bright); }
 .prose { display: grid; gap: 14px; max-width: 38rem; color: var(--text-dim); }
 .prose strong { color: var(--text); font-weight: 500; }
+.split { display: flex; flex-wrap: wrap; align-items: center; gap: 44px 56px; }
+.split > * { min-width: 0; }
+.split-top { align-items: flex-start; }
 
-.plays { display: grid; gap: 72px; }
-.row { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 44px; align-items: center; }
-.row.flip { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
-.row.flip .shot, .row.flip .ring { order: 2; }
-.row > div { min-width: 0; display: grid; gap: 14px; }
-.shot { border-radius: var(--radius); border: 1px solid var(--stone-hi); box-shadow: 0 18px 40px var(--shade); }
+/* The practice board */
+.maze-copy { flex: 1 1 360px; display: grid; gap: 16px; align-content: start; padding-top: 12px; }
+.road { display: flex; align-items: baseline; gap: 14px; margin-top: 8px; }
+.road b { font: 800 3.4rem/1 var(--display); color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.road span { font-size: var(--step--1); line-height: 1.4; color: var(--text-dim); }
+.board { flex: 1 1 380px; max-width: 440px; margin-inline: auto; display: grid; gap: 14px; padding: 18px; background: var(--stone-deep); }
+.board-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; font-size: var(--step--1); color: var(--text-dim); }
+.board-head h3 { font-size: var(--step-0); }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 8px; border-radius: 5px; background: var(--grass-edge); }
+.tile {
+  aspect-ratio: 1; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 5px;
+  background: var(--grass); display: grid; place-items: center; cursor: pointer;
+}
+.tile.alt { background: var(--grass-alt); }
+.tile::after { content: ""; display: block; width: 0; height: 0; border-radius: 50%; }
+.tile:hover { filter: brightness(1.12); }
+.tile.road { background: var(--road); }
+.tile.road::after { width: 22%; height: 22%; background: var(--road-stone); }
+.tile.tower::after { width: 66%; height: 66%; background: var(--roof); box-shadow: inset 0 0 0 3px var(--text), 0 3px 0 var(--roof-deep); }
+.tile.portal { background: var(--portal); cursor: default; }
+.tile.portal::after { width: 56%; height: 56%; background: var(--portal-core); box-shadow: 0 0 0 4px #ffb27a; }
+.tile.gate { background: var(--roof); cursor: default; }
+.tile.gate::after { width: 46%; height: 46%; border-radius: 40% 40% 3px 3px; background: #dbe7ff; }
+.tile.portal:hover, .tile.gate:hover { filter: none; }
+.tile.refused { background: var(--refused); }
+.tile.refused::after { width: 24%; height: 24%; background: #fff; }
+.board-msg { min-height: 3.1em; font-size: var(--step--1); line-height: 1.55; color: var(--text-dim); }
+.board-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ghost {
+  min-height: 44px; padding: 0 18px; border-radius: var(--radius);
+  border: 1px solid var(--gold-dim); background: transparent; color: var(--gold-bright);
+  font: 500 var(--step--1)/1 var(--body); cursor: pointer;
+}
+.ghost:hover { background: var(--stone-hi); }
 
-.ring { justify-self: center; width: min(340px, 100%); }
-.ring svg { width: 100%; height: auto; }
+/* Element ring */
+.ring { flex: 0 1 340px; margin-inline: auto; }
+.ring svg { width: 100%; height: auto; display: block; }
 .ring .arc { fill: none; stroke: var(--gold-dim); stroke-width: 2.5; }
 .ring .node { fill: var(--stone-hi); stroke-width: 2.5; }
 .ring text { font-family: var(--body); font-weight: 500; font-size: 13px; text-anchor: middle; dominant-baseline: central; }
 .ring .x2 { font-family: var(--display); font-weight: 800; font-size: 40px; fill: var(--gold-bright); }
 .ring .x2-note { font-size: 12px; fill: var(--text-dim); font-weight: 400; }
+.ring-copy { flex: 1 1 380px; display: grid; gap: 14px; }
 .counters { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--step--1); color: var(--text-dim); }
 .counters b { color: var(--text); font-weight: 500; }
+
+/* Tower roster */
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; margin-top: 32px; }
+@media (min-width: 980px) { .roster { grid-template-columns: repeat(var(--cols, 10), minmax(0, 1fr)); } }
+.roster-sep {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; margin-top: 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+}
+.roster-sep::after { content: ""; flex: 1; height: 1px; background: var(--stone-line); }
+.card {
+  min-width: 0; min-height: 118px;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 10px 8px 12px; border-radius: 8px; border: 1px solid var(--stone-line);
+  background: var(--stone-deep); color: var(--text); font: inherit; cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+.card[aria-pressed="true"] {
+  border-color: var(--gold-bright); background: var(--stone-hi);
+  box-shadow: 0 0 0 1px var(--gold-bright), 0 8px 22px var(--shade);
+}
+.card-key {
+  align-self: flex-start; min-width: 18px; padding: 3px 5px; border-radius: 3px;
+  background: var(--stone); color: var(--text-dim); font-size: 11px; font-weight: 700; line-height: 1; text-align: center;
+}
+.card svg { width: 30px; height: 30px; color: var(--el); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card-name { font-size: 13px; font-weight: 500; line-height: 1.2; text-align: center; }
+.card-cost { font-size: 12px; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.panels { display: grid; gap: 16px; margin-top: 20px; }
+.panel {
+  display: flex; flex-wrap: wrap; gap: 24px 40px; padding: 30px;
+  border-radius: 10px; background: var(--stone-deep); border: 1px solid var(--stone-hi); border-top: 3px solid var(--el);
+}
+.panel[hidden] { display: none; }
+.panel-main { flex: 1 1 340px; min-width: 0; display: grid; gap: 12px; align-content: start; }
+.panel-kicker { font-size: 13px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--el); }
+.panel h3 { font: 800 2rem/1.1 var(--display); }
+.panel-blurb { max-width: 34rem; color: var(--text); }
+.chips { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--stone-line); font-size: var(--step--1); }
+.levels { flex: 1 1 400px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
+.levels li { flex: 1 1 130px; display: grid; gap: 4px; align-content: start; padding: 16px; border-radius: 8px; background: var(--stone); border: 1px solid var(--stone-hi); }
+.lv { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+.lv-cost { font: 800 1.5rem/1.2 var(--display); color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.lv-fx { font-size: var(--step--1); line-height: 1.45; }
+
+/* Screens */
+.gallery { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; }
+.gallery figure { margin: 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; }
+.gallery .big { flex: 2 1 560px; }
+.gallery .side { flex: 1 1 300px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; }
+.shot { border-radius: var(--radius); border: 1px solid var(--stone-hi); box-shadow: 0 18px 40px var(--shade); }
+figcaption { font-size: var(--step--1); color: var(--text-dim); }
+figcaption strong { color: var(--text); font-weight: 500; }
 
 /* Controls */
 .keys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px; margin: 28px 0 0; padding: 0; }
@@ -167,8 +292,8 @@ kbd {
 }
 
 /* Install */
-.install { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 44px; margin-top: 28px; }
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; counter-reset: step; }
+.install { display: flex; flex-wrap: wrap; gap: 40px 56px; margin-top: 28px; }
+.steps { flex: 3 1 460px; min-width: 0; list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; counter-reset: step; }
 .steps li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 14px; counter-increment: step; }
 .steps li::before {
   content: counter(step);
@@ -180,7 +305,7 @@ kbd {
 .steps p { color: var(--text-dim); }
 .steps p + p { margin-top: 8px; }
 .path { color: var(--text); font-weight: 500; overflow-wrap: anywhere; }
-.reqs { align-self: start; display: grid; gap: 14px; padding: 22px; background: var(--stone-deep); border-radius: var(--radius); }
+.reqs { flex: 2 1 300px; min-width: 0; align-self: start; display: grid; gap: 14px; padding: 22px; background: var(--stone-deep); border-radius: var(--radius); }
 .reqs ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--text-dim); }
 .reqs li strong { color: var(--text); font-weight: 500; }
 details { color: var(--text-dim); font-size: var(--step--1); }
@@ -195,9 +320,10 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   .hero-art { animation: drift 40s ease-in-out infinite alternate; }
   @keyframes drift { from { transform: scale(1.14); } to { transform: scale(1.2); } }
 }
-@media (max-width: 860px) {
-  .row, .row.flip, .install { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .row.flip .shot, .row.flip .ring { order: 0; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+@media (max-width: 760px) {
   .keys { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
@@ -211,28 +337,44 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   .hero-inner { padding-block: 0 48px; margin-top: -8px; position: relative; }
   .get { justify-self: stretch; }
   .btn { width: 100%; }
-  section { padding-block: 56px; }
+  main section { padding-block: 64px; }
   .keys dt { min-width: 6rem; }
+  .panel { padding: 22px; }
 }
 </style>
 </head>
 <body>
 
 <header class="hero">
+  <div class="wrap top">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 27V11h3V7h3v4h2V7h4v4h2V7h3v4h3v16h-8v-5a3 3 0 0 0-6 0v5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Maze Citadel
+    </a>
+    <nav aria-label="Sections">
+      <a href="#maze">Play</a>
+      <a href="#towers">Towers</a>
+      <a href="#screens">Screens</a>
+      <a href="#install">Install</a>
+      <a class="nav-get" href="#download">Download</a>
+    </nav>
+  </div>
   <img class="hero-art" src="img/hero.jpg" width="1600" height="969"
        alt="Wave 24 pours out of the red demon portal into a wall of archer, frost and plague towers">
-  <div class="hero-inner wrap">
+  <div class="hero-inner wrap" id="top">
     <p class="eyebrow">A maze tower defense for Mac</p>
     <h1 class="title">Maze Citadel</h1>
-    <p class="lede">Wall the plateau with towers, bend the demons' path from the portal to the town gate, and hold for forty waves.</p>
-    <div class="get" id="download">
+    <p class="lede">Wall the plateau with towers, bend the demons' road from the portal to the town gate, and hold for forty waves.</p>
+    <div class="get framed" id="download">
       <!--if:release-->
-      <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
       <a class="btn" href="{{dmg_href}}" download>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Download for Mac
       </a>
-      <p class="get-meta"><strong>Version {{version}}</strong> · {{size_mb}} · {{release_date}}<br>Apple silicon · macOS {{min_macos}} or later · <a href="#install">How to install</a></p>
+      <div class="get-meta">
+        <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
+        <p><strong>Version {{version}}</strong> · {{size_mb}} · {{release_date}}<br>Apple silicon · macOS {{min_macos_name}} or later · <a href="#install">How to install</a></p>
+      </div>
       <!--end:release-->
       <!--if:no_release-->
       <span class="btn is-off" aria-disabled="true">Download for Mac</span>
@@ -242,75 +384,120 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   </div>
 </header>
 
+<section class="facts" aria-label="At a glance">
+  <div class="wrap">
+    <p class="fact"><b>{{wave_count}}</b><span>waves, ending with<br>the Dreadlord</span></p>
+    <p class="fact"><b>{{tower_count}}</b><span>towers, plus {{epic_count}}<br>Epics to fuse</span></p>
+    <p class="fact"><b>{{map_count}}</b><span>maps: {{map_names}}</span></p>
+    <p class="fact"><b>4</b><span>modes: Normal, Hard,<br>Infinite and Twists</span></p>
+  </div>
+</section>
+
 <main>
-  <section aria-labelledby="plays-title">
+  <section id="maze" aria-labelledby="maze-title">
+    <div class="wrap split split-top">
+      <div class="maze-copy">
+        <p class="kicker">Build the maze</p>
+        <h2 id="maze-title">Every tower is also a wall</h2>
+        <div class="prose">
+          <p>Towers block the tile they stand on, so where you build decides the demons' road. Stretch it and every tower gets longer to shoot. On the real <strong>20 × 28 tile plateau</strong> the glowing path redraws with every tower you place.</p>
+          <p>Wall as hard as you like, but never shut the road: a tower that would cut the portal off from the gate won't build. Try it on this practice board.</p>
+        </div>
+        <p class="road" aria-live="polite"><b id="road-len">18</b><span>tiles of road<br>a straight road is 10</span></p>
+      </div>
+      <div class="board framed">
+        <div class="board-head">
+          <h3>Practice board</h3>
+          <span>7 × 10 tiles</span>
+        </div>
+        <div class="grid" id="maze-grid" role="group" aria-label="Practice board, 7 by 10 tiles. Portal at the top, gate at the bottom."></div>
+        <noscript><p class="board-msg">Turn on JavaScript to build on the practice board.</p></noscript>
+        <p class="board-msg" id="maze-msg" aria-live="polite">Click grass to build a tower and click a tower to sell it. See how long you can make the road.</p>
+        <div class="board-actions">
+          <button type="button" class="ghost" id="maze-clear">Clear the board</button>
+          <button type="button" class="ghost" id="maze-starter">Starter maze</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="ring-title">
+    <div class="wrap split">
+      <div class="ring">
+        <svg viewBox="0 0 340 340" role="img" aria-labelledby="ring-svg-title">
+          <title id="ring-svg-title">The element ring: Light beats Dark, Dark beats Aqua, Aqua beats Flame, Flame beats Verdant, Verdant beats Stone, Stone beats Light.</title>
+          <defs>
+            <marker id="head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0 0 10 5 0 10z" style="fill: var(--gold)"/>
+            </marker>
+          </defs>
+          <g>
+            <path class="arc" d="M212.0 59.7A118 118 0 0 1 244.5 78.5" marker-end="url(#head)"/>
+            <path class="arc" d="M286.5 151.2A118 118 0 0 1 286.5 188.8" marker-end="url(#head)"/>
+            <path class="arc" d="M244.5 261.5A118 118 0 0 1 212.0 280.3" marker-end="url(#head)"/>
+            <path class="arc" d="M128.0 280.3A118 118 0 0 1 95.5 261.5" marker-end="url(#head)"/>
+            <path class="arc" d="M53.5 188.8A118 118 0 0 1 53.5 151.2" marker-end="url(#head)"/>
+            <path class="arc" d="M95.5 78.5A118 118 0 0 1 128.0 59.7" marker-end="url(#head)"/>
+          </g>
+          <circle class="node" cx="170" cy="52" r="34" style="stroke: var(--el-light)"/>
+          <text x="170" y="52" style="fill: var(--el-light)">Light</text>
+          <circle class="node" cx="272.2" cy="111" r="34" style="stroke: var(--el-dark)"/>
+          <text x="272.2" y="111" style="fill: var(--el-dark)">Dark</text>
+          <circle class="node" cx="272.2" cy="229" r="34" style="stroke: var(--el-aqua)"/>
+          <text x="272.2" y="229" style="fill: var(--el-aqua)">Aqua</text>
+          <circle class="node" cx="170" cy="288" r="34" style="stroke: var(--el-flame)"/>
+          <text x="170" y="288" style="fill: var(--el-flame)">Flame</text>
+          <circle class="node" cx="67.8" cy="229" r="34" style="stroke: var(--el-verdant)"/>
+          <text x="67.8" y="229" style="fill: var(--el-verdant)">Verdant</text>
+          <circle class="node" cx="67.8" cy="111" r="34" style="stroke: var(--el-stone)"/>
+          <text x="67.8" y="111" style="fill: var(--el-stone)">Stone</text>
+          <text class="x2" x="170" y="162">×2</text>
+          <text class="x2-note" x="170" y="196">to the next element</text>
+        </svg>
+      </div>
+      <div class="ring-copy">
+        <p class="kicker">Read the wave</p>
+        <h2 id="ring-title">Know what's coming, build what counters it</h2>
+        <div class="prose">
+          <p>Three seconds before a wave spawns, its banner names what is coming: the creeps, their <strong>armor class</strong> and their <strong>element</strong>. Each element deals double damage to the next one around the ring and half to the one before it.</p>
+          <p class="counters"><span><b>Pierce</b> beats Light armor and fliers</span><span><b>Siege</b> beats Armored</span><span><b>Poison</b> ignores armor</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="towers" aria-labelledby="towers-title">
     <div class="wrap">
-      <p class="kicker" id="plays-title">How it plays</p>
-      <div class="plays">
-        <div class="row">
+      <p class="kicker">The arsenal</p>
+      <h2 id="towers-title">{{tower_count}} towers, {{epic_count}} Epics</h2>
+      <div class="prose" style="margin-top: 14px">
+        <p>Pick a tower to see what it does at each level. In the game, keys 1 to 0 build them, and <kbd>G</kbd> fuses two level-3 towers of one faction into an Epic.</p>
+      </div>
+      <!--roster-->
+    </div>
+  </section>
+
+  <section id="screens" aria-labelledby="screens-title">
+    <div class="wrap">
+      <p class="kicker">Screens</p>
+      <h2 id="screens-title">Bend the road, hold the gate</h2>
+      <div class="gallery">
+        <figure class="big">
           <img class="shot" src="img/board.jpg" width="1600" height="969" loading="lazy"
-               alt="The whole plateau at wave 24: five long rows of towers force the path to snake back and forth inside the citadel walls">
-          <div>
-            <h2>Build the maze</h2>
-            <div class="prose">
-              <p>Every tower is also a wall. Place them on the <strong>20 × 28 tile plateau</strong> to stretch the route from the red portal to the blue gate. The glowing path redraws with every tower you place.</p>
-              <p>You can wall as hard as you like, but never shut the road: a tower that would seal the portal off from the gate turns red and won't build.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="row flip">
-          <div class="ring">
-            <svg viewBox="0 0 340 340" role="img" aria-labelledby="ring-title">
-              <title id="ring-title">The element ring: Light beats Dark, Dark beats Aqua, Aqua beats Flame, Flame beats Verdant, Verdant beats Stone, Stone beats Light.</title>
-              <defs>
-                <marker id="head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M0 0 10 5 0 10z" style="fill: var(--gold)"/>
-                </marker>
-              </defs>
-              <g>
-                <path class="arc" d="M212.0 59.7A118 118 0 0 1 244.5 78.5" marker-end="url(#head)"/>
-                <path class="arc" d="M286.5 151.2A118 118 0 0 1 286.5 188.8" marker-end="url(#head)"/>
-                <path class="arc" d="M244.5 261.5A118 118 0 0 1 212.0 280.3" marker-end="url(#head)"/>
-                <path class="arc" d="M128.0 280.3A118 118 0 0 1 95.5 261.5" marker-end="url(#head)"/>
-                <path class="arc" d="M53.5 188.8A118 118 0 0 1 53.5 151.2" marker-end="url(#head)"/>
-                <path class="arc" d="M95.5 78.5A118 118 0 0 1 128.0 59.7" marker-end="url(#head)"/>
-              </g>
-              <circle class="node" cx="170" cy="52" r="34" style="stroke: var(--el-light)"/>
-              <text x="170" y="52" style="fill: var(--el-light)">Light</text>
-              <circle class="node" cx="272.2" cy="111" r="34" style="stroke: var(--el-dark)"/>
-              <text x="272.2" y="111" style="fill: var(--el-dark)">Dark</text>
-              <circle class="node" cx="272.2" cy="229" r="34" style="stroke: var(--el-aqua)"/>
-              <text x="272.2" y="229" style="fill: var(--el-aqua)">Aqua</text>
-              <circle class="node" cx="170" cy="288" r="34" style="stroke: var(--el-flame)"/>
-              <text x="170" y="288" style="fill: var(--el-flame)">Flame</text>
-              <circle class="node" cx="67.8" cy="229" r="34" style="stroke: var(--el-verdant)"/>
-              <text x="67.8" y="229" style="fill: var(--el-verdant)">Verdant</text>
-              <circle class="node" cx="67.8" cy="111" r="34" style="stroke: var(--el-stone)"/>
-              <text x="67.8" y="111" style="fill: var(--el-stone)">Stone</text>
-              <text class="x2" x="170" y="162">×2</text>
-              <text class="x2-note" x="170" y="196">to the next element</text>
-            </svg>
-          </div>
-          <div>
-            <h2>Read the wave</h2>
-            <div class="prose">
-              <p>Three seconds before a wave spawns, its banner names what is coming: the creeps, their <strong>armor class</strong> and their <strong>element</strong>. Each element deals double damage to the next one around the ring.</p>
-              <p class="counters"><span><b>Pierce</b> beats Light armor and fliers</span><span><b>Siege</b> beats Armored</span><span><b>Poison</b> ignores armor</span></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <img class="shot" src="img/gate.jpg" width="1600" height="969" loading="lazy"
-               alt="The blue town gate at the south edge of the plateau, flanked by torch-lit towers, before the first wave">
-          <div>
-            <h2>Hold the gate</h2>
-            <div class="prose">
-              <p>You start with <strong>20 lives</strong>. A creep that slips through costs one, a boss costs two, and the leaker loops back to the portal for another pass with no bounty.</p>
-              <p>Upgrade towers twice, then fuse a pair of maxed towers into an Epic such as the Frost Wyrm or the Doom Cannon. Clear wave 40 to win, or try Hard and Infinite. Your best wave in each mode is saved.</p>
-            </div>
-          </div>
+               alt="The whole plateau at wave 24: five long rows of towers force the road to snake back and forth inside the citadel walls">
+          <figcaption><strong>Wave 24.</strong> Five rows of towers bend the road back and forth across the plateau.</figcaption>
+        </figure>
+        <div class="side">
+          <figure>
+            <img class="shot" src="img/gate.jpg" width="1600" height="969" loading="lazy"
+                 alt="The blue town gate at the south edge of the plateau, flanked by torch-lit towers, before the first wave">
+            <figcaption><strong>The gate.</strong> You start with 20 lives. A leaker costs one, a boss two, and it loops back to the portal for another pass.</figcaption>
+          </figure>
+          <figure>
+            <img class="shot" src="img/overview.jpg" width="1600" height="969" loading="lazy"
+                 alt="The empty walled plateau before wave 1, with the red portal at the top and the tower bar along the bottom">
+            <figcaption><strong>Wave 1.</strong> An empty plateau, 220 gold and the tower bar.</figcaption>
+          </figure>
         </div>
       </div>
     </div>
@@ -379,5 +566,121 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   </div>
 </footer>
 
+<script>
+// Tower roster: show one panel at a time. Without scripts every panel shows.
+(function () {
+  var cards = document.querySelectorAll(".card");
+  var panels = document.querySelectorAll(".panel");
+  if (!cards.length) return;
+  function show(id) {
+    cards.forEach(function (c) { c.setAttribute("aria-pressed", String(c.dataset.tower === id)); });
+    panels.forEach(function (p) { p.hidden = p.id !== "tower-" + id; });
+  }
+  cards.forEach(function (c) {
+    c.addEventListener("click", function () { show(c.dataset.tower); });
+  });
+  show(cards[0].dataset.tower);
+})();
+
+// Practice board: a 7 x 10 corner of the plateau. Towers block tiles, the road
+// is the shortest walk from portal to gate, and a tower that would leave no
+// walk at all is refused, as in the game.
+(function () {
+  var grid = document.getElementById("maze-grid");
+  if (!grid) return;
+  var ROWS = 10, COLS = 7, PORTAL = "0,3", GATE = "9,3";
+  var STARTER = ["3,0", "3,1", "3,2", "3,3", "3,4", "6,2", "6,3", "6,4", "6,5", "6,6"];
+  var lenEl = document.getElementById("road-len");
+  var msgEl = document.getElementById("maze-msg");
+  var towers = new Set(STARTER);
+  var refused = "";
+  var tiles = [];
+
+  function road(blocked) {
+    var prev = {}, seen = new Set([PORTAL]), queue = [[0, 3]];
+    var steps = [[1, 0], [0, 1], [0, -1], [-1, 0]];
+    while (queue.length) {
+      var cur = queue.shift();
+      if (cur[0] + "," + cur[1] === GATE) break;
+      for (var i = 0; i < steps.length; i++) {
+        var r = cur[0] + steps[i][0], c = cur[1] + steps[i][1], k = r + "," + c;
+        if (r < 0 || c < 0 || r >= ROWS || c >= COLS || seen.has(k) || blocked.has(k)) continue;
+        seen.add(k);
+        prev[k] = cur[0] + "," + cur[1];
+        queue.push([r, c]);
+      }
+    }
+    if (!seen.has(GATE)) return null;
+    var path = [];
+    for (var at = GATE; at; at = prev[at]) path.push(at);
+    return path;
+  }
+
+  function draw() {
+    var path = road(towers) || [];
+    var onRoad = new Set(path);
+    tiles.forEach(function (b) {
+      var k = b.dataset.k, rc = k.split(","), where = "row " + (+rc[0] + 1) + ", column " + (+rc[1] + 1);
+      var kind = "grass", label = "Grass, " + where + ". Build a tower";
+      if (k === PORTAL) { kind = "portal"; label = "Demon portal"; }
+      else if (k === GATE) { kind = "gate"; label = "Town gate"; }
+      else if (k === refused) { kind = "refused"; label = "Refused, " + where + ": it would seal the road"; }
+      else if (towers.has(k)) { kind = "tower"; label = "Tower, " + where + ". Sell it"; }
+      else if (onRoad.has(k)) { kind = "road"; label = "Road, " + where + ". Build a tower"; }
+      b.className = "tile " + kind + ((+rc[0] + +rc[1]) % 2 ? " alt" : "");
+      b.setAttribute("aria-label", label);
+    });
+    lenEl.textContent = path.length;
+  }
+
+  function say(text) { msgEl.textContent = text; }
+
+  function toggle(k) {
+    if (k === PORTAL || k === GATE) return;
+    if (towers.has(k)) {
+      towers.delete(k);
+      refused = "";
+      say("Sold. The road redraws the moment a tower goes.");
+    } else {
+      var next = new Set(towers);
+      next.add(k);
+      if (road(next)) {
+        towers = next;
+        refused = "";
+        say("Built. Every tile you add to the road is more time under fire.");
+      } else {
+        refused = k;
+        say("That tower would seal the road, so it won't build. Leave the demons a way through.");
+      }
+    }
+    draw();
+  }
+
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.dataset.k = r + "," + c;
+      grid.appendChild(b);
+      tiles.push(b);
+    }
+  }
+  grid.addEventListener("click", function (e) {
+    var b = e.target.closest(".tile");
+    if (b) toggle(b.dataset.k);
+  });
+  document.getElementById("maze-clear").addEventListener("click", function () {
+    towers = new Set(); refused = "";
+    say("A clear board: the road runs straight down. Build to bend it.");
+    draw();
+  });
+  document.getElementById("maze-starter").addEventListener("click", function () {
+    towers = new Set(STARTER); refused = "";
+    say("Two walls and a switchback. Add towers to stretch it further.");
+    draw();
+  });
+  draw();
+})();
+</script>
 </body>
 </html>

@@ -2,7 +2,9 @@
 """Build the download site from site/ and the newest GitHub Release.
 
 Fills site/index.html from the newest published release: its .dmg and the
-build-info.json that tools/verify_dmg.sh wrote. A private repo's release files
+build-info.json that tools/verify_dmg.sh wrote. The tower roster and the
+tower and wave counts come from the game's own data (src/data/tower_defs.gd,
+src/data/wave_defs.gd, src/ui/tower_info.gd), so the page follows rebalances. A private repo's release files
 need a login to download, so for a private repo the .dmg is copied into the
 site and served from there; a public repo links to the release file. With no
 release (or no token), the page says the first build is on its way.
@@ -12,6 +14,7 @@ Token: GH_TOKEN or GITHUB_TOKEN, else `gh auth token`.
 """
 
 import argparse
+import ast
 import datetime
 import html
 import json
@@ -27,6 +30,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 API = "https://api.github.com"
 MACOS_NAMES = {"13": "Ventura", "14": "Sonoma", "15": "Sequoia", "26": "Tahoe"}
+# Element colors from src/ui/ui_theme.gd.
+ELEMENT_COLORS = {
+    "light": "#ffeda3",
+    "dark": "#b880fa",
+    "aqua": "#61bdff",
+    "flame": "#ff8538",
+    "verdant": "#80e059",
+    "stone": "#c7ad8a",
+}
+NO_ELEMENT_COLOR = "#c79e52"
+# 24x24 stroke icons for the roster cards, by attack type.
+ATTACK_ICONS = {
+    "pierce": "M5 19 19 5M19 5h-6M19 5v6M5 19l2.5-.5M5 19l.5-2.5",
+    "siege": "M11 20a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13zM15.5 8.5 18 6M18 6l2 .5M18 6l-.5-2",
+    "magic": "M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9",
+    "poison": "M12 3.5c3.8 4.6 5.8 7.8 5.8 10.6a5.8 5.8 0 0 1-11.6 0c0-2.8 2-6 5.8-10.6z",
+    "rune": "M13.5 4.5l6 6-3 3-6-6zM10.5 10.5 4 17l3 3 6.5-6.5",
+    "aura": "M9 17.5V5.5l10-2v12M9 17.5a2.75 2.75 0 1 1-5.5 0 2.75 2.75 0 0 1 5.5 0z"
+    "M19 15.5a2.75 2.75 0 1 1-5.5 0 2.75 2.75 0 0 1 5.5 0z",
+}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -149,6 +172,192 @@ def site_url(repo: str, tok: str) -> str:
     return url if url.endswith("/") else url + "/"
 
 
+def gd_const(path: Path, name: str):
+    """A dictionary or array constant from a GDScript file, as Python data.
+    Handles the literals the data files use: strings (also joined with +),
+    StringNames, numbers, booleans, Vector2i (as a tuple), nested arrays and
+    dictionaries."""
+    src = path.read_text()
+    m = re.search(rf"^const {name}(?:\s*:\s*[^=]+)?\s*:?=\s*", src, re.M)
+    if not m or src[m.end()] not in "{[":
+        sys.exit(f"build_site: no {name} constant in {path.relative_to(ROOT)}")
+    start, pairs, depth = m.end(), {"{": "}", "[": "]"}, 0
+    for end in range(start, len(src)):
+        if src[end] == src[start]:
+            depth += 1
+        elif src[end] == pairs[src[start]]:
+            depth -= 1
+            if depth == 0:
+                break
+    text = src[start:end + 1]
+    text = re.sub(r"(?m)^\s*#.*$", "", text)
+    text = re.sub(r'&"', '"', text)
+    text = re.sub(r'"\s*\+\s*"', "", text)
+    text = re.sub(r"\bVector2i?\(", "(", text)
+    text = re.sub(r"\btrue\b", "True", text)
+    text = re.sub(r"\bfalse\b", "False", text)
+    try:
+        return ast.literal_eval(text)
+    except (SyntaxError, ValueError) as e:
+        sys.exit(f"build_site: can't read {name} in {path.relative_to(ROOT)}: {e}")
+
+
+def game_data() -> dict:
+    defs = ROOT / "src" / "data" / "tower_defs.gd"
+    info = ROOT / "src" / "ui" / "tower_info.gd"
+    maps = ROOT / "src" / "data" / "map_defs.gd"
+    return {
+        "towers": gd_const(defs, "TOWERS"),
+        "order": gd_const(defs, "BUILD_ORDER"),
+        "epics": gd_const(defs, "EPICS"),
+        "short": gd_const(info, "SHORT_NAMES"),
+        "blurbs": gd_const(info, "BLURBS"),
+        "families": gd_const(info, "FAMILY_NAMES"),
+        "attacks": gd_const(info, "ATTACK_NAMES"),
+        "elements": gd_const(info, "ELEMENT_NAMES"),
+        "waves": gd_const(ROOT / "src" / "data" / "wave_defs.gd", "WAVES"),
+        "maps": gd_const(maps, "MAPS"),
+        "map_order": gd_const(maps, "ORDER"),
+    }
+
+
+def and_list(words: list) -> str:
+    return " and ".join(filter(None, [", ".join(words[:-1]), words[-1]]))
+
+
+def num(v) -> str:
+    return f"{v:g}"
+
+
+def pct(v) -> str:
+    return f"{round(v * 100)}"
+
+
+def nth(v) -> str:
+    v = int(v)
+    suffix = "th" if 10 <= v % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(v % 10, "th")
+    return f"{v}{suffix}"
+
+
+# What each tower stat reads like on a level card, in display order. The main
+# stats show on every level; the rest only where they first appear or change.
+STAT_WORDS = [
+    ("damage", lambda v: f"{num(v)} damage" if v else ""),
+    ("poison_dps", lambda v: f"{num(v)} poison/s"),
+    ("cloud_dps", lambda v: f"{num(v)} poison/s clouds"),
+    ("aura_damage", lambda v: f"+{pct(v)}% tower damage"),
+    ("aura_haste", lambda v: f"+{pct(v)}% attack speed" if v else ""),
+    ("multishot", lambda v: f"{v} arrows" if v > 1 else ""),
+    ("pierce", lambda v: f"pierces {v}"),
+    ("lance_length", lambda v: f"{num(v)} m lance"),
+    ("cone_degrees", lambda v: f"{num(v)}° cone"),
+    ("splash", lambda v: f"splash {num(v)}"),
+    ("slow", lambda v: f"slows {pct(v)}%"),
+    ("slow_splash", lambda v: f"slow splash {num(v)}" if v else ""),
+    ("ring_every", lambda v: f"frost ring every {nth(v)} shot" if v else ""),
+    ("root", lambda v: f"roots {num(v)} s"),
+    ("shred", lambda v: f"shreds {num(v)} armor"),
+    ("poison_stacks", lambda v: f"stacks {v}×"),
+    ("contagion_radius", lambda v: f"spreads {num(v)} m"),
+    ("max_clouds", lambda v: f"up to {v} clouds"),
+    ("crater_dps", lambda v: f"crater {num(v)}/s"),
+    ("freeze_every", lambda v: f"freezes every {nth(v)} breath"),
+    ("min_range", lambda v: f"min range {num(v)}"),
+]
+MAIN_STATS = {"damage", "poison_dps", "cloud_dps", "aura_damage"}
+
+
+def level_words(tower: dict, levels: int) -> list:
+    """One line per level: the stats that matter at that level."""
+    lines = []
+    for i in range(levels):
+        words = []
+        for key, say in STAT_WORDS:
+            if key not in tower:
+                continue
+            v = tower[key][i] if isinstance(tower[key], list) else tower[key]
+            prev = None
+            if i > 0:
+                prev = tower[key][i - 1] if isinstance(tower[key], list) else tower[key]
+            if key not in MAIN_STATS and i > 0 and v == prev:
+                continue
+            text = say(v)
+            if text:
+                words.append(text)
+        line = ", ".join(words)
+        lines.append(line[:1].upper() + line[1:])
+    return lines
+
+
+def roster_html(data: dict) -> str:
+    """Tower cards and one detail panel per tower; the page script shows one
+    panel at a time, and without scripts every panel is listed."""
+    esc = html.escape
+    ids = list(data["order"]) + list(data["epics"])
+    cards, panels = [], []
+    for n, tid in enumerate(ids):
+        t = data["towers"][tid]
+        epic = tid in data["epics"]
+        key = "G" if epic else str((n + 1) % 10)
+        element = t.get("element")
+        color = ELEMENT_COLORS.get(element, NO_ELEMENT_COLOR)
+        element_name = data["elements"].get(element, "No element")
+        family = data["families"].get(t["family"], t["family"].title())
+        attack = t.get("attack")
+        icon = ATTACK_ICONS.get(attack or "aura", ATTACK_ICONS["aura"])
+        if epic:
+            price = f"+{t['fuse_cost']}"
+            costs = [("Fuse", price)]
+            kicker = f"{family} Epic · {element_name}"
+        else:
+            price = str(t["cost"][0])
+            costs = [("Level 1", price)] + [(f"Level {i + 2}", f"+{c}") for i, c in enumerate(t["cost"][1:])]
+            kicker = f"{family} · {element_name}"
+        rng = t["range"] if isinstance(t["range"], list) else [t["range"]]
+        reach = num(rng[0]) if rng[0] == rng[-1] else f"{num(rng[0])} to {num(rng[-1])}"
+        chips = [
+            f"{data['attacks'][attack]} attack" if attack else "Aura",
+            "Buffs towers in range" if t["kind"] == "aura" else ("Hits air and ground" if t.get("air") else "Ground only"),
+            f"Range {reach}",
+        ]
+        blurb = data["blurbs"].get(tid, "")
+        if epic:
+            blurb += f" Fuse two level-3 {family} towers to build it."
+        short = data["short"].get(tid, t["name"])
+        pressed = "true" if n == 0 else "false"
+        cards.append(
+            f'<button type="button" class="card" data-tower="{esc(tid)}" aria-pressed="{pressed}" '
+            f'aria-controls="tower-{esc(tid)}" style="--el: {color}">'
+            f'<span class="card-key">{key}</span>'
+            f'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="{icon}"/></svg>'
+            f'<span class="card-name">{esc(short)}</span>'
+            f'<span class="card-cost">{esc(price)}</span></button>'
+        )
+        levels = "".join(
+            f'<li><span class="lv">{label}</span><span class="lv-cost">{esc(cost)}</span>'
+            f'<span class="lv-fx">{esc(words)}</span></li>'
+            for (label, cost), words in zip(costs, level_words(t, len(costs)))
+        )
+        panels.append(
+            f'<article class="panel" id="tower-{esc(tid)}" style="--el: {color}">'
+            f'<div class="panel-main"><p class="panel-kicker">{esc(kicker)}</p>'
+            f'<h3>{esc(t["name"])}</h3><p class="panel-blurb">{esc(blurb.strip())}</p>'
+            f'<ul class="chips">{"".join(f"<li>{esc(c)}</li>" for c in chips)}</ul></div>'
+            f'<ol class="levels" aria-label="Cost and effect per level">{levels}</ol></article>'
+        )
+    # Build towers fill the first row (--cols); Epics start their own row.
+    towers = len(data["order"])
+    if len(cards) > towers:
+        cards.insert(towers, '<p class="roster-sep">Epics</p>')
+    return (
+        f'<div class="roster" role="group" aria-label="Towers" style="--cols: {towers}">\n'
+        + "\n".join(cards)
+        + '\n</div>\n<div class="panels" aria-live="polite">\n'
+        + "\n".join(panels)
+        + "\n</div>"
+    )
+
+
 def render(template: str, values: dict, flags: dict) -> str:
     block = re.compile(r"<!--if:(\w+)-->(.*?)<!--end:\1-->", re.S)
     while True:
@@ -217,6 +426,7 @@ def credits_html(style: str) -> str:
 def build(out: Path, release, url: str) -> dict:
     src = ROOT / "site"
     defaults = project_defaults()
+    data = game_data()
     rel = release or {}
     min_macos = (rel.get("min_macos") or defaults["min_macos"]).split(".")[0]
     dmg = rel.get("dmg", defaults["dmg"])
@@ -235,6 +445,11 @@ def build(out: Path, release, url: str) -> dict:
         "release_date": f"{date.day} {date:%B %Y}" if date else "",
         "release_url": rel.get("release_url", ""),
         "site_url": url,
+        "tower_count": len(data["order"]),
+        "epic_count": len(data["epics"]),
+        "wave_count": len(data["waves"]),
+        "map_count": len(data["map_order"]),
+        "map_names": and_list([data["maps"][m]["name"] for m in data["map_order"]]),
     }
     flags = {
         "release": bool(release),
@@ -246,13 +461,17 @@ def build(out: Path, release, url: str) -> dict:
         "site_url": bool(url),
     }
     template = (src / "index.html").read_text()
-    (out / "index.html").write_text(render(template, values, flags))
+    page = render(template, values, flags)
+    if "<!--roster-->" not in page:
+        sys.exit("build_site: site/index.html has no <!--roster--> marker")
+    page = page.replace("<!--roster-->", roster_html(data))
+    (out / "index.html").write_text(page)
     style = re.search(r"<style>.*?</style>", template, re.S).group(0)
     (out / "credits.html").write_text(credits_html(style))
     shutil.copytree(src / "img", out / "img", dirs_exist_ok=True)
     for name in (".nojekyll", ".gdignore"):
         (out / name).touch()
-    latest = {k: v for k, v in values.items() if k not in ("site_url",)}
+    latest = {k: v for k, v in values.items() if k not in ("site_url", "tower_count", "epic_count", "wave_count", "map_count", "map_names")}
     latest["available"] = bool(release)
     latest["notarized"] = flags["notarized"]
     (out / "latest.json").write_text(json.dumps(latest, indent=2) + "\n")
