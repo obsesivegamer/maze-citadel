@@ -189,6 +189,7 @@ func _update_hover(screen_pos: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"builder")
 	_refusal_shake = maxf(_refusal_shake - delta, 0.0)
 	var building := _game.build_choice != &"" and Grid.in_bounds(hover_tile)
 	_ghost.visible = building
@@ -205,8 +206,10 @@ func _process(delta: float) -> void:
 	_update_ring(building)
 	_update_partner_rings()
 
-
 ## While fusing, a pulsing gold ring marks every valid level-3 partner.
+	Prof.end(&"builder")
+
+
 func _update_partner_rings() -> void:
 	var partners: Array[Vector2i] = []
 	if _fusing:

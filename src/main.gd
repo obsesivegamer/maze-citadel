@@ -9,6 +9,7 @@ extends Node3D
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
+##   --pacing                                    bench with vsync on; count missed frames
 ##   --first-frame-out=<json>                    launch time and wave-1 hitches, quit
 ##   --sync-boot / --async-boot                  force one-frame setup / the loading screen
 
@@ -39,6 +40,15 @@ func _ready() -> void:
 		game.choose_build(&"")
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
+	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).
+	# world/<part> hides one world builder, e.g. world/_nature.
+	for part in PerfFlags.get_str("hide", "").split(",", false):
+		var path := part.split("/")
+		var node: Variant = game.get(path[0])
+		if path.size() > 1 and node != null:
+			node = node.get(path[1])
+		if node is Node3D or node is CanvasLayer:
+			node.visible = false
 	if Cli.has("warp-wave"):
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
 	_attach_tools(
@@ -68,6 +78,7 @@ func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
 		bench.duration = Cli.get_float("bench", 20.0)
 		bench.out_path = Cli.get_str("bench-out")
 		bench.label = Cli.get_str("quality", "balanced")
+		bench.pacing = Cli.has("pacing")
 		bench.settings = settings
 		add_child(bench)
 

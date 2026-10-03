@@ -143,6 +143,7 @@ func _add(node: Node) -> Node:
 func _process(delta: float) -> void:
 	if not is_booted:
 		return
+	Prof.begin(&"sim")
 	if not paused and not is_over():
 		_acc += delta * speed
 		var steps := 0
@@ -156,7 +157,10 @@ func _process(delta: float) -> void:
 			_flush()
 		if steps == MAX_STEPS_PER_FRAME:
 			_acc = 0.0
+	Prof.end(&"sim")
+	Prof.begin(&"units")
 	units.sync(clampf(_acc / GameSim.DT, 0.0, 1.0))
+	Prof.end(&"units")
 
 
 func _flush() -> void:

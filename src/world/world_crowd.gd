@@ -124,6 +124,7 @@ func celebrate() -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"crowd")
 	_time += delta
 	for p in _peasants:
 		_update_peasant(p, delta)
@@ -143,6 +144,7 @@ func _process(delta: float) -> void:
 			cos(a) * GRYPHON_RADIUS, GRYPHON_ALT + sin(a * 2.0) * 2.0, sin(a) * GRYPHON_RADIUS
 		)
 		g.node.rotation.y = -a
+	Prof.end(&"crowd")
 
 
 func _update_peasant(p: Dictionary, delta: float) -> void:

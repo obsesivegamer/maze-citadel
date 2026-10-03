@@ -138,6 +138,7 @@ func _pop(pos: Vector3, text: String, color: Color, big: bool) -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"fx")
 	for i in _labels.size():
 		if _ages[i] >= LIFE:
 			continue
@@ -150,3 +151,4 @@ func _process(delta: float) -> void:
 		else:
 			l.modulate.a = a
 		l.visible = _ages[i] < LIFE
+	Prof.end(&"fx")

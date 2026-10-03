@@ -129,6 +129,7 @@ func _pan(screen_delta: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"camera")
 	var move := Input.get_vector(&"cam_left", &"cam_right", &"cam_back", &"cam_forward")
 	if move != Vector2.ZERO:
 		_pan(Vector2(move.x, -move.y) * delta * _distance * 0.9)
@@ -145,6 +146,7 @@ func _process(delta: float) -> void:
 	_cur_distance = lerpf(_cur_distance, _distance, k)
 	_shake = maxf(_shake - delta * 2.5, 0.0)
 	_apply()
+	Prof.end(&"camera")
 
 
 func _boss_position() -> Variant:
