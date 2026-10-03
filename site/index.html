@@ -7,10 +7,10 @@
 <!-- Template for tools/build_site.py, which fills the double-brace values,
      keeps or drops the if/end blocks using the newest release, and puts the
      tower roster (built from the game's data files) at the roster marker. -->
-<meta name="description" content="A maze tower defense for Apple silicon Macs. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
+<meta name="description" content="A maze tower defense for <!--if:mac_only-->Apple silicon Macs<!--end:mac_only--><!--if:pc-->{{platforms}}<!--end:pc-->. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Maze Citadel">
-<meta property="og:description" content="A maze tower defense for Apple silicon Macs. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
+<meta property="og:description" content="A maze tower defense for <!--if:mac_only-->Apple silicon Macs<!--end:mac_only--><!--if:pc-->{{platforms}}<!--end:pc-->. Wall the plateau with towers, stretch the demons' path and hold the town gate for forty waves.">
 <!--if:site_url--><meta property="og:image" content="{{site_url}}img/hero.jpg">
 <meta property="og:url" content="{{site_url}}"><!--end:site_url-->
 <meta name="twitter:card" content="summary_large_image">
@@ -163,6 +163,18 @@ p { margin: 0; }
 .btn.is-off:hover { transform: none; filter: none; }
 .get-meta { display: grid; gap: 6px; font-size: var(--step--1); line-height: 1.5; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .get-meta strong { color: var(--text); font-weight: 500; }
+/* With PC builds: one choice per system. The page script puts the visitor's
+   own system first; without it the Mac build leads. */
+.choices { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; min-width: 0; }
+.choice { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.choice-meta { font-size: var(--step--1); line-height: 1.4; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.choice.alt .btn {
+  min-height: 44px; padding: 0 18px; font: 500 var(--step-0)/1 var(--body); color: var(--gold-bright);
+  background: transparent; border: 1px solid var(--gold-dim); box-shadow: none;
+}
+.choice.alt .btn:hover { background: var(--stone-hi); color: var(--gold-bright); }
+.choice.alt .btn svg { width: 16px; height: 16px; }
+.choices + .get-meta { flex-basis: 100%; }
 .pill {
   justify-self: start; padding: 2px 10px; border-radius: 999px;
   font: 500 0.75rem/1.6 var(--body); letter-spacing: 0.08em; text-transform: uppercase;
@@ -309,6 +321,14 @@ kbd {
 .reqs li strong { color: var(--text); font-weight: 500; }
 details { color: var(--text-dim); font-size: var(--step--1); }
 summary { cursor: pointer; color: var(--text); }
+details p + p { margin-top: 6px; }
+.os-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.os-tabs[hidden] { display: none; }
+.os-tab[aria-pressed="true"] { background: var(--stone-hi); border-color: var(--gold-bright); color: var(--text); box-shadow: 0 0 0 1px var(--gold-bright); }
+.os-panel + .os-panel { margin-top: 56px; }
+.os-panel[hidden] { display: none; }
+.os-title { margin-top: 32px; }
+.os-tabs:not([hidden]) ~ .os-panel .os-title { display: none; }
 details code { display: block; margin-top: 8px; font: 0.8rem/1.5 var(--mono); color: var(--gold-bright); overflow-wrap: anywhere; }
 
 footer { padding-block: 40px 56px; border-top: 1px solid var(--stone-hi); font-size: var(--step--1); color: var(--text-dim); }
@@ -339,6 +359,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   .hero-inner { padding-block: 0 48px; margin-top: -8px; position: relative; }
   .get { justify-self: stretch; }
   .btn { width: 100%; }
+  .choice { flex: 1 1 100%; justify-items: stretch; }
   main section { padding-block: 64px; }
   .keys dt { min-width: 6rem; }
   .panel { padding: 22px; }
@@ -386,11 +407,11 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   <img class="hero-art" src="img/hero.jpg" width="1600" height="969"
        alt="Wave 24 pours out of the red demon portal into a wall of archer, frost and plague towers">
   <div class="hero-inner wrap" id="top">
-    <p class="eyebrow">A maze tower defense for Mac</p>
+    <p class="eyebrow">A maze tower defense for {{platforms}}</p>
     <h1 class="title">Maze Citadel</h1>
     <p class="lede">Wall the plateau with towers, bend the demons' road from the portal to the town gate, and hold for forty waves.</p>
     <div class="get framed" id="download">
-      <!--if:release-->
+      <!--if:release--><!--if:mac_only-->
       <a class="btn" href="{{dmg_href}}" download>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Download for Mac
@@ -399,7 +420,39 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
         <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
         <p><strong>Version {{version}}</strong> · {{size_mb}} · {{release_date}}<br>Apple silicon · macOS {{min_macos_name}} or later · <a href="#install">How to install</a></p>
       </div>
-      <!--end:release-->
+      <!--end:mac_only--><!--if:pc-->
+      <div class="choices">
+        <div class="choice" data-os="mac">
+          <a class="btn" href="{{dmg_href}}" download>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Mac
+          </a>
+          <p class="choice-meta">{{size_mb}} · Apple silicon · macOS {{min_macos_name}} or later</p>
+        </div>
+        <!--if:windows-->
+        <div class="choice alt" data-os="windows">
+          <a class="btn" href="{{win_href}}" download>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Windows
+          </a>
+          <p class="choice-meta">{{win_size_mb}} · Windows 10 or 11, 64-bit</p>
+        </div>
+        <!--end:windows-->
+        <!--if:linux-->
+        <div class="choice alt" data-os="linux">
+          <a class="btn" href="{{linux_href}}" download>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Linux
+          </a>
+          <p class="choice-meta">{{linux_size_mb}} · 64-bit x86 Linux</p>
+        </div>
+        <!--end:linux-->
+      </div>
+      <div class="get-meta">
+        <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
+        <p><strong>Version {{version}}</strong> · {{release_date}} · <a href="#install">How to install</a></p>
+      </div>
+      <!--end:pc--><!--end:release-->
       <!--if:no_release-->
       <span class="btn is-off" aria-disabled="true">Download for Mac</span>
       <p class="get-meta">The first build is on its way. Apple silicon · macOS 13 or later.</p>
@@ -553,7 +606,14 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   <section id="install" aria-labelledby="install-title">
     <div class="wrap">
       <p class="kicker">Install</p>
-      <h2 id="install-title">Three steps to the citadel</h2>
+      <h2 id="install-title">Three steps to the citadel</h2><!--if:pc-->
+      <div class="os-tabs" role="group" aria-label="Install on" hidden>
+        <button type="button" class="ghost os-tab" data-os="mac" aria-pressed="true" aria-controls="install-mac">Mac</button>
+        <!--if:windows--><button type="button" class="ghost os-tab" data-os="windows" aria-pressed="false" aria-controls="install-windows">Windows</button><!--end:windows-->
+        <!--if:linux--><button type="button" class="ghost os-tab" data-os="linux" aria-pressed="false" aria-controls="install-linux">Linux</button><!--end:linux-->
+      </div>
+      <div class="os-panel" id="install-mac" data-os="mac">
+      <h3 class="os-title">On a Mac</h3><!--end:pc-->
       <div class="install">
         <ol class="steps">
           <li><div><h3>Open the disk image</h3><p>Double-click <span class="path">{{dmg_name}}</span> in your Downloads folder.</p></div></li>
@@ -583,7 +643,67 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
           </details>
           <!--end:release-->
         </aside>
+      </div><!--if:pc-->
       </div>
+      <!--if:windows-->
+      <div class="os-panel" id="install-windows" data-os="windows">
+        <h3 class="os-title">On Windows</h3>
+        <div class="install">
+          <ol class="steps">
+            <li><div><h3>Unzip the download</h3><p>Right-click <span class="path">{{win_name}}</span> in your Downloads folder and choose <strong>Extract All</strong>. You get a <span class="path">MazeCitadel</span> folder with the game inside. Keep it wherever you like; there's nothing else to install.</p></div></li>
+            <li><div><h3>Double-click MazeCitadel.exe</h3><p>It's the only file in the folder. The game data is built into it.</p></div></li>
+            <li><div><h3>Allow it once past SmartScreen</h3>
+              <p>Maze Citadel isn't code-signed yet, so the first run shows "Windows protected your PC". Click <strong>More info</strong>, then <strong>Run anyway</strong>. From then on it opens with a double-click.</p></div></li>
+          </ol>
+          <aside class="reqs" aria-label="Windows requirements">
+            <h3>Requirements</h3>
+            <ul>
+              <li><strong>Windows 10 or 11</strong>, 64-bit</li>
+              <li><strong>A graphics card with Vulkan or Direct3D 12</strong>, roughly 2016 or newer</li>
+              <li>Saves and settings live in <span class="path">%APPDATA%\Maze Citadel</span></li>
+              <li>The Windows build is new and less tested than the Mac one. Its frame rate hasn't been measured yet.</li>
+            </ul>
+            <!--if:windows_sha256-->
+            <details>
+              <summary>Check the download (SHA-256)</summary>
+              <code>{{win_sha256}}</code>
+              <p>In PowerShell: <span class="path">Get-FileHash ~\Downloads\{{win_name}}</span></p>
+              <p>Or in Command Prompt: <span class="path">certutil -hashfile %USERPROFILE%\Downloads\{{win_name}} SHA256</span></p>
+            </details>
+            <!--end:windows_sha256-->
+          </aside>
+        </div>
+      </div>
+      <!--end:windows-->
+      <!--if:linux-->
+      <div class="os-panel" id="install-linux" data-os="linux">
+        <h3 class="os-title">On Linux</h3>
+        <div class="install">
+          <ol class="steps">
+            <li><div><h3>Extract the archive</h3><p>Extract <span class="path">{{linux_name}}</span> with your file manager, or in a terminal: <span class="path">tar -xzf {{linux_name}}</span>. You get a <span class="path">MazeCitadel</span> folder with the game inside.</p></div></li>
+            <li><div><h3>Run MazeCitadel.x86_64</h3><p>Double-click it in your file manager, or from a terminal in that folder: <span class="path">./MazeCitadel.x86_64</span>. The game data is built into it, so there's nothing else to install.</p></div></li>
+            <li><div><h3>Keep the graphics drivers current</h3><p>The game draws with Vulkan. If it doesn't start, update your distribution's graphics drivers first.</p></div></li>
+          </ol>
+          <aside class="reqs" aria-label="Linux requirements">
+            <h3>Requirements</h3>
+            <ul>
+              <li><strong>A 64-bit x86 Linux</strong> with up-to-date graphics drivers</li>
+              <li><strong>A graphics card with Vulkan</strong>, roughly 2016 or newer</li>
+              <li>Saves and settings live in <span class="path">~/.local/share/Maze Citadel</span></li>
+              <li>The Linux build is new and less tested than the Mac one. Its frame rate hasn't been measured yet.</li>
+            </ul>
+            <!--if:linux_sha256-->
+            <details>
+              <summary>Check the download (SHA-256)</summary>
+              <code>{{linux_sha256}}</code>
+              <p>In a terminal: <span class="path">sha256sum ~/Downloads/{{linux_name}}</span></p>
+            </details>
+            <!--end:linux_sha256-->
+          </aside>
+        </div>
+      </div>
+      <!--end:linux-->
+      <!--end:pc-->
     </div>
   </section>
 </main>
@@ -610,6 +730,35 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
     c.addEventListener("click", function () { show(c.dataset.tower); });
   });
   show(cards[0].dataset.tower);
+})();
+
+// Downloads: with PC builds, put the visitor's own system first, in the hero
+// and in Install. Without scripts the Mac build leads and every system's
+// install steps show.
+(function () {
+  var choices = document.querySelector(".choices");
+  var tabs = document.querySelectorAll(".os-tab");
+  var panels = document.querySelectorAll(".os-panel");
+  if (!choices && !tabs.length) return;
+  var ua = navigator.userAgent || "";
+  var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ua).toLowerCase();
+  var os = /win/.test(p) ? "windows" : /linux|x11/.test(p) && !/android|arm|aarch/i.test(p + ua) ? "linux" : "mac";
+  var mine = choices && choices.querySelector('[data-os="' + os + '"]');
+  if (mine && os !== "mac") {
+    choices.querySelector('[data-os="mac"]').classList.add("alt");
+    mine.classList.remove("alt");
+    choices.insertBefore(mine, choices.firstChild);
+  }
+  if (!tabs.length) return;
+  function show(id) {
+    tabs.forEach(function (t) { t.setAttribute("aria-pressed", String(t.dataset.os === id)); });
+    panels.forEach(function (panel) { panel.hidden = panel.dataset.os !== id; });
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () { show(t.dataset.os); });
+  });
+  tabs[0].parentNode.hidden = false;
+  show(document.querySelector('.os-tab[data-os="' + os + '"]') ? os : "mac");
 })();
 
 // Practice board: a slice of the plateau in the game's own colors, seen from

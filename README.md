@@ -2,13 +2,13 @@
 
 **Play it: [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/)**
 
-The website has the Mac download, a practice maze you can try in your browser, and the full tower roster.
+The website has the downloads for Mac, Windows and Linux, a practice maze you can try in your browser, and the full tower roster.
 
 [![A wave-24 battle in Maze Citadel: five rows of towers bend the creeps' road back and forth across the plateau](docs/screens/m3-wave24-full.jpg)](https://obsesivegamer.github.io/maze-citadel/)
 
 ## What it is
 
-Maze Citadel is a single-player tower defense game for Mac, made in the spirit of the old Warcraft III custom maps: Element TD, Gem TD and Wintermaul One.
+Maze Citadel is a single-player tower defense game for Mac, Windows and Linux, made in the spirit of the old Warcraft III custom maps: Element TD, Gem TD and Wintermaul One.
 
 Demons come out of a red portal at the north end of a plateau and march for the blue town gate at the south end. There are no walls except the ones you build. Every tower blocks the tile it stands on, so where you put your towers decides how far the creeps have to walk, and a good maze doubles back on itself until every creep spends a long time under fire. The one thing you can't do is close the road completely. The game refuses any tower that would cut the portal off from the gate.
 
@@ -26,26 +26,44 @@ The game is playable from the first wave to the last. It's still before version 
 
 ## Install
 
-You need a Mac with Apple silicon running macOS 13 Ventura or later. There is nothing else to install.
+Maze Citadel runs on Macs with Apple silicon, on 64-bit Windows 10 and 11, and on 64-bit x86 Linux. There is nothing else to install. The Windows and Linux builds are new: they're less tested than the Mac build, and releases up to 0.2.0 are Mac only.
+
+### Mac
+
+You need a Mac with Apple silicon running macOS 13 Ventura or later.
 
 1. **Download the game.** Open [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/) and click **Download for Mac**. You get a disk image named `MazeCitadel-<version>.dmg`, a little over 100 MB. The same file is on the [Releases page](https://github.com/obsesivegamer/maze-citadel/releases/latest).
 2. **Open the disk image** and drag **Maze Citadel** onto the **Applications** shortcut beside it. You can also run the game straight from the disk image.
 3. **Allow it once.** Maze Citadel isn't notarized by Apple yet, so the first double-click shows "Apple could not verify Maze Citadel is free of malware". That's expected. Click **Done**, open **System Settings → Privacy & Security**, scroll down to **Security** and click **Open Anyway**, then confirm. After that it opens with a normal double-click. On macOS 13 or 14 you can instead Control-click the app and choose **Open**.
 4. **Play.** The first launch spends about 20 seconds on the loading screen while the game prepares its graphics. Later launches take about 4 seconds. There's no title screen or menu. A welcome card explains the basics the first time, and then you're in the citadel with 220 gold and 45 seconds to build before wave 1.
 
+### Windows
+
+1. **Download the game.** On [the website](https://obsesivegamer.github.io/maze-citadel/), click **Download for Windows**. You get a zip named `MazeCitadel-<version>-windows-x86_64.zip`.
+2. **Unzip it.** Right-click the zip and choose **Extract All**. The `MazeCitadel` folder inside holds a single file, `MazeCitadel.exe`, with the whole game in it. Keep the folder wherever you like.
+3. **Allow it once.** The game isn't code-signed yet, so the first double-click on `MazeCitadel.exe` shows "Windows protected your PC". That's expected. Click **More info**, then **Run anyway**. After that it opens with a normal double-click.
+
+### Linux
+
+1. **Download the game.** On [the website](https://obsesivegamer.github.io/maze-citadel/), click **Download for Linux**. You get an archive named `MazeCitadel-<version>-linux-x86_64.tar.gz`.
+2. **Extract it** with your file manager, or with `tar -xzf MazeCitadel-<version>-linux-x86_64.tar.gz`. The `MazeCitadel` folder inside holds a single file, `MazeCitadel.x86_64`, with the whole game in it.
+3. **Run it.** Double-click `MazeCitadel.x86_64`, or run `./MazeCitadel.x86_64` from a terminal in that folder. If it doesn't start, update your distribution's graphics drivers: the game needs Vulkan.
+
 [docs/INSTALL.md](docs/INSTALL.md) covers the rest: checking the download, updating, uninstalling, where the game keeps its files, and what to do if something goes wrong.
 
 ### System requirements
 
-| | |
-|---|---|
-| **Mac** | Apple silicon, M1 or later. Intel Macs aren't supported. |
-| **macOS** | 13 Ventura or later |
-| **Free space** | About 200 MB |
-| **Internet** | Only for the download. The game runs offline. |
-| **Extra software** | None. Everything is inside the app. |
+| | Mac | Windows | Linux |
+|---|---|---|---|
+| **System** | macOS 13 Ventura or later | Windows 10 or 11, 64-bit | A 64-bit x86 distribution with up-to-date graphics drivers |
+| **Hardware** | Apple silicon, M1 or later. Intel Macs aren't supported. | A graphics card with Vulkan or Direct3D 12, roughly 2016 or newer | A graphics card with Vulkan, roughly 2016 or newer |
+| **Free space** | About 200 MB | About 200 MB | About 200 MB |
+| **Internet** | Only for the download. The game runs offline. | The same | The same |
+| **Extra software** | None. Everything is inside the app. | None | None besides the graphics drivers |
 
-Maze Citadel is tested on a MacBook Air 13-inch M3 with 16 GB of memory, where it runs at 60 fps on the default Balanced quality preset. That is the only Mac it has been measured on so far. If it runs slowly on yours, the Performance preset in Settings is lighter.
+Maze Citadel is tested on a MacBook Air 13-inch M3 with 16 GB of memory, where it runs at 60 fps on the default Balanced quality preset. That is the only computer it has been measured on so far, and the Windows and Linux builds haven't been measured yet. If it runs slowly on yours, the Performance preset in Settings is lighter.
+
+It's the same game on all three systems, with the same saves. The game keeps its settings and best waves in `~/Library/Application Support/Maze Citadel` on a Mac, `%APPDATA%\Maze Citadel` on Windows and `~/.local/share/Maze Citadel` on Linux.
 
 ## How to play
 
@@ -78,11 +96,12 @@ Maze Citadel is tested on a MacBook Air 13-inch M3 with 16 GB of memory, where i
 | `H` | Open the Field Guide |
 | `Esc` | Deselect or cancel |
 | `W` `A` `S` `D`, arrow keys or two-finger drag | Move the camera |
-| Mouse wheel or pinch | Zoom |
-| `Q` / `E`, middle-drag or `Option`-drag | Rotate the camera |
+| Mouse wheel, pinch, or two-finger swipe on a PC touchpad | Zoom |
+| `Q` / `E`, middle-drag or `Option`-drag (`Alt`-drag on PC) | Rotate the camera |
 | `R` | Reset the camera |
 | `C` | Cycle the full-board, portal and gate views |
 | `B` | Follow the boss |
+| `F11` or `Alt`+`Enter` | Fullscreen on Windows and Linux. On a Mac, use the window's green button. |
 
 ## Build it from source
 
@@ -95,7 +114,7 @@ You only need this section if you want to change the game. To play, the download
 | A Mac with Apple silicon | | Building the app. The export is arm64 only. | |
 | Xcode Command Line Tools | | `git` and the tools the export script uses | `xcode-select --install` |
 | [Godot](https://godotengine.org/) | 4.7.2 | The engine and editor | `brew install --cask godot` |
-| Godot macOS export templates | 4.7.2 | Building the `.app` and `.dmg` | In Godot: **Editor → Manage Export Templates** |
+| Godot export templates | 4.7.2 | Building the `.app` and `.dmg` (macOS template), and the Windows and Linux builds | In Godot: **Editor → Manage Export Templates** |
 | [Git LFS](https://git-lfs.com/) | | Models, textures, audio and fonts are stored in LFS | `brew install git-lfs`, then `git lfs install` |
 | [gdtoolkit](https://github.com/Scony/godot-gdscript-toolkit) | 4.x | `gdlint` and `gdformat` for the code checks | `brew install pipx`, then `pipx install "gdtoolkit==4.*"` |
 | Python 3 | | The asset license check and the website build | Comes with the Command Line Tools |
@@ -127,6 +146,8 @@ godot --path . -- --map=rampart --quality=performance
 | `godot --headless --path . --script res://tests/bots/run_balance.gd` | Bots play full games and print the balance table ([docs/balance.md](docs/balance.md)) |
 | `tools/export.sh` | Builds `dist/MazeCitadel.app` and the `.dmg` |
 | `tools/verify_dmg.sh` | Mounts the `.dmg`, checks the bundle, version, architecture and signature, and runs the game from it |
+| `tools/export_pc.sh` | Builds the Windows `.zip` and Linux `.tar.gz` into `dist/`. Run it after `tools/export.sh`, which empties `dist/`. |
+| `tools/verify_pc.sh windows` or `linux` | Checks a PC archive and runs the game from it. Run it on that system: Git Bash on Windows. |
 | `python3 tools/build_site.py` | Builds the website into `build/site/`, filled in from the newest release |
 | `git tag vX.Y.Z && git push origin vX.Y.Z` | Publishes a release and updates the website ([docs/RELEASING.md](docs/RELEASING.md)) |
 | `ALLOW_WINDOW=1 tools/slot.sh` | Screenshots, benchmarks and a launch test. These open game windows and take over the screen for about 15 minutes. |
