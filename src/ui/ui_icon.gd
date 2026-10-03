@@ -1,7 +1,8 @@
 class_name UiIcon
 extends Control
 ## One procedural glyph (UiGlyphs) scaled to fit the control. Godot caches
-## the draw commands, so it costs nothing per frame until glyph or tint change.
+## the draw commands, so it costs nothing per frame until glyph or tint change;
+## the glyph's shapes go out as a single draw call (UiMesh).
 
 var glyph: StringName = &"":
 	set = set_glyph
@@ -30,4 +31,9 @@ func set_tint(value: Color) -> void:
 
 func _draw() -> void:
 	var s := minf(size.x, size.y)
-	UiGlyphs.draw(self, glyph, Rect2((size - Vector2(s, s)) / 2.0, Vector2(s, s)), tint)
+	var r := Rect2((size - Vector2(s, s)) / 2.0, Vector2(s, s))
+	UiMesh.cached([&"icon", glyph, r, tint], _build.bind(r)).submit(self)
+
+
+func _build(mesh: UiMesh, r: Rect2) -> void:
+	UiGlyphs.draw(mesh, glyph, r, tint)

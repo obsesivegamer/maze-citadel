@@ -2,8 +2,8 @@ class_name FoliageVariants
 extends RefCounted
 ## Cheaper stand-ins for the swaying plant meshes, switched on by `--pf-*`
 ## performance experiments (PerfFlags). With no flags set, WorldKit uses the
-## imported meshes and the stock foliage shaders and nothing here runs.
-##   nature-bark-lod=N    bark of leafy plants starts at importer LOD N
+## imported leaves and stock foliage shaders, with bark from LOD 2.
+##   nature-bark-lod=N    bark of leafy plants starts at importer LOD N (2; 0 = full)
 ##   nature-shadow-proxy  shadows come from a low-poly opaque hull
 ##   nature-proxy-fill=F  share of leaf vertices that hull encloses (0.8)
 ##   bark-cull=back       bark drops back faces (leaves stay two-sided)

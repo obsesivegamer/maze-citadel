@@ -239,26 +239,45 @@ static func _is_accent(c: Color) -> bool:
 
 ## A creep material: the model's own look (optionally tinted) plus a stencil
 ## silhouette outline in team colour and a rim to separate it from the grass.
-## `model_scale` lets the outline width stay constant in metres.
+## `model_scale` lets the outline width stay constant in metres. `outline`
+## false keeps only the rim; a `status` folds that wash into the emission
+## instead of an overlay pass (UnitPerf creep-outline, creep-status).
 static func creep_material(
-	src: Material, type: StringName, tint: Color, boss: bool, model_scale: float
+	src: Material,
+	type: StringName,
+	tint: Color,
+	boss: bool,
+	model_scale: float,
+	outline := true,
+	status := &"",
 ) -> Material:
 	var sm := src as StandardMaterial3D
 	if sm == null:
 		return src
 	var key := "%s:%d" % [type, src.get_instance_id()]
+	if not outline:
+		key += ":rim"
+	if status != &"":
+		key += ":" + status
 	if not _creep_mats.has(key):
 		var m := sm.duplicate() as StandardMaterial3D
 		m.albedo_color = sm.albedo_color * tint
 		m.rim_enabled = true
 		m.rim = RIM_AMOUNT
 		m.rim_tint = RIM_TINT
-		m.stencil_mode = BaseMaterial3D.STENCIL_MODE_OUTLINE
-		m.stencil_color = BOSS_OUTLINE if boss else TEAM_OUTLINE
-		m.stencil_outline_thickness = 0.04 / model_scale
+		if outline:
+			m.stencil_mode = BaseMaterial3D.STENCIL_MODE_OUTLINE
+			m.stencil_color = BOSS_OUTLINE if boss else TEAM_OUTLINE
+			m.stencil_outline_thickness = 0.04 / model_scale
+			_outlined.append(m)
+			_outline_scale.append(model_scale)
+		if status != &"" and not m.emission_enabled:
+			var c: Color = STATUS_COLORS[status]
+			m.emission_enabled = true
+			m.emission = Color(c.r * c.a, c.g * c.a, c.b * c.a)
+			m.emission_energy_multiplier = 1.0
+			m.emission_texture = null
 		_creep_mats[key] = m
-		_outlined.append(m)
-		_outline_scale.append(model_scale)
 	return _creep_mats[key]
 
 

@@ -21,13 +21,38 @@ var _ruins := WorldRuins.new()
 
 
 func setup(game: Game) -> void:
+	for step in setup_steps(game):
+		step[1].call()
+
+
+## The build as [status text, callable] steps, so a loading screen can run
+## one per frame.
+func setup_steps(game: Game) -> Array:
 	_game = game
-	_build_lighting()
 	_terrain.grid = game.sim.grid
 	_ruins.grid = game.sim.grid
-	for part in [_terrain, _nature, _village, _citadel, _portal, _crowd, _ruins]:
-		add_child(part)
-		part.build()
+	var steps: Array = [["Lighting the sky", _build_lighting]]
+	var parts := [
+		[_terrain, "Raising the plateau and cliffs"],
+		[_nature, "Planting the forests"],
+		[_village, "Building the village"],
+		[_citadel, "Raising the citadel walls"],
+		[_portal, "Opening the demon portal"],
+		[_crowd, "Waking the villagers"],
+		[_ruins, "Scattering the ruins"],
+	]
+	for entry in parts:
+		steps.append([entry[1], _add_part.bind(entry[0])])
+	steps.append(["Listening for the horde", _listen.bind(game)])
+	return steps
+
+
+func _add_part(part: Node) -> void:
+	add_child(part)
+	part.build()
+
+
+func _listen(game: Game) -> void:
 	game.sim_event.connect(_on_sim_event)
 	game.quality_changed.connect(_on_quality_changed)
 
@@ -95,7 +120,9 @@ func _build_lighting() -> void:
 	sun.rotation_degrees = Vector3(-50, -35, 0)
 	sun.light_color = Color(1.0, 0.94, 0.84)
 	sun.light_energy = 1.5
-	sun.light_angular_distance = 0.8
+	# 0 = plain PCF: from the RTS camera it looks like the soft PCSS shadows
+	# (0.8) and costs ~0.8 ms less a frame.
+	sun.light_angular_distance = 0.0
 	sun.shadow_enabled = true
 	sun.shadow_blur = 1.2
 	sun.directional_shadow_max_distance = 150.0

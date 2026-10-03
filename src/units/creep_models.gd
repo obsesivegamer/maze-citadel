@@ -160,6 +160,15 @@ class Rig:
 	var plain: Array = []
 	var height := 1.6
 	var staff_glow: MeshInstance3D
+	var type: StringName
+	var tint := Color.WHITE
+	var boss := false
+	## Per mesh: source materials, model scale and outline flag, from which
+	## status_set() builds emission-washed variants (UnitPerf creep-status).
+	var sources: Array = []
+	var scales: Array[float] = []
+	var outline: Array[bool] = []
+	var status_sets := {}
 
 
 static func spec(type: StringName) -> Dictionary:
@@ -194,23 +203,53 @@ static func build(type: StringName) -> Rig:
 		_add_staff(rig, model)
 	var boss := CreepDefs.is_boss(type)
 	var tint: Color = s.get("tint", Color.WHITE)
+	rig.type = type
+	rig.tint = tint
+	rig.boss = boss
+	var outline_mode := UnitPerf.creep_outline()
+	var shadow := UnitPerf.creep_shadow() == "mesh"
 	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		if mi == rig.staff_glow:
 			continue
 		var outlined: Array[Material] = []
 		var plain: Array[Material] = []
+		var sources: Array[Material] = []
 		var mesh_scale := sc * _rel_scale(mi, model)
+		var outline := outline_mode == "stencil" or (outline_mode == "body" and mi.skin != null)
 		for i in mi.mesh.get_surface_count():
 			var src := mi.mesh.surface_get_material(i)
 			if s.get("fel", false):
 				src = _fel_material(src)
-			outlined.append(UnitStyle.creep_material(src, type, tint, boss, mesh_scale))
+			sources.append(src)
+			outlined.append(UnitStyle.creep_material(src, type, tint, boss, mesh_scale, outline))
 			plain.append(UnitStyle.plain_material(src, type, tint))
 			mi.set_surface_override_material(i, outlined[i])
+		if not shadow:
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		rig.meshes.append(mi)
 		rig.outlined.append(outlined)
 		rig.plain.append(plain)
+		rig.sources.append(sources)
+		rig.scales.append(mesh_scale)
+		rig.outline.append(outline)
 	return rig
+
+
+## The rig's alive materials with `status` folded into their emission.
+static func status_set(rig: Rig, status: StringName) -> Array:
+	if not rig.status_sets.has(status):
+		var sets := []
+		for i in rig.meshes.size():
+			var mats: Array[Material] = []
+			for src: Material in rig.sources[i]:
+				mats.append(
+					UnitStyle.creep_material(
+						src, rig.type, rig.tint, rig.boss, rig.scales[i], rig.outline[i], status
+					)
+				)
+			sets.append(mats)
+		rig.status_sets[status] = sets
+	return rig.status_sets[status]
 
 
 static func _scene(path: String) -> PackedScene:

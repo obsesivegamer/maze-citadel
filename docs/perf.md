@@ -102,3 +102,109 @@ The ruins are one baked static mesh; the rest of the difference is the bot's maz
 Slot 1 showed Cinematic at about 2× Balanced's cost (20 fps in the battle) with SDFGI and SSR adding little to this bright, stylized scene. Cinematic is now render scale 0.7 (MetalFX temporal), SSAO high, fog high, 4096 shadows with 4 cascades, SDFGI and SSR off: in effect the old Balanced (49.7 fps in the battle at 0.7) plus stronger AO, fog and shadows. Expected 40-50 fps in the battle; `tools/slot_d.sh` measures it.
 
 Also new: bench reports `timeline_fps` (average fps per 30 s) for thermal soaks, and `--first-frame-out` records launch time (first frame, frame 60, worst of the first 120 frames).
+
+## Loading and first-use stalls (2026-10-02)
+
+Reported on v0.1.0: a long spinning cursor at launch (music already playing) and a freeze when wave 1 starts.
+
+Cause: the Godot shader baker only runs when a real RenderingDevice renderer is active (`ShaderBakerExportPlugin::_is_active` checks `RendererSceneRenderRD`), so `--headless` exports, local and CI alike, ship without baked shaders. Metal then compiles every shader on first use: the whole world in the first frames (one long main-thread stall, so macOS shows the spinning cursor) and creeps, projectiles and effects when wave 1 brings them on screen.
+
+Fix (works with or without baked shaders):
+1. `Game.async_boot`: a loading screen first, then the camera, each world part and each subsystem one per frame, so the window keeps answering and each frame compiles only what was just added.
+2. `WarmupStage`: behind the loading screen, a throwaway sim with every tower at every level and every creep type fights for 75 frames, drawn by its own Units/Fx, so every combat shader compiles before play. Sound, HUD and the real board never see it; the opening countdown doesn't tick until boot ends.
+3. `--first-frame-out` now records the first frame, when the game is playable, and the worst frame plus hitch count (> 50 ms) in the 10 s after it starts wave 1.
+
+Measured on screen (M3 Air, maximized, `--first-frame-out --autoplay`; "cold" = shader cache moved aside, i.e. a first launch):
+
+| Run | First frame | Playable | Worst frame in the 10 s after wave 1 | Hitches > 50 ms |
+|---|---|---|---|---|
+| Old one-frame boot, cold | **8.3 s** (spinning cursor until then) | 3.1 s* | 150 ms | 1 |
+| New loading screen, cold (first launch) | 1.1 s | 20.5 s | 114 ms | 1 |
+| New loading screen, warm (later launches) | 0.65 s | 4.2 s | 116 ms | 1 |
+
+\* setup finished before the first frame could be drawn; the window showed nothing until 8.3 s.
+
+Findings:
+1. The spinning cursor is gone: the loading screen shows within ~1 s and keeps updating.
+2. A first launch takes ~20 s on the loading screen because every shader compiles up front; later launches take ~4 s (Godot's shader cache in `~/Library/Application Support/Maze Citadel/shader_cache`). Next: time each boot step to see what dominates the cold 20 s.
+3. One ~115 ms hitch remains after wave 1 starts, new path or old; to investigate.
+4. **Shader baking crashes the app.** A windowed export does run the baker, but without full Xcode it logs "Metal shader baking limited to SPIR-V", and the exported app then aborts at launch ("Not enough bytes for uniform in shader container" → "Failed to parse shader container from binary" → FATAL index out of bounds). The baker is now disabled in `export_presets.cfg` and `tools/export.sh` always exports headless; the warm-up does the job instead. Revisit with full Xcode or a later Godot.
+
+## Butter pass (2026-10-03, in progress)
+
+Goal: every frame under 16.7 ms with margin on Balanced (the default) in heavy battles, and no hitches in real play.
+
+### Measuring
+1. `--bench-any-focus`: the bench window is always-on-top and maximized, so it renders normally without keyboard focus (render scale 0.7: 20.55 ms unfocused vs 21.1–21.7 ms focused before HUD batching). Benchmarks no longer wait for the game to get focus.
+2. **Other apps sharing the GPU wreck the numbers.** The Claude desktop app alone used 60–85% of the GPU for hours, and the same run went from 20.6 ms to 43–88 ms. Check with `ioreg -c AGXDeviceUserClient -r -l -w0` (per-process `accumulatedGPUTime`); the runner waits until other apps use < 8% and samples them mid-run. Per-process GPU time is not a usable substitute under contention (render scale 0.5 came out slower than 0.7).
+3. Each missed frame in a bench report now carries its CPU sections and game state (`spikes`).
+
+### Tower builds hitched (fixed)
+`tests/perf/cpu_hitch.gd` plays 12 waves headless at 60 Hz and lists every frame over budget with its cause. Every build ran the path search twice at ~5 ms a pass, so a build frame cost ~22 ms of CPU. The search now walks flat tile indices with a hole-sifting heap (1.6 ms; identical distances on 600 random mazes) and a build adopts the field its validity check computed.
+
+| Frames over budget, waves 1–12 | Before | After (one-frame boot) | After (shipped loading path) |
+|---|---|---|---|
+| over 8 ms | 47 | 12 | 3 |
+| over 16 ms | 45 | 7 | 1 (the bot placing 6 towers in one frame) |
+| over 33 ms | 4 | 2 | 0 |
+
+Creep views pre-built on the loading screen remove the first-spawn stalls (17–36 ms on the one-frame boot).
+
+### Switches, one at a time (wave 35, render scale 0.7, 12 controls 20.63–20.67 ms)
+
+| Switch | Saves | Look |
+|---|---|---|
+| `glow=false` | 2.03 ms | loses bloom; not shippable as is |
+| `sun-angular=0` (PCF instead of PCSS) | 0.80 ms | to check |
+| `nature-shadow-proxy` | 0.66 ms | to check |
+| `shadow-filter=2` | 0.32 ms | to check |
+| `shadow_size=1024` | 0.24 ms | softer shadows |
+| `nature-bark-lod=2` | 0.23 ms | to check |
+| `ssao_quality=1`, `fog_size=48 fog_depth=32`, `terrain-cheap=3`, `terrain-cheap=1`, `world-tex-compress` | 0.10–0.18 ms each | terrain-cheap=1 and tex-compress match the current look in stills |
+| `hud-lite`, tower/creep switches, grass LOD, foliage filter, leaf priority | ~0 | hud-lite also hurts hint readability: drop |
+| `shadow_splits=2` | −0.20 ms (slower) | drop |
+
+Glow variants (render scale 0.7, controls 20.7–21.2 ms while another app used 4–7% of the GPU): `glow-bicubic=false` −0.58 ms, `glow-levels=0,0.8,0.4,0,0,0,0` −0.41, `glow-levels=0,1.0,0,0,0,0,0` −0.48, both −0.38, `glow=false` −1.96. Most of glow's cost is the base pass; bicubic off is the only variant that leaves the look alone.
+
+Terrain still costs ~3.5 ms (hiding it) but cheaper shading saves only 0.1 ms, so its cost is elsewhere (geometry, overdraw or prepass).
+
+### Look checks (stills at native resolution, no temporal AA, pixels that don't animate)
+1. Same look: `terrain-cheap=1`, `glow-bicubic=false`, `nature-bark-lod=2`, `ssao_quality=1`, `fog_size=48 fog_depth=32`, `shadow-filter=2`, `sun-angular=0` (edges a touch crisper).
+2. Visible: `shadow_size=1024` (blocky, speckled edges), `nature-shadow-proxy` (heavier tree shadows that lose the pine outline), `hud-lite` (hint text unreadable over bright ground), `glow=false`.
+3. `world-tex-compress` looks the same but only works in the editor binary (export templates have no compressor): dropped.
+
+### Shipped
+All presets: soft-shadow filter low (`project.godot`), sun angular distance 0 (PCF), linear glow upscale, `terrain-cheap` 1, bark from LOD 2. Balanced also: SSAO low, fog 48 × 32. Render scale stays 0.5: the keepers at 0.6 land at 16.2 ms, no margin.
+
+| Wave 35, Balanced, uncapped | Frame | Worst | 1% low |
+|---|---|---|---|
+| Before (old values restored with flags) | 15.82 ms | 16.7 ms | 60 fps |
+| Shipped | **14.14 ms** | 14.3–14.8 ms | 70 fps |
+
+Launch (warm, twice): first frame 0.6 s, playable 3.8–4.0 s, worst frame in the 10 s after wave 1 starts **32 ms** (was 114–116 ms), no hitches over 50 ms.
+
+### Heat (fanless Air)
+1. Frozen wave-35 battle (`--speed=0`), uncapped: 67.6 fps for 3.5 min, then throttled to ~59.5 fps (−12%) and stays there.
+2. Real play from wave 30 capped at 60 fps (`--max-fps 60`, the GPU idles part of each frame): 60.0 fps for 3 min, then 56–58 fps for the remaining 7 (waves 32+) with runs of 22–25 ms frames (53 frames over 20.8 ms in 10 min). Not butter yet in long late-game sessions: needs ~2–3 ms more, or less heat.
+
+### Late waves on a hot Mac
+1. The 22–25 ms runs land on moments like "wave cleared" (wave 32 at sim time 1489 s, 0 creeps): no single effect, just the heavier moments going over once the GPU is throttled. The wave banner and crowd cheer are cheap.
+2. Terrain's ~3.5 ms is per-pixel lighting and shadow sampling over most of the screen: its meshes total 88k triangles and the 680 m lowland casts no shadow.
+3. Balanced-only trims at wave 38 (controls 14.23–14.26 ms): render scale 0.45 −1.01 ms, SSAO off −0.55, shadow distance 110 m −0.48 (cuts shadows at the portal end), fog off −0.13, coarser trees / lighter big effects ~0.
+4. Render scale 0.45 always on softens close-ups visibly (gate cobblestones), so it isn't shipped as a default. Changing the scale mid-battle stalls one frame (~92–99 ms), then ~7 frames run 1–3 ms slow.
+5. Metal reports no GPU frame time to the game (`viewport_get_measured_render_time_gpu` reads 0), so a governor has to judge from frame times.
+
+### Heat governor (tried, removed)
+Idea: when 10 s of wave frames average under ~58 fps, step the render scale down by 0.05 at the next "wave cleared" (up to twice), hiding the one-frame switch stall behind the banner. Two hot 10-minute soaks from wave 30 capped at 60 fps (`--max-fps 60`):
+
+| Run | 30 s windows after throttling | Frames over 20.8 ms | Worst |
+|---|---|---|---|
+| No governor (`real60`) | 56–58 fps | 53 | 25 ms |
+| One step to 0.45 (`gov60`) | 56–60 fps | 750 | 127 ms |
+| Up to two steps, 0.40 (`gov60b`) | 54–59 fps | 1482 | 142 ms |
+
+After a switch, a hot Mac stalls for ~0.6 s at a time (frames of 50–140 ms) every few waves; no governor run is free of it, no run without a switch shows it, and short cool replays of the same moments with or without a switch are clean. One 0.05 step also buys only ~7% against ~12% of throttling. Removed: a steady ~57 fps beats repeated 130 ms freezes. Mid-game render-scale changes are off the table on this Mac.
+
+### Next
+1. Hot late waves still average ~57 fps on Balanced. The biggest lever left that keeps the look: render the 3D view at the panel's own resolution. The default "looks like 1470 × 956" mode draws 2940 × 1782 and macOS shrinks it to the 2560-wide panel, so MetalFX and post-processing work on ~32% more pixels than the screen shows. Needs the 3D in a SubViewport (picking, overlays and captures map coordinates), so it's its own change.
+2. The Performance preset holds 60 when hot for players who want that now.

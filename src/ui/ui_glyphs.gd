@@ -5,6 +5,8 @@ extends RefCounted
 ## (0..1, y down) mapped onto the target rect; `tint` multiplies every colour.
 ## Elements, armor classes and attack types use prefixed ids (see element(),
 ## armor(), attack()); towers and creeps are drawn by UiUnitGlyphs.
+## `ci` is a CanvasItem in its draw pass or a UiMesh, which merges a glyph's
+## shapes into a single draw call.
 
 const IRON := Color(0.34, 0.33, 0.32)
 const STEEL := Color(0.8, 0.82, 0.86)
@@ -75,7 +77,7 @@ static func has(id: StringName) -> bool:
 
 
 ## Draws glyph `id` into `r` on `ci`. Unknown ids draw nothing.
-static func draw(ci: CanvasItem, id: StringName, r: Rect2, tint := Color.WHITE) -> void:
+static func draw(ci: Object, id: StringName, r: Rect2, tint := Color.WHITE) -> void:
 	if UiUnitGlyphs.has(id):
 		UiUnitGlyphs.draw(ci, id, r, tint)
 		return
@@ -191,7 +193,7 @@ static func pt(r: Rect2, p: Vector2) -> Vector2:
 	return r.position + p * r.size
 
 
-static func poly(ci: CanvasItem, r: Rect2, flat: Array, color: Color) -> void:
+static func poly(ci: Object, r: Rect2, flat: Array, color: Color) -> void:
 	var pts := PackedVector2Array()
 	for i in range(0, flat.size(), 2):
 		pts.append(r.position + Vector2(flat[i], flat[i + 1]) * r.size)
@@ -200,7 +202,7 @@ static func poly(ci: CanvasItem, r: Rect2, flat: Array, color: Color) -> void:
 
 ## Tiny glyphs can collapse into shapes the renderer can't triangulate (e.g.
 ## the crescent's tips at pip size); those keep their outline and skip the fill.
-static func poly_pts(ci: CanvasItem, pts: PackedVector2Array, color: Color) -> void:
+static func poly_pts(ci: Object, pts: PackedVector2Array, color: Color) -> void:
 	if not Geometry2D.triangulate_polygon(pts).is_empty():
 		ci.draw_colored_polygon(pts, color)
 	var edge := pts.duplicate()
@@ -208,27 +210,27 @@ static func poly_pts(ci: CanvasItem, pts: PackedVector2Array, color: Color) -> v
 	ci.draw_polyline(edge, color, EDGE, true)
 
 
-static func line(ci: CanvasItem, r: Rect2, a: Vector2, b: Vector2, color: Color, w: float) -> void:
+static func line(ci: Object, r: Rect2, a: Vector2, b: Vector2, color: Color, w: float) -> void:
 	ci.draw_line(pt(r, a), pt(r, b), color, maxf(w * r.size.x, 1.0), true)
 
 
-static func dot(ci: CanvasItem, r: Rect2, c: Vector2, rad: float, color: Color) -> void:
+static func dot(ci: Object, r: Rect2, c: Vector2, rad: float, color: Color) -> void:
 	ci.draw_circle(pt(r, c), rad * r.size.x, color, true, -1.0, true)
 
 
-static func ring(ci: CanvasItem, r: Rect2, c: Vector2, rad: float, color: Color, w: float) -> void:
+static func ring(ci: Object, r: Rect2, c: Vector2, rad: float, color: Color, w: float) -> void:
 	ci.draw_arc(pt(r, c), rad * r.size.x, 0.0, TAU, 40, color, maxf(w * r.size.x, 1.0), true)
 
 
 static func arc(
-	ci: CanvasItem, r: Rect2, c: Vector2, rad: float, a0: float, a1: float, color: Color, w: float
+	ci: Object, r: Rect2, c: Vector2, rad: float, a0: float, a1: float, color: Color, w: float
 ) -> void:
 	ci.draw_arc(pt(r, c), rad * r.size.x, a0, a1, 24, color, maxf(w * r.size.x, 1.0), true)
 
 
 ## A star (or burst) with `n` points; radii are in unit-square fractions.
 static func star(
-	ci: CanvasItem,
+	ci: Object,
 	r: Rect2,
 	c: Vector2,
 	outer: float,
@@ -246,7 +248,7 @@ static func star(
 
 
 ## A small filled diamond in canvas coordinates (trim studs, level pips).
-static func diamond(ci: CanvasItem, c: Vector2, s: float, color: Color) -> void:
+static func diamond(ci: Object, c: Vector2, s: float, color: Color) -> void:
 	var pts := PackedVector2Array(
 		[c + Vector2(0, -s), c + Vector2(s, 0), c + Vector2(0, s), c + Vector2(-s, 0)]
 	)
@@ -270,7 +272,7 @@ static func sub(r: Rect2, x: float, y: float, s: float) -> Rect2:
 # --- Shared shapes ----------------------------------------------------------
 
 
-static func coin(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func coin(ci: Object, r: Rect2, tint: Color) -> void:
 	dot(ci, r, Vector2(0.5, 0.5), 0.45, COIN_DARK * tint)
 	dot(ci, r, Vector2(0.5, 0.5), 0.38, COIN * tint)
 	ring(ci, r, Vector2(0.5, 0.5), 0.27, COIN_DARK * tint, 0.05)
@@ -278,7 +280,7 @@ static func coin(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	arc(ci, r, Vector2(0.5, 0.5), 0.33, PI * 1.1, PI * 1.5, Color(1, 1, 1, 0.55) * tint, 0.05)
 
 
-static func gear(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func gear(ci: Object, r: Rect2, color: Color) -> void:
 	for i in 8:
 		var a := TAU * i / 8.0
 		var d := Vector2(cos(a), sin(a))
@@ -296,7 +298,7 @@ static func gear(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	ring(ci, r, Vector2(0.5, 0.5), 0.25, color, 0.14)
 
 
-static func shield(ci: CanvasItem, r: Rect2, color: Color, trim: Color) -> void:
+static func shield(ci: Object, r: Rect2, color: Color, trim: Color) -> void:
 	var pts := PackedVector2Array()
 	pts.append(pt(r, Vector2(0.17, 0.12)))
 	pts.append(pt(r, Vector2(0.83, 0.12)))
@@ -308,13 +310,13 @@ static func shield(ci: CanvasItem, r: Rect2, color: Color, trim: Color) -> void:
 	line(ci, r, Vector2(0.24, 0.4), Vector2(0.76, 0.4), trim, 0.06)
 
 
-static func wing(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func wing(ci: Object, r: Rect2, color: Color) -> void:
 	var pts := [0.1, 0.66, 0.26, 0.38, 0.52, 0.22, 0.92, 0.12, 0.8, 0.31, 0.9, 0.36]
 	pts.append_array([0.74, 0.48, 0.82, 0.55, 0.62, 0.64, 0.67, 0.71, 0.42, 0.74])
 	poly(ci, r, pts, color)
 
 
-static func flame(ci: CanvasItem, r: Rect2, outer: Color, inner: Color) -> void:
+static func flame(ci: Object, r: Rect2, outer: Color, inner: Color) -> void:
 	var o := [0.52, 0.04, 0.66, 0.27, 0.79, 0.42, 0.83, 0.62, 0.75, 0.81, 0.56, 0.93]
 	o.append_array([0.4, 0.92, 0.23, 0.8, 0.17, 0.6, 0.26, 0.38, 0.34, 0.5, 0.4, 0.28])
 	poly(ci, r, o, outer)
@@ -324,7 +326,7 @@ static func flame(ci: CanvasItem, r: Rect2, outer: Color, inner: Color) -> void:
 # --- Symbols ------------------------------------------------------------------
 
 
-static func _heart(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _heart(ci: Object, r: Rect2, tint: Color) -> void:
 	var pts := PackedVector2Array()
 	for i in 36:
 		var t := TAU * i / 36.0
@@ -335,7 +337,7 @@ static func _heart(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	dot(ci, r, Vector2(0.33, 0.34), 0.07, Color(1, 1, 1, 0.45) * tint)
 
 
-static func _skull(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _skull(ci: Object, r: Rect2, tint: Color) -> void:
 	dot(ci, r, Vector2(0.5, 0.42), 0.33, BONE * tint)
 	poly(ci, r, [0.31, 0.55, 0.69, 0.55, 0.66, 0.86, 0.34, 0.86], BONE * tint)
 	dot(ci, r, Vector2(0.37, 0.45), 0.1, INK * tint)
@@ -345,7 +347,7 @@ static func _skull(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 		line(ci, r, Vector2(x, 0.74), Vector2(x, 0.86), INK * tint, 0.03)
 
 
-static func _swords(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _swords(ci: Object, r: Rect2, tint: Color) -> void:
 	for flip in [false, true]:
 		var a := Vector2(0.14, 0.86) if not flip else Vector2(0.86, 0.86)
 		var b := Vector2(0.84, 0.14) if not flip else Vector2(0.16, 0.14)
@@ -356,7 +358,7 @@ static func _swords(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 		line(ci, r, g - n, g + n, COIN * tint, 0.07)
 
 
-static func _eye(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _eye(ci: Object, r: Rect2, color: Color) -> void:
 	var pts := PackedVector2Array()
 	arc_pts(pts, r, Vector2(0.5, 0.78), Vector2(0.52, 0.52), -PI * 0.82, -PI * 0.18, 10)
 	for i in range(1, 10):
@@ -367,7 +369,7 @@ static func _eye(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	dot(ci, r, Vector2(0.5, 0.5), 0.07, INK * Color(1, 1, 1, color.a))
 
 
-static func _board(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _board(ci: Object, r: Rect2, tint: Color) -> void:
 	var c := Color(0.86, 0.8, 0.64) * tint
 	poly(ci, r, [0.16, 0.12, 0.84, 0.12, 0.84, 0.88, 0.16, 0.88], Color(0.3, 0.42, 0.24) * tint)
 	ci.draw_rect(
@@ -380,7 +382,7 @@ static func _board(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	dot(ci, r, Vector2(0.5, 0.88), 0.07, Color(0.45, 0.68, 1.0) * tint)
 
 
-static func _arch(ci: CanvasItem, r: Rect2, color: Color, bars: bool) -> void:
+static func _arch(ci: Object, r: Rect2, color: Color, bars: bool) -> void:
 	var pts := PackedVector2Array()
 	pts.append(pt(r, Vector2(0.18, 0.9)))
 	arc_pts(pts, r, Vector2(0.5, 0.42), Vector2(0.32, 0.32), PI, TAU, 12)
@@ -398,7 +400,7 @@ static func _arch(ci: CanvasItem, r: Rect2, color: Color, bars: bool) -> void:
 		dot(ci, r, Vector2(0.5, 0.58), 0.08, Color(1.0, 0.85, 0.5) * Color(1, 1, 1, color.a))
 
 
-static func _sun(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _sun(ci: Object, r: Rect2, color: Color) -> void:
 	for i in 8:
 		var a := TAU * i / 8.0
 		var d := Vector2(cos(a), sin(a))
@@ -407,7 +409,7 @@ static func _sun(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	dot(ci, r, Vector2(0.45, 0.45), 0.07, Color(1, 1, 1, 0.5 * color.a))
 
 
-static func _moon(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _moon(ci: Object, r: Rect2, color: Color) -> void:
 	var pts := PackedVector2Array()
 	arc_pts(pts, r, Vector2(0.5, 0.5), Vector2(0.4, 0.4), PI * 1.5, PI * 0.5, 14)
 	arc_pts(pts, r, Vector2(0.5, 0.5), Vector2(0.18, 0.4), PI * 0.5 + 0.1, PI * 1.5 - 0.1, 12)
@@ -415,7 +417,7 @@ static func _moon(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	dot(ci, r, Vector2(0.76, 0.3), 0.05, color)
 
 
-static func _drop(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _drop(ci: Object, r: Rect2, color: Color) -> void:
 	var pts := PackedVector2Array()
 	pts.append(pt(r, Vector2(0.5, 0.06)))
 	arc_pts(pts, r, Vector2(0.5, 0.62), Vector2(0.28, 0.28), -0.7, PI + 0.7, 16)
@@ -423,7 +425,7 @@ static func _drop(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	dot(ci, r, Vector2(0.4, 0.62), 0.06, Color(1, 1, 1, 0.55 * color.a))
 
 
-static func _leaf(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _leaf(ci: Object, r: Rect2, color: Color) -> void:
 	var a := Vector2(0.16, 0.84)
 	var b := Vector2(0.86, 0.14)
 	var n := Vector2(-(b - a).y, (b - a).x).normalized()
@@ -438,14 +440,14 @@ static func _leaf(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	line(ci, r, Vector2(0.1, 0.9), a.lerp(b, 0.8), color.darkened(0.45), 0.04)
 
 
-static func _rock(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _rock(ci: Object, r: Rect2, color: Color) -> void:
 	poly(ci, r, [0.48, 0.08, 0.82, 0.3, 0.86, 0.68, 0.56, 0.92, 0.18, 0.76, 0.14, 0.36], color)
 	poly(ci, r, [0.48, 0.08, 0.82, 0.3, 0.5, 0.46, 0.14, 0.36], color.lightened(0.25))
 	line(ci, r, Vector2(0.5, 0.46), Vector2(0.56, 0.92), color.darkened(0.4), 0.035)
 	line(ci, r, Vector2(0.5, 0.46), Vector2(0.86, 0.68), color.darkened(0.4), 0.035)
 
 
-static func _crown(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _crown(ci: Object, r: Rect2, color: Color) -> void:
 	poly(
 		ci,
 		r,
@@ -457,21 +459,21 @@ static func _crown(ci: CanvasItem, r: Rect2, color: Color) -> void:
 		dot(ci, r, p, 0.06, COIN * Color(1, 1, 1, color.a))
 
 
-static func _arrow(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _arrow(ci: Object, r: Rect2, color: Color) -> void:
 	line(ci, r, Vector2(0.16, 0.84), Vector2(0.72, 0.28), color, 0.07)
 	poly(ci, r, [0.88, 0.12, 0.8, 0.44, 0.56, 0.2], color)
 	line(ci, r, Vector2(0.16, 0.84), Vector2(0.1, 0.66), color, 0.05)
 	line(ci, r, Vector2(0.16, 0.84), Vector2(0.34, 0.9), color, 0.05)
 
 
-static func _bomb(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _bomb(ci: Object, r: Rect2, tint: Color) -> void:
 	dot(ci, r, Vector2(0.44, 0.6), 0.32, IRON * tint)
 	dot(ci, r, Vector2(0.34, 0.5), 0.08, Color(1, 1, 1, 0.35) * tint)
 	line(ci, r, Vector2(0.64, 0.36), Vector2(0.76, 0.2), WOOD * tint, 0.06)
 	star(ci, r, Vector2(0.8, 0.15), 0.15, 0.05, 6, UiTheme.ATTACK_COLORS[&"siege"] * tint)
 
 
-static func _flask(ci: CanvasItem, r: Rect2, color: Color, tint: Color) -> void:
+static func _flask(ci: Object, r: Rect2, color: Color, tint: Color) -> void:
 	poly(ci, r, [0.4, 0.12, 0.6, 0.12, 0.6, 0.42, 0.4, 0.42], Color(0.75, 0.82, 0.8, 0.9) * tint)
 	dot(ci, r, Vector2(0.5, 0.64), 0.29, color)
 	dot(ci, r, Vector2(0.42, 0.58), 0.06, Color(1, 1, 1, 0.5) * tint)
@@ -479,7 +481,7 @@ static func _flask(ci: CanvasItem, r: Rect2, color: Color, tint: Color) -> void:
 	line(ci, r, Vector2(0.36, 0.12), Vector2(0.64, 0.12), STEEL * tint, 0.06)
 
 
-static func _runestone(ci: CanvasItem, r: Rect2, color: Color, tint: Color) -> void:
+static func _runestone(ci: Object, r: Rect2, color: Color, tint: Color) -> void:
 	poly(
 		ci,
 		r,

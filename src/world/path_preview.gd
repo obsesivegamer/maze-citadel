@@ -56,6 +56,7 @@ func refresh() -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"path")
 	_offset = fmod(_offset + delta * SPEED, SPACING)
 	var count := mini(int(_length / SPACING), MAX_DOTS)
 	_mm.visible_instance_count = count
@@ -72,3 +73,4 @@ func _process(delta: float) -> void:
 		var p := _points[seg].lerp(_points[seg + 1], clampf((d - seg_start) / seg_len, 0.0, 1.0))
 		var pulse := 0.6 + 0.4 * sin(d * 0.8 - Time.get_ticks_msec() * 0.004)
 		_mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * pulse), p))
+	Prof.end(&"path")

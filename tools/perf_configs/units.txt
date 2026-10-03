@@ -1,0 +1,10 @@
+# Units/FX switches from the units perf pass, one at a time, then stronger
+# variants. Units are ~10% of scene geometry, so expect small wins.
+# Format: name | engine args | game args
+units-combo        |  | --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6
+units-combo-strong |  | --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6 --pf-tower-shadow-parts=body --pf-creep-outline=body
+creep-outline-off  |  | --pf-creep-outline=off
+tower-merge        |  | --pf-tower-merge=true
+creep-shadow-blob  |  | --pf-creep-shadow=blob
+fx-budget          |  | --pf-fx-budget=0.5
+prepass-off-noline | +rendering/driver/depth_prepass/enable=false | --ssao=false --pf-creep-outline=off

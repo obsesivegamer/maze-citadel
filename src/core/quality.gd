@@ -68,11 +68,13 @@ static func settings(preset: Preset) -> Dictionary:
 				"sdfgi": false,
 				"ssil": false,
 				"ssao": true,
-				"ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
+				# Low SSAO and a coarser fog grid look the same here and buy
+				# headroom under 16.7 ms in the heaviest waves (docs/perf.md).
+				"ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 				"ssr": false,
 				"fog": true,
-				"fog_size": 64,
-				"fog_depth": 48,
+				"fog_size": 48,
+				"fog_depth": 32,
 				"shadow_size": 2048,
 				"shadow_splits": 4,
 				"particles": 0.7,

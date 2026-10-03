@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Export the .app (arm64, shaders precompiled) and wrap it in a .dmg. Ad-hoc
+# Export the .app (arm64) and wrap it in a .dmg. Ad-hoc
 # signed unless MACOS_SIGN_IDENTITY is set. Check the result with tools/verify_dmg.sh.
 # Usage: tools/export.sh   ->  dist/MazeCitadel.app, dist/MazeCitadel-<version>.dmg
 set -euo pipefail
@@ -7,11 +7,12 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 version=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
 rm -rf dist && mkdir -p dist && touch dist/.gdignore
-# The shader baker compiles Metal shaders and needs the GPU, which a headless
-# export lacks; EXPORT_WINDOWED=1 (screen slots only) exports with a window.
-mode=(--headless)
-[[ "${EXPORT_WINDOWED:-}" == 1 ]] && mode=()
-"$GODOT" ${mode[@]+"${mode[@]}"} --path . --export-release "macOS" "$PWD/dist/MazeCitadel.app" 2>&1 \
+# Headless on purpose. Godot's shader baker needs a real renderer, and when it
+# does run here (a windowed export without full Xcode) it writes SPIR-V-only
+# Metal containers that the app can't parse at launch and crashes on
+# (Godot 4.7.2, 2026-10-02). The game compiles its shaders behind the loading
+# screen instead (WarmupStage), and the preset has the baker disabled.
+"$GODOT" --headless --path . --export-release "macOS" "$PWD/dist/MazeCitadel.app" 2>&1 \
   | grep -vE "^\s*$" | grep -iE "error|warn|bak|shader|export" | grep -v "Storing File" || true
 bin="dist/MazeCitadel.app/Contents/MacOS/Maze Citadel"
 test -f "$bin" || { echo "export failed: no app binary"; exit 1; }

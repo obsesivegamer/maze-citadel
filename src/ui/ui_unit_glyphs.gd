@@ -46,7 +46,7 @@ static func has(id: StringName) -> bool:
 	return id in TOWERS or id in CREEPS
 
 
-static func draw(ci: CanvasItem, id: StringName, r: Rect2, tint: Color) -> void:
+static func draw(ci: Object, id: StringName, r: Rect2, tint: Color) -> void:
 	match id:
 		&"archer":
 			UiGlyphs.arc(
@@ -124,7 +124,7 @@ static func _fam(family: StringName, tint: Color) -> Color:
 # --- Towers ---------------------------------------------------------------------
 
 
-static func _cannon(ci: CanvasItem, r: Rect2, tint: Color, scale: float) -> void:
+static func _cannon(ci: Object, r: Rect2, tint: Color, scale: float) -> void:
 	var rr := Rect2(r.position + r.size * (1.0 - scale) * Vector2(0.5, 0.9), r.size * scale)
 	UiGlyphs.poly(
 		ci,
@@ -140,7 +140,7 @@ static func _cannon(ci: CanvasItem, r: Rect2, tint: Color, scale: float) -> void
 	UiGlyphs.dot(ci, rr, Vector2(0.36, 0.72), 0.05, UiGlyphs.IRON * tint)
 
 
-static func _snowflake(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _snowflake(ci: Object, r: Rect2, color: Color) -> void:
 	var c := Vector2(0.5, 0.5)
 	for i in 6:
 		var a := TAU * i / 6.0 - PI / 2.0
@@ -152,7 +152,7 @@ static func _snowflake(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	UiGlyphs.dot(ci, r, c, 0.09, color)
 
 
-static func _cauldron(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _cauldron(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.5, 0.6), 0.3, UiGlyphs.IRON * tint)
 	UiGlyphs.line(ci, r, Vector2(0.3, 0.84), Vector2(0.26, 0.94), UiGlyphs.IRON * tint, 0.06)
 	UiGlyphs.line(ci, r, Vector2(0.7, 0.84), Vector2(0.74, 0.94), UiGlyphs.IRON * tint, 0.06)
@@ -165,7 +165,7 @@ static func _cauldron(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.66, 0.26), 0.045, PLAGUE * tint)
 
 
-static func _notes(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _notes(ci: Object, r: Rect2, color: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.28, 0.74), 0.12, color)
 	UiGlyphs.dot(ci, r, Vector2(0.7, 0.66), 0.12, color)
 	UiGlyphs.line(ci, r, Vector2(0.39, 0.74), Vector2(0.39, 0.2), color, 0.06)
@@ -173,14 +173,14 @@ static func _notes(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	UiGlyphs.poly(ci, r, [0.36, 0.16, 0.84, 0.06, 0.84, 0.18, 0.36, 0.28], color)
 
 
-static func _hammer(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _hammer(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.line(ci, r, Vector2(0.22, 0.9), Vector2(0.6, 0.38), UiGlyphs.WOOD * tint, 0.09)
 	UiGlyphs.poly(ci, r, [0.4, 0.26, 0.66, 0.06, 0.9, 0.36, 0.64, 0.56], UiGlyphs.STEEL * tint)
 	UiGlyphs.line(ci, r, Vector2(0.53, 0.16), Vector2(0.77, 0.46), _fam(&"support", tint), 0.05)
 	UiGlyphs.star(ci, r, Vector2(0.2, 0.22), 0.14, 0.04, 4, UiTheme.ATTACK_COLORS[&"rune"] * tint)
 
 
-static func _crossbow(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _crossbow(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.arc(ci, r, Vector2(0.5, 0.78), 0.46, PI * 1.2, PI * 1.8, UiGlyphs.WOOD * tint, 0.08)
 	UiGlyphs.line(ci, r, Vector2(0.13, 0.51), Vector2(0.87, 0.51), UiGlyphs.BONE * tint, 0.025)
 	UiGlyphs.line(
@@ -190,7 +190,7 @@ static func _crossbow(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.poly(ci, r, [0.5, 0.04, 0.6, 0.2, 0.4, 0.2], _fam(&"alliance", tint))
 
 
-static func _catapult(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _catapult(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.poly(
 		ci, r, [0.1, 0.72, 0.9, 0.72, 0.9, 0.82, 0.1, 0.82], UiGlyphs.WOOD.darkened(0.15) * tint
 	)
@@ -204,7 +204,7 @@ static func _catapult(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.star(ci, r, Vector2(0.82, 0.16), 0.08, 0.03, 5, _fam(&"horde", tint))
 
 
-static func _tree(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _tree(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.poly(ci, r, [0.43, 0.9, 0.57, 0.9, 0.55, 0.5, 0.45, 0.5], UiGlyphs.WOOD * tint)
 	UiGlyphs.line(ci, r, Vector2(0.46, 0.86), Vector2(0.24, 0.94), UiGlyphs.WOOD * tint, 0.05)
 	UiGlyphs.line(ci, r, Vector2(0.54, 0.86), Vector2(0.78, 0.94), UiGlyphs.WOOD * tint, 0.05)
@@ -214,7 +214,7 @@ static func _tree(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.42, 0.22), 0.06, Color(1, 1, 1, 0.3) * tint)
 
 
-static func _obelisk(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _obelisk(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.poly(
 		ci, r, [0.28, 0.84, 0.72, 0.84, 0.76, 0.94, 0.24, 0.94], SHADOW_STONE.lightened(0.15) * tint
 	)
@@ -225,7 +225,7 @@ static func _obelisk(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.5, 0.44), 0.04, UiGlyphs.FEL * tint)
 
 
-static func _wyrm(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _wyrm(ci: Object, r: Rect2, tint: Color) -> void:
 	var pts := [0.08, 0.72, 0.22, 0.32, 0.48, 0.1, 0.92, 0.16, 0.76, 0.32]
 	pts.append_array([0.84, 0.46, 0.64, 0.46, 0.68, 0.62, 0.46, 0.58, 0.42, 0.78])
 	UiGlyphs.poly(ci, r, pts, ICE.darkened(0.2) * tint)
@@ -235,7 +235,7 @@ static func _wyrm(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 
 
 ## Rays fanning out behind a tower icon, centred high on the glyph.
-static func _sunburst(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _sunburst(ci: Object, r: Rect2, color: Color) -> void:
 	var c := Vector2(0.5, 0.36)
 	for i in 12:
 		var a := TAU * i / 12.0
@@ -244,7 +244,7 @@ static func _sunburst(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	UiGlyphs.ring(ci, r, c, 0.26, color, 0.06)
 
 
-static func _necropolis(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _necropolis(ci: Object, r: Rect2, tint: Color) -> void:
 	_obelisk(ci, r, tint)
 	for x in [0.16, 0.84]:
 		UiGlyphs.poly(
@@ -262,7 +262,7 @@ static func _necropolis(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 # --- Creeps ---------------------------------------------------------------------
 
 
-static func _axe(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _axe(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.line(ci, r, Vector2(0.28, 0.92), Vector2(0.6, 0.12), UiGlyphs.WOOD * tint, 0.08)
 	UiGlyphs.poly(
 		ci, r, [0.52, 0.16, 0.86, 0.06, 0.92, 0.32, 0.8, 0.5, 0.58, 0.36], UiGlyphs.STEEL * tint
@@ -270,7 +270,7 @@ static func _axe(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.line(ci, r, Vector2(0.84, 0.1), Vector2(0.86, 0.46), Color(1, 1, 1, 0.5) * tint, 0.03)
 
 
-static func _wolf(ci: CanvasItem, r: Rect2, color: Color, tint: Color) -> void:
+static func _wolf(ci: Object, r: Rect2, color: Color, tint: Color) -> void:
 	var pts := [0.18, 0.08, 0.38, 0.32, 0.62, 0.32, 0.82, 0.08, 0.8, 0.5]
 	pts.append_array([0.62, 0.72, 0.5, 0.92, 0.38, 0.72, 0.2, 0.5])
 	UiGlyphs.poly(ci, r, pts, color)
@@ -279,26 +279,26 @@ static func _wolf(ci: CanvasItem, r: Rect2, color: Color, tint: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.5, 0.86), 0.05, UiGlyphs.INK * tint)
 
 
-static func _staff(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _staff(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.line(ci, r, Vector2(0.5, 0.95), Vector2(0.5, 0.38), UiGlyphs.COIN * tint, 0.07)
 	var moon := UiGlyphs.sub(r, 0.18, 0.02, 0.5)
 	UiGlyphs.draw(ci, &"el_dark", moon, Color(1.6, 1.6, 1.2) * tint)
 	UiGlyphs.star(ci, r, Vector2(0.72, 0.24), 0.12, 0.04, 4, Color(1.0, 0.96, 0.8) * tint)
 
 
-static func _claws(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _claws(ci: Object, r: Rect2, color: Color) -> void:
 	for i in 3:
 		var x := 0.18 + i * 0.22
 		UiGlyphs.poly(ci, r, [x, 0.12, x + 0.1, 0.12, x + 0.3, 0.88, x + 0.24, 0.9], color)
 
 
-static func _club(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _club(ci: Object, r: Rect2, tint: Color) -> void:
 	UiGlyphs.poly(ci, r, [0.16, 0.84, 0.26, 0.94, 0.86, 0.38, 0.7, 0.1, 0.52, 0.26], HIDE * tint)
 	for p in [Vector2(0.72, 0.16), Vector2(0.84, 0.34), Vector2(0.58, 0.26), Vector2(0.7, 0.42)]:
 		UiGlyphs.dot(ci, r, p, 0.045, UiGlyphs.BONE * tint)
 
 
-static func _demon(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _demon(ci: Object, r: Rect2, tint: Color) -> void:
 	var horn := Color(0.3, 0.22, 0.2) * tint
 	UiGlyphs.poly(ci, r, [0.32, 0.5, 0.42, 0.42, 0.24, 0.24, 0.12, 0.06, 0.16, 0.3], horn)
 	UiGlyphs.poly(ci, r, [0.68, 0.5, 0.58, 0.42, 0.76, 0.24, 0.88, 0.06, 0.84, 0.3], horn)
@@ -308,7 +308,7 @@ static func _demon(ci: CanvasItem, r: Rect2, tint: Color) -> void:
 	UiGlyphs.line(ci, r, Vector2(0.4, 0.76), Vector2(0.6, 0.76), UiGlyphs.INK * tint, 0.04)
 
 
-static func _paw(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _paw(ci: Object, r: Rect2, color: Color) -> void:
 	UiGlyphs.dot(ci, r, Vector2(0.5, 0.66), 0.21, color)
 	UiGlyphs.dot(ci, r, Vector2(0.22, 0.42), 0.09, color)
 	UiGlyphs.dot(ci, r, Vector2(0.38, 0.24), 0.1, color)

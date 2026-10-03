@@ -135,7 +135,8 @@ static func swaying(path: String, amp: float, flutter := 0.03) -> ArrayMesh:
 	var bark: Array[bool] = []
 	for c in cutouts:
 		bark.append(not c and cutouts.has(true))
-	var bark_lod := PerfFlags.get_int("nature-bark-lod", 0)
+	# Bark from importer LOD 2: same look under the leaves, ~0.2 ms less.
+	var bark_lod := PerfFlags.get_int("nature-bark-lod", 2)
 	if bark_lod > 0 and bark.has(true):
 		mesh = FoliageVariants.with_lod(src, bark_lod, bark)
 	var leaf_priority := PerfFlags.get_int("leaf-priority", 0)
@@ -167,7 +168,10 @@ static func swaying(path: String, amp: float, flutter := 0.03) -> ArrayMesh:
 
 ## The model's materials ship without mipmaps; distant foliage and roofs then
 ## shimmer. Rebuild the texture with mipmaps where the renderer allows it
-## (no-op under the headless dummy renderer).
+## (no-op under the headless dummy renderer). The rebuilt textures are
+## uncompressed; the world-tex-compress experiment (PerfFlags) makes them S3TC
+## (the editor binary only: export templates have no compressor), normal
+## maps excepted.
 static func mipmapped_texture(tex: Texture2D) -> Texture2D:
 	if tex == null:
 		return null
@@ -180,6 +184,9 @@ static func mipmapped_texture(tex: Texture2D) -> Texture2D:
 			img.decompress()
 		if not img.has_mipmaps():
 			img.generate_mipmaps()
+			var normal := tex.resource_path.get_basename().ends_with("_norm")
+			if not normal and PerfFlags.get_bool("world-tex-compress", false):
+				img.compress(Image.COMPRESS_S3TC, Image.COMPRESS_SOURCE_SRGB)
 			out = ImageTexture.create_from_image(img)
 	_textures[tex] = out
 	return out

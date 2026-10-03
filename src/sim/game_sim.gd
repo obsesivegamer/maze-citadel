@@ -138,15 +138,16 @@ func creep_tiles() -> Array[Vector2i]:
 	return out
 
 
-func check_build(tile: Vector2i, id: StringName) -> Placement.Result:
-	var result := Placement.check(grid, tile, creep_tiles(), creep_center_tiles())
+func check_build(tile: Vector2i, id: StringName, after: FlowField = null) -> Placement.Result:
+	var result := Placement.check(grid, tile, creep_tiles(), creep_center_tiles(), after)
 	if result == Placement.Result.OK and gold < TowerDefs.build_cost(id):
 		return Placement.Result.NO_GOLD
 	return result
 
 
 func build(tile: Vector2i, id: StringName) -> Placement.Result:
-	var result := check_build(tile, id)
+	var after := FlowField.new()
+	var result := check_build(tile, id, after)
 	if result != Placement.Result.OK:
 		events.append({"type": &"build_refused", "tile": tile, "reason": result})
 		return result
@@ -159,7 +160,7 @@ func build(tile: Vector2i, id: StringName) -> Placement.Result:
 	t.invested = cost
 	towers[tile] = t
 	grid.set_blocked(tile, true)
-	field.compute(grid)
+	field = after
 	_refresh_auras()
 	events.append({"type": &"built", "tile": tile, "id": id})
 	events.append({"type": &"path_changed"})

@@ -18,16 +18,21 @@ var _impacts := ImpactFx.new()
 var _labels: Array[Label3D] = []
 var _ages: PackedFloat32Array = []
 var _next := 0
+## UnitPerf fx-numbers=lite: no outline, and fade with `transparency`, which
+## unlike `modulate` doesn't rebuild the text mesh every frame.
+var _lite := false
 
 
 func setup(game: Game) -> void:
 	_game = game
-	for i in POOL_SIZE:
+	var numbers := UnitPerf.fx_numbers()
+	_lite = numbers == "lite"
+	for i in POOL_SIZE if numbers != "off" else 0:
 		var l := Label3D.new()
 		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		l.no_depth_test = true
 		l.font_size = 64
-		l.outline_size = 12
+		l.outline_size = 0 if _lite else 12
 		l.pixel_size = 0.01
 		l.visible = false
 		add_child(l)
@@ -120,22 +125,32 @@ func _shell(e: Dictionary) -> void:
 
 
 func _pop(pos: Vector3, text: String, color: Color, big: bool) -> void:
+	if _labels.is_empty():
+		return
 	var l := _labels[_next]
 	_ages[_next] = 0.0
 	_next = (_next + 1) % POOL_SIZE
 	l.text = text
 	l.modulate = color
+	if _lite:
+		l.transparency = 0.0
 	l.position = pos + Vector3(randf_range(-0.4, 0.4), 0, 0)
 	l.font_size = 88 if big else 56
 	l.visible = true
 
 
 func _process(delta: float) -> void:
-	for i in POOL_SIZE:
+	Prof.begin(&"fx")
+	for i in _labels.size():
 		if _ages[i] >= LIFE:
 			continue
 		_ages[i] += delta
 		var l := _labels[i]
 		l.position.y += delta * 1.8
-		l.modulate.a = clampf(1.5 - _ages[i] / LIFE * 1.5, 0.0, 1.0)
+		var a := clampf(1.5 - _ages[i] / LIFE * 1.5, 0.0, 1.0)
+		if _lite:
+			l.transparency = 1.0 - a
+		else:
+			l.modulate.a = a
 		l.visible = _ages[i] < LIFE
+	Prof.end(&"fx")

@@ -1,0 +1,10 @@
+{
+  "async_boot": false,
+  "boot_ms": 3144,
+  "first_frame_ms": 8311,
+  "frames_drawn": 601,
+  "godot": "4.7.2-stable (official)",
+  "wave1_frames": 601,
+  "wave1_hitches_over_50ms": 1,
+  "wave1_worst_frame_ms": 150.0
+}

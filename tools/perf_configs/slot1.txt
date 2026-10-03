@@ -1,0 +1,12 @@
+# Screen slot 1 of the M8 tuning pass (Balanced, wave-24 battle, 3 repeats).
+# The biggest levers alone and together, then the payoff question: with the
+# savings, can Balanced render sharper (0.6 / 0.7) and still hold 60 fps?
+# Headless census, all on: triangles 3.52 M -> 2.39 M, shadow 3.04 M -> 0.55 M.
+# Format: name | engine args | game args
+combined      |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1 --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6 --pf-sun-angular=0 --pf-shadow-distance=180 --pf-shadow-splits=0.4,0.55,0.75
+world-combo   |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1
+units-combo   |  | --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6
+pcf           |  | --pf-sun-angular=0
+cascades-fit  |  | --pf-shadow-distance=180 --pf-shadow-splits=0.4,0.55,0.75
+combined-rs06 |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1 --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6 --pf-sun-angular=0 --pf-shadow-distance=180 --pf-shadow-splits=0.4,0.55,0.75 --render_scale=0.6
+combined-rs07 |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1 --pf-tower-merge=true --pf-tower-lod=1 --pf-tower-shadow-parts=details --pf-tower-idle-fx=near --pf-creep-status=emission --pf-creep-shadow=blob --pf-fx-budget=0.6 --pf-sun-angular=0 --pf-shadow-distance=180 --pf-shadow-splits=0.4,0.55,0.75 --render_scale=0.7

@@ -15,6 +15,7 @@ var _frame := 0
 var _quality := 1.0
 var _finished: Array[int] = []
 var _cam_right := Vector3.RIGHT
+var _idle_fx := true
 
 
 func setup(game: Game) -> void:
@@ -64,6 +65,12 @@ func _update_camera() -> void:
 	)
 	var dist := cam.global_position.distance_to(hit) if hit != null else 60.0
 	UnitStyle.update_outlines(dist, cam.fov, get_viewport().get_visible_rect().size.y)
+	if UnitPerf.tower_idle_fx() == "near":
+		var near := dist < UnitPerf.IDLE_FX_FAR * (1.05 if _idle_fx else 0.95)
+		if near != _idle_fx:
+			_idle_fx = near
+			for tile: Vector2i in _towers:
+				(_towers[tile] as TowerView).set_idle_fx(near)
 
 
 # --- Creeps -----------------------------------------------------------------
@@ -85,6 +92,23 @@ func _acquire(c: SimCreep, alpha: float) -> CreepView:
 	v.activate(c, alpha)
 	_creeps[c.id] = v
 	return v
+
+
+## Builds `per_type` idle views of every creep type into the pools, so the
+## first appearance of a type doesn't build its rig mid-wave.
+func prewarm(per_type := 1) -> void:
+	for type in CreepDefs.CREEPS:
+		var pool: Array = _pools.get(type, [])
+		_pools[type] = pool
+		for i in per_type:
+			var v := CreepView.new()
+			v.name = "%s_pool_%d" % [type, i]
+			add_child(v)
+			v.setup(type)
+			for p in v.emitters():
+				ParticleKit.apply_quality(p, _quality)
+			v.deactivate()
+			pool.append(v)
 
 
 func _release(id: int) -> void:
@@ -117,6 +141,7 @@ func _place_tower(tile: Vector2i) -> void:
 	_sell_tower(tile)
 	var v := TowerView.new()
 	v.name = "Tower_%d_%d" % [tile.x, tile.y]
+	v.idle_fx = _idle_fx
 	add_child(v)
 	v.setup(t, _quality)
 	_towers[tile] = v
