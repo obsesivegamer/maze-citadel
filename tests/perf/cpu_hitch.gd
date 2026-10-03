@@ -5,7 +5,7 @@ extends SceneTree
 ## and the sim events that fired in it. GPU work isn't included, so these are
 ## stalls that would hitch on any machine. Usage:
 ##   godot --headless --fixed-fps 60 --path . --script res://tests/perf/cpu_hitch.gd \
-##     -- --waves=12 --budget-ms=6
+##     -- --waves=12 --budget-ms=6 [--sync-boot]
 
 var game: Game
 var _waves := 12
@@ -23,8 +23,14 @@ func _initialize() -> void:
 	_waves = int(Cli.get_str("waves", "12"))
 	_budget_ms = Cli.get_float("budget-ms", 6.0)
 	game = Game.new()
+	# The shipped boot (loading screen, pre-built creep views, warm-up
+	# rehearsal) unless --sync-boot asks for the one-frame setup.
+	game.async_boot = not Cli.has("sync-boot")
 	root.add_child(game)
-	process_frame.connect(_go, CONNECT_ONE_SHOT)
+	if game.is_booted:
+		process_frame.connect(_go, CONNECT_ONE_SHOT)
+	else:
+		game.booted.connect(_go, CONNECT_ONE_SHOT)
 
 
 func _go() -> void:

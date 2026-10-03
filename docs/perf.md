@@ -129,3 +129,47 @@ Findings:
 2. A first launch takes ~20 s on the loading screen because every shader compiles up front; later launches take ~4 s (Godot's shader cache in `~/Library/Application Support/Maze Citadel/shader_cache`). Next: time each boot step to see what dominates the cold 20 s.
 3. One ~115 ms hitch remains after wave 1 starts, new path or old; to investigate.
 4. **Shader baking crashes the app.** A windowed export does run the baker, but without full Xcode it logs "Metal shader baking limited to SPIR-V", and the exported app then aborts at launch ("Not enough bytes for uniform in shader container" → "Failed to parse shader container from binary" → FATAL index out of bounds). The baker is now disabled in `export_presets.cfg` and `tools/export.sh` always exports headless; the warm-up does the job instead. Revisit with full Xcode or a later Godot.
+
+## Butter pass (2026-10-03, in progress)
+
+Goal: every frame under 16.7 ms with margin on Balanced (the default) in heavy battles, and no hitches in real play.
+
+### Measuring
+1. `--bench-any-focus`: the bench window is always-on-top and maximized, so it renders normally without keyboard focus (render scale 0.7: 20.55 ms unfocused vs 21.1–21.7 ms focused before HUD batching). Benchmarks no longer wait for the game to get focus.
+2. **Other apps sharing the GPU wreck the numbers.** The Claude desktop app alone used 60–85% of the GPU for hours, and the same run went from 20.6 ms to 43–88 ms. Check with `ioreg -c AGXDeviceUserClient -r -l -w0` (per-process `accumulatedGPUTime`); the runner waits until other apps use < 8% and samples them mid-run. Per-process GPU time is not a usable substitute under contention (render scale 0.5 came out slower than 0.7).
+3. Each missed frame in a bench report now carries its CPU sections and game state (`spikes`).
+
+### Tower builds hitched (fixed)
+`tests/perf/cpu_hitch.gd` plays 12 waves headless at 60 Hz and lists every frame over budget with its cause. Every build ran the path search twice at ~5 ms a pass, so a build frame cost ~22 ms of CPU. The search now walks flat tile indices with a hole-sifting heap (1.6 ms; identical distances on 600 random mazes) and a build adopts the field its validity check computed.
+
+| Frames over budget, waves 1–12 | Before | After (one-frame boot) | After (shipped loading path) |
+|---|---|---|---|
+| over 8 ms | 47 | 12 | 3 |
+| over 16 ms | 45 | 7 | 1 (the bot placing 6 towers in one frame) |
+| over 33 ms | 4 | 2 | 0 |
+
+Creep views pre-built on the loading screen remove the first-spawn stalls (17–36 ms on the one-frame boot).
+
+### Switches, one at a time (wave 35, render scale 0.7, 12 controls 20.63–20.67 ms)
+
+| Switch | Saves | Look |
+|---|---|---|
+| `glow=false` | 2.03 ms | loses bloom; not shippable as is |
+| `sun-angular=0` (PCF instead of PCSS) | 0.80 ms | to check |
+| `nature-shadow-proxy` | 0.66 ms | to check |
+| `shadow-filter=2` | 0.32 ms | to check |
+| `shadow_size=1024` | 0.24 ms | softer shadows |
+| `nature-bark-lod=2` | 0.23 ms | to check |
+| `ssao_quality=1`, `fog_size=48 fog_depth=32`, `terrain-cheap=3`, `terrain-cheap=1`, `world-tex-compress` | 0.10–0.18 ms each | terrain-cheap=1 and tex-compress match the current look in stills |
+| `hud-lite`, tower/creep switches, grass LOD, foliage filter, leaf priority | ~0 | hud-lite also hurts hint readability: drop |
+| `shadow_splits=2` | −0.20 ms (slower) | drop |
+
+Partial (one control, 20.98 ms): `glow-bicubic=false` 20.69 ms, `glow-levels=0,0.8,0.4,0,0,0,0` 20.67 ms, so ~0.3 ms each with the bloom kept.
+
+Terrain still costs ~3.5 ms (hiding it) but cheaper shading saves only 0.1 ms, so its cost is elsewhere (geometry, overdraw or prepass).
+
+### Next
+1. Finish glow variants (bicubic off, fewer levels, both) with interleaved controls.
+2. Stills of the shadow, bark, SSAO, fog and glow candidates against the current look.
+3. Winners combined on Balanced with vsync on (missed frames), then render scale 0.5/0.6, a 10-minute soak (fanless Air throttles), and the first-frame/wave-1 hitch probe.
+4. Graduate winners into Quality presets, remove losers, re-export the app.
