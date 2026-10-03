@@ -1,14 +1,26 @@
 # Maze Citadel — Build Plan
 
-**Status (2026-10-02):** the full game is on `main` and was reviewed on screen in slot 1: the first frame and wave-24 battle look right after framing/readability fixes ([screens](screens/)). Performance pass done: Balanced holds 60 fps in the wave-24 battle at render scale 0.5 (63.4 fps, 1% low 60; [perf.md](perf.md)). Open items: an on-screen look at 0.5 and the 10-minute thermal soak. Added since: the two stretch Epics (Sunfire Ballista, Plague Necropolis) and Twists mode, random creep abilities from wave 11 ([GDD §5.1](GDD.md)).
+This is the plan the game was built from. It was written on 2026-10-01, before any code existed, and its checklists were updated as the work landed. It's kept as a record of what was decided and why. It is no longer the place to look for the current state of the game.
 
-### Resume here
+For that, use these instead:
 
-1. **M8 tuning slot 1 (~50 min, Mac cool and plugged in):** `ALLOW_WINDOW=1 tools/perf_matrix.sh --captures=combined,combined-rs07 tools/perf_configs/slot1.txt`. All world, units and renderer switches alone and together, plus combined at render scale 0.6 / 0.7. Headless census with everything on: triangles 3.52 M → 2.39 M, shadow 3.04 M → 0.55 M.
-2. Slot 2: `tools/perf_configs/units.txt` and the renderer extras; fidelity check of the winners side by side; then graduate the winning flags into the presets and delete the losing switches.
-3. Then M7 juice tuning, M9 asset pruning and v1.0.
+- What the game is and how to install it: the [README](../README.md) and [INSTALL.md](INSTALL.md).
+- What has shipped: the [release notes](https://github.com/obsesivegamer/maze-citadel/releases).
+- The rules and numbers as they are now: [GDD.md](GDD.md).
 
-Game rules, numbers and content: [GDD.md](GDD.md).
+## Where things stand (2026-10-03)
+
+Version 0.2.0 is out. It has the full game described below, plus things that were added along the way: a second map, all four Epics, Twists mode, the tutorial and Field Guide, and the [website](https://obsesivegamer.github.io/maze-citadel/). The performance work for the default Balanced preset is done, and it now runs at 60 fps in heavy battles on the M3 MacBook Air ([perf.md](perf.md)).
+
+Some details changed after the plan was written. The repository is public now, not private. The download is `MazeCitadel-<version>.dmg` from the website, not a file in `dist/`.
+
+Still open:
+
+1. Long sessions of late waves on a warm MacBook Air average about 57 fps on Balanced. The next step is to render the 3D view at the display's own resolution ([perf.md](perf.md#next)).
+2. The plan's last milestones: M7, the final pass on effects and sound, and M9, the 1.0 release.
+3. Removing the performance experiment switches that weren't adopted. Some of them, such as `--pf-hud-lite`, are still in the code.
+
+Not every checkbox below was kept up to date, so an unticked box doesn't always mean the work is missing. The board in M3 and the quality presets in M8 are unticked, for example, and both are in the game.
 
 ---
 
@@ -44,6 +56,8 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps. Yo
 | Upscaling | FSR 2.2; MetalFX if 4.7 exposes it (checked in M1) |
 
 ## 3. How you'll install and run it
+
+This is the install plan as written on 2026-10-01. The current instructions are in [INSTALL.md](INSTALL.md).
 
 1. Open `dist/MazeCitadel.dmg` (or `dist/MazeCitadel.app` directly).
 2. Drag it to Applications, or skip that step.
@@ -123,9 +137,9 @@ docs/       PLAN.md · GDD.md · balance.md · perf.md · screens/
 | Balance bots | M6 onward | Headless bots play all 40 waves with different strategies. Results go to `docs/balance.md`. |
 | Performance bench | M5 spot check, M8 onward | The 24-creep splash wave, 10-minute soak, per preset. Results go to `docs/perf.md`. |
 | One-click smoke test | M1, M3, M6, M9 | Double-click the exported `.app` and play with real clicks via computer use: place, upgrade, sell, pause, speed. |
-| Independent review | M3, M6, M9 | Up to 4 review agents (code + visuals) that don't share my framing. Findings are fixed before the tag. |
+| Independent review | M3, M6, M9 | Up to 4 review agents (code + visuals) that don't share the builder's framing. Findings are fixed before the tag. |
 
-**Parallel work:** where a milestone splits cleanly (asset sourcing, tower families, juice/world/audio), up to **4 workers** run in separate git worktrees, each owning its own files. I merge and run the gate.
+**Parallel work:** where a milestone splits cleanly (asset sourcing, tower families, juice/world/audio), up to **4 workers** run in separate git worktrees, each owning its own files. One integrator merges and runs the gate.
 
 ## 7. Milestones
 
@@ -230,8 +244,8 @@ Between slots, all work is headless: logic, tests, balance bots, asset import, e
 |---|---|
 | CC0 packs miss WC3-specific units (Steam Tank, gryphon, Dreadlord) | Gap list in M2; build missing ones procedurally; nothing ships as a placeholder |
 | Fanless M3 Air throttles under sustained load | Balanced is the default; upscaling; 10-minute soak in the bench |
-| Godot 4.7 APIs newer than my training data | M1 spike exercises every engine feature we rely on, checked against docs.godotengine.org/en/4.7 |
-| I can't hear the audio | Automated checks: every event maps to a file, loudness normalized by script; you do one listening pass at M7 |
+| Godot 4.7 APIs are newer than the coding agent's training data | M1 spike exercises every engine feature we rely on, checked against docs.godotengine.org/en/4.7 |
+| The coding agent can't hear the audio | Automated checks: every event maps to a file, loudness normalized by script; you do one listening pass at M7 |
 | Parallel workers collide | Each worker owns separate files in its own worktree; one integrator merges and runs the gate |
 
 ## 9. Decisions (confirmed 2026-10-01)

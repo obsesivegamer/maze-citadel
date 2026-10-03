@@ -1,45 +1,151 @@
 # Maze Citadel
 
-A single-player maze tower defense in the spirit of Warcraft III custom maps (Element TD, Gem TD, Wintermaul One). Wall the plateau with towers to stretch the creeps' path from the red demon portal to the blue town gate, then survive 40 waves. Built with Godot 4.7 for Apple Silicon Macs.
+**Play it: [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/)**
 
-**Status:** playable end to end; first on-screen review done, performance tuning next. See [docs/PLAN.md](docs/PLAN.md).
+The website has the Mac download, a practice maze you can try in your browser, and the full tower roster.
 
-## Run it
+[![A wave-24 battle in Maze Citadel: five rows of towers bend the creeps' road back and forth across the plateau](docs/screens/m3-wave24-full.jpg)](https://obsesivegamer.github.io/maze-citadel/)
 
-1. Download `MazeCitadel-<version>.dmg` from the download site or the GitHub Releases page (or build it with `tools/export.sh`), open it, and drag **Maze Citadel** to Applications (or run it from the disk image).
-2. Double-click it. The game opens straight into the citadel with the builder ready.
-3. A downloaded copy is ad-hoc signed, not notarized, so the first launch says Apple could not verify it. Click **Done**, then **System Settings → Privacy & Security → Open Anyway**. On macOS 13 or 14, Control-click the app → **Open** also works.
+## What it is
 
-Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon only; macOS 13 or later.
+Maze Citadel is a single-player tower defense game for Mac, made in the spirit of the old Warcraft III custom maps: Element TD, Gem TD and Wintermaul One.
 
-## Play
+Demons come out of a red portal at the north end of a plateau and march for the blue town gate at the south end. There are no walls except the ones you build. Every tower blocks the tile it stands on, so where you put your towers decides how far the creeps have to walk, and a good maze doubles back on itself until every creep spends a long time under fire. The one thing you can't do is close the road completely. The game refuses any tower that would cut the portal off from the gate.
 
-- **Build:** pick a tower card (or `1`–`0`) and click a tile. `Shift`+click keeps placing. A red ghost means the spot would block the path; the game never lets you seal the portal off from the gate.
-- **Manage:** click a tower for its plaque: `U` upgrade (two levels), `X` or right-click sell for 75%, `G` fuse two level-3 towers of one family into its Epic (Frost Wyrm, Doom Cannon, Sunfire Ballista, Plague Necropolis).
-- **Waves:** they start on a timer; `N` calls the next one early. `Space` pauses, `F` cycles ×1/×2/×3.
-- **Camera:** WASD/arrows or two-finger drag to pan, scroll or pinch to zoom, middle-drag or Option-drag to orbit, `Q`/`E` rotate, `R` reset, `C` cycle portal/gate views, `B` follow the boss.
-- **Counters:** every wave carries an armor class and an element. Pierce beats Light armor and Air, Siege beats Armored, Poison ignores armor; each element deals double damage to the next one in Light → Dark → Aqua → Flame → Verdant → Stone → Light. The banner before each wave tells you what's coming, and a tower card's tooltip rates that tower against the next wave.
-- **Learning the counters:** the first launch walks you through waves 1–10: a welcome card, then a counsel card for each coming wave that names its counters and lights up the towers to build. `H` (or the book on the top bar) opens the Field Guide: the element wheel, the attack vs armor chart and advice for the next wave. Turn the tutorial back on under Settings → Help.
-- **Lives:** 20. A leak costs 1 (boss 2), and the creep loops back to the portal for another pass with no bounty. Clear wave 40 to win; Hard, Infinite and Twists (random creep abilities from wave 11, shown a wave ahead) are on the top bar before wave 1. Your best wave per map and mode is saved.
-- **Maps:** pick one from the MAP panel before wave 1. **Citadel Plateau** is the open board. **Fallen Rampart** puts the portal and gate on opposite corners and splits the board with a broken wall: plug two of its three breaches and every creep comes through the third.
+The maze is half the game. The other half is reading what's coming. Each wave has an armor class and an element, announced before it arrives. The right towers hit it for double damage and the wrong ones barely scratch it. Hold the gate for forty waves, the last of them led by the Dreadlord, and the citadel is saved.
 
-## Develop
+What's in it:
 
-Needs Godot 4.7.2 (`brew install --cask godot`), its macOS export templates, `git-lfs`, and `gdtoolkit` (`pipx install gdtoolkit`).
+- **40 waves** of grunts, wolf riders, shield footmen, priestesses, harpies, ghouls, steam tanks and ogre bosses, ending with the Dreadlord.
+- **10 towers and 4 Epics.** Every tower upgrades twice, and two fully upgraded towers of the same family fuse into that family's Epic.
+- **2 maps.** Citadel Plateau is the open board. Fallen Rampart splits it with a broken wall that funnels every creep through one of three breaches.
+- **Normal and Hard**, plus two extras you can switch on: **Infinite** keeps the waves coming after wave 40, and **Twists** gives later waves a random ability.
+- **A tutorial and a Field Guide** that teach the counter system over the first ten waves.
+
+The game is playable from the first wave to the last. It's still before version 1.0, and new builds go up on the website and the [Releases page](https://github.com/obsesivegamer/maze-citadel/releases) as they're ready. It was built with Godot 4.7.
+
+## Install
+
+You need a Mac with Apple silicon running macOS 13 Ventura or later. There is nothing else to install.
+
+1. **Download the game.** Open [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/) and click **Download for Mac**. You get a disk image named `MazeCitadel-<version>.dmg`, a little over 100 MB. The same file is on the [Releases page](https://github.com/obsesivegamer/maze-citadel/releases/latest).
+2. **Open the disk image** and drag **Maze Citadel** onto the **Applications** shortcut beside it. You can also run the game straight from the disk image.
+3. **Allow it once.** Maze Citadel isn't notarized by Apple yet, so the first double-click shows "Apple could not verify Maze Citadel is free of malware". That's expected. Click **Done**, open **System Settings → Privacy & Security**, scroll down to **Security** and click **Open Anyway**, then confirm. After that it opens with a normal double-click. On macOS 13 or 14 you can instead Control-click the app and choose **Open**.
+4. **Play.** The first launch spends about 20 seconds on the loading screen while the game prepares its graphics. Later launches take about 4 seconds. There's no title screen or menu. A welcome card explains the basics the first time, and then you're in the citadel with 220 gold and 45 seconds to build before wave 1.
+
+[docs/INSTALL.md](docs/INSTALL.md) covers the rest: checking the download, updating, uninstalling, where the game keeps its files, and what to do if something goes wrong.
+
+### System requirements
+
+| | |
+|---|---|
+| **Mac** | Apple silicon, M1 or later. Intel Macs aren't supported. |
+| **macOS** | 13 Ventura or later |
+| **Free space** | About 200 MB |
+| **Internet** | Only for the download. The game runs offline. |
+| **Extra software** | None. Everything is inside the app. |
+
+Maze Citadel is tested on a MacBook Air 13-inch M3 with 16 GB of memory, where it runs at 60 fps on the default Balanced quality preset. That is the only Mac it has been measured on so far. If it runs slowly on yours, the Performance preset in Settings is lighter.
+
+## How to play
+
+**Build a maze.** Pick a tower from the bar at the bottom of the screen, or press its number key, and click a tile. Hold `Shift` while clicking to keep placing the same tower. A glowing dotted line shows the road the creeps will take, and it redraws every time you build. If the ghost of the tower turns red, that spot would block the road completely and the game won't allow it.
+
+**Upgrade, sell and fuse.** Click a tower to see its plaque. Every tower has two upgrades. Selling returns 75% of everything you spent on it. Two level-3 towers from the same family fuse into that family's Epic: the Alliance's Sunfire Ballista, the Horde's Doom Cannon, the Elven Frost Wyrm and the Forsaken Plague Necropolis.
+
+**Read the wave.** Every wave has an armor class and an element. The chip on the top bar shows what's next, and a banner repeats it three seconds before the wave arrives. Three rules cover armor: Pierce beats Light armor and flyers, Siege beats Armored, and Poison ignores armor altogether. Elements run in a ring, Light → Dark → Aqua → Flame → Verdant → Stone → Light, and each one deals double damage to the next and half to the one before it. Hover over a tower card and its tooltip rates that tower against the coming wave.
+
+**Hold the gate.** You have 20 lives. A creep that reaches the gate costs one life, a boss costs two, and it loops back to the portal for another run with no bounty for killing it. Clear wave 40 to win.
+
+**Set your own pace.** Waves start on a timer, and `N` calls the next one early. `Space` pauses, and you can still build while paused. `F` cycles the speed between ×1, ×2 and ×3.
+
+**Learn as you go.** On the first launch a tutorial walks you through waves 1 to 10. Before each wave, a counsel card names what counters it and lights up the towers worth building. `H` opens the Field Guide at any time, with the element ring, the attack and armor chart and advice for the next wave. You can turn the tutorial back on under **Settings → Help**.
+
+**Pick a map and a mode.** Before wave 1, choose a map in the MAP panel and a mode on the top bar. Hard gives the creeps more health, from 10% extra on wave 1 up to 40% extra on wave 40. Infinite keeps going after wave 40. Twists gives most waves from wave 11 a random ability, shown a full wave ahead. Your best wave is saved for each map and mode.
+
+### Controls
+
+| Key or gesture | What it does |
+|---|---|
+| `1` to `0` | Pick a tower, then click a tile to build it |
+| `Shift` + click | Keep placing the same tower |
+| `U` | Upgrade the selected tower |
+| `X` or right-click | Sell the selected tower for 75% |
+| `G` | Fuse two level-3 towers of one family into an Epic |
+| `N` | Start the next wave now |
+| `Space` | Pause or resume |
+| `F` | Cycle the speed: ×1, ×2, ×3 |
+| `H` | Open the Field Guide |
+| `Esc` | Deselect or cancel |
+| `W` `A` `S` `D`, arrow keys or two-finger drag | Move the camera |
+| Mouse wheel or pinch | Zoom |
+| `Q` / `E`, middle-drag or `Option`-drag | Rotate the camera |
+| `R` | Reset the camera |
+| `C` | Cycle the full-board, portal and gate views |
+| `B` | Follow the boss |
+
+## Build it from source
+
+You only need this section if you want to change the game. To play, the download above is all you need.
+
+### What you need
+
+| Tool | Version | What it's for | How to get it |
+|---|---|---|---|
+| A Mac with Apple silicon | | Building the app. The export is arm64 only. | |
+| Xcode Command Line Tools | | `git` and the tools the export script uses | `xcode-select --install` |
+| [Godot](https://godotengine.org/) | 4.7.2 | The engine and editor | `brew install --cask godot` |
+| Godot macOS export templates | 4.7.2 | Building the `.app` and `.dmg` | In Godot: **Editor → Manage Export Templates** |
+| [Git LFS](https://git-lfs.com/) | | Models, textures, audio and fonts are stored in LFS | `brew install git-lfs`, then `git lfs install` |
+| [gdtoolkit](https://github.com/Scony/godot-gdscript-toolkit) | 4.x | `gdlint` and `gdformat` for the code checks | `brew install pipx`, then `pipx install "gdtoolkit==4.*"` |
+| Python 3 | | The asset license check and the website build | Comes with the Command Line Tools |
+
+The project is pinned to Godot 4.7.2. Homebrew installs whatever is current, so if that has moved on, take 4.7.2 from the [Godot download archive](https://godotengine.org/download/archive/). The scripts call `godot` from your `PATH`. If yours lives somewhere else, set `GODOT` to the full path of the binary.
+
+### Set up and run
+
+```sh
+git clone https://github.com/obsesivegamer/maze-citadel.git
+cd maze-citadel
+git lfs pull                        # only needed if LFS was installed after cloning
+godot --headless --path . --import  # first import of the assets
+godot --path .                      # run the game
+```
+
+Game options go after a `--`. For example, this starts on the second map with the lightest graphics preset:
+
+```sh
+godot --path . -- --map=rampart --quality=performance
+```
+
+### Everyday commands
 
 | Command | What it does |
 |---|---|
-| `tools/check.sh` | The gate: import, asset licenses, lint, format, unit tests, headless game smoke run |
-| `tools/smoke.sh 18000` | The autoplay bot plays ~20 waves headless |
-| `godot --headless --path . --script res://tests/bots/run_balance.gd` | Balance table ([docs/balance.md](docs/balance.md)) |
-| `tools/export.sh` | `dist/MazeCitadel.app` and `.dmg` (arm64, ad-hoc signed) |
-| `tools/verify_dmg.sh` | Mounts the `.dmg`, checks bundle, version, arch and signature, runs the game headless from it |
-| `python3 tools/build_site.py` | Download site in `build/site/`, filled from the newest release |
-| `git tag vX.Y.Z && git push origin vX.Y.Z` | CI builds, verifies and publishes the release, then updates the site ([docs/RELEASING.md](docs/RELEASING.md)) |
-| `ALLOW_WINDOW=1 tools/slot.sh` | Captures, benchmarks and launch check; opens windows |
+| `tools/check.sh` | The full check, run before every commit: import, asset licenses, lint, format, unit tests and a headless play-through by the bot |
+| `tools/smoke.sh 18000` | The bot plays about 20 waves with no window |
+| `godot --headless --path . --script res://tests/bots/run_balance.gd` | Bots play full games and print the balance table ([docs/balance.md](docs/balance.md)) |
+| `tools/export.sh` | Builds `dist/MazeCitadel.app` and the `.dmg` |
+| `tools/verify_dmg.sh` | Mounts the `.dmg`, checks the bundle, version, architecture and signature, and runs the game from it |
+| `python3 tools/build_site.py` | Builds the website into `build/site/`, filled in from the newest release |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | Publishes a release and updates the website ([docs/RELEASING.md](docs/RELEASING.md)) |
+| `ALLOW_WINDOW=1 tools/slot.sh` | Screenshots, benchmarks and a launch test. These open game windows and take over the screen for about 15 minutes. |
 
-Design: [docs/GDD.md](docs/GDD.md) · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Performance: [docs/perf.md](docs/perf.md)
+The full developer setup, including a way to install the export templates from the command line, is in [docs/INSTALL.md](docs/INSTALL.md#part-2-build-from-source).
+
+## Documentation
+
+| Document | What's in it |
+|---|---|
+| [docs/INSTALL.md](docs/INSTALL.md) | Installing, updating and uninstalling the game, system requirements, troubleshooting, and the full developer setup |
+| [docs/GDD.md](docs/GDD.md) | The game design: every rule, tower, creep and wave, with the numbers |
+| [docs/maps.md](docs/maps.md) | The two maps and how a map is defined |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is organised |
+| [docs/RELEASING.md](docs/RELEASING.md) | How a release and the website get built and published |
+| [docs/balance.md](docs/balance.md) | What the balance bots found, and why the numbers are what they are |
+| [docs/perf.md](docs/perf.md) | Performance measurements and what was done about them |
+| [docs/PLAN.md](docs/PLAN.md) | The original build plan, kept for the record |
 
 ## Credits
 
-Models and textures are CC0 (Quaternius, KayKit, Kenney and OpenGameArt artists); sound is CC0 and CC-BY; fonts (Cinzel, Fira Sans) are OFL. Full list with attribution: [assets/CREDITS.md](assets/CREDITS.md).
+Models and textures are CC0, from Quaternius, KayKit, Kenney and OpenGameArt artists. Sound is CC0 and CC-BY. The fonts, Cinzel and Fira Sans, are under the Open Font License. The full list with attribution is in [assets/CREDITS.md](assets/CREDITS.md).

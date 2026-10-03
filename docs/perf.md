@@ -1,6 +1,19 @@
 # Performance log
 
-Machine: MacBook Air M3 (8-core GPU, 16 GB), macOS 26.6.2, Godot 4.7.2 on Metal, window 2940 × 1782 px.
+This is a running log of how fast Maze Citadel runs and what was done to make it faster. The entries are in date order and are left as they were written, so the early ones describe problems that later ones fix. The summary below is the current state.
+
+Everything here was measured on one machine: a MacBook Air M3 (8-core GPU, 16 GB) on macOS 26.6.2, with Godot 4.7.2 on Metal, in a 2940 × 1782 px window.
+
+## Where things stand (2026-10-03)
+
+The goal is 60 frames per second on the default Balanced preset, which means every frame has to finish in under 16.7 ms.
+
+- **Heavy battles:** a wave-35 battle on Balanced takes 14.14 ms per frame, and with the frame rate uncapped its 1% low is 70 fps.
+- **Launch:** the loading screen appears in about 0.6 s and the game is playable about 4 s after launch. The very first launch takes about 20 s, because that's when the shaders are compiled.
+- **Hitches:** building a tower used to stall a frame for about 22 ms and no longer does. The worst frame in the 10 seconds after wave 1 starts is 32 ms, down from about 115 ms.
+- **Known limit:** the MacBook Air has no fan. After about three minutes of heavy late waves it slows itself down by roughly 12%, and Balanced then averages about 57 fps. The Performance preset holds 60 fps in the same conditions.
+
+The details are in the [Butter pass](#butter-pass-2026-10-03), named for the goal of butter-smooth frames, and the next step is under [Next](#next).
 
 ## How to measure
 
@@ -130,7 +143,9 @@ Findings:
 3. One ~115 ms hitch remains after wave 1 starts, new path or old; to investigate.
 4. **Shader baking crashes the app.** A windowed export does run the baker, but without full Xcode it logs "Metal shader baking limited to SPIR-V", and the exported app then aborts at launch ("Not enough bytes for uniform in shader container" → "Failed to parse shader container from binary" → FATAL index out of bounds). The baker is now disabled in `export_presets.cfg` and `tools/export.sh` always exports headless; the warm-up does the job instead. Revisit with full Xcode or a later Godot.
 
-## Butter pass (2026-10-03, in progress)
+## Butter pass (2026-10-03)
+
+Shipped in version 0.2.0.
 
 Goal: every frame under 16.7 ms with margin on Balanced (the default) in heavy battles, and no hitches in real play.
 

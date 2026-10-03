@@ -1,6 +1,10 @@
 # Releasing
 
-Pushing a version tag builds the Mac .dmg on GitHub's macOS runners, verifies it, publishes it as a GitHub Release and refreshes the download site. Everything here runs from `.github/workflows/release-mac.yml` and `.github/workflows/site.yml`.
+This page explains how a new version of Maze Citadel gets built, checked and published, and how the website at [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/) is kept up to date.
+
+## Overview
+
+Releasing takes one action: pushing a version tag. GitHub then builds the Mac `.dmg` on its macOS runners, verifies it, publishes it as a GitHub Release, and refreshes the website so the download button points at the new build. Nothing is built or uploaded by hand. Two workflows do the work, `.github/workflows/release-mac.yml` and `.github/workflows/site.yml`.
 
 ## Cut a release
 
@@ -33,19 +37,21 @@ tools/export.sh && tools/verify_dmg.sh
 | Game | macOS 15 | the exported game runs 5400 frames headless with the autoplay bot, straight from the mounted image, with no script or engine errors |
 | Window | your Mac only | `LAUNCH_CHECK=1 ALLOW_WINDOW=1 tools/verify_dmg.sh` opens the game in a real window and saves `dist/launch-full.png`. GitHub's virtual Macs lack GPU features the renderer needs, so CI skips this |
 
-## Download site
+## The website
 
-`site/index.html` is the page. `tools/build_site.py` fills it from the newest release (version, size, date, checksum, minimum macOS, notarized or not) and writes `build/site/`. The tower roster and the tower, Epic, wave and map counts come from the game's own data (`src/data/tower_defs.gd`, `src/data/wave_defs.gd`, `src/data/map_defs.gd` and `src/ui/tower_info.gd`), so a balance change shows up on the site at the next deploy. Preview it with:
+The website is live at **[obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/)**, served by GitHub Pages.
+
+`site/index.html` is the page. `tools/build_site.py` fills it in from the newest release (version, size, date, checksum, minimum macOS, and whether the build is notarized) and writes the result to `build/site/`. The tower roster and the tower, Epic, wave and map counts come from the game's own data (`src/data/tower_defs.gd`, `src/data/wave_defs.gd`, `src/data/map_defs.gd` and `src/ui/tower_info.gd`), so a balance change shows up on the website at the next deploy. Preview it with:
 
 ```sh
 python3 tools/build_site.py && open build/site/index.html
 ```
 
-It deploys to GitHub Pages when the site changes on `main`, after each release, or from **Actions → Download site → Run workflow**. Until Pages is turned on, the workflow builds the site and skips the deploy.
+The website deploys when the site or the game data it shows changes on `main`, after each release, or when you run **Actions → Download site → Run workflow**.
 
-**Turning on Pages:** repository **Settings → Pages → Build and deployment → Source: GitHub Actions**, then run the Download site workflow once. The address is `https://obsesivegamer.github.io/maze-citadel/` unless you add a custom domain on the same settings page.
+**If Pages is off**, as it would be on a fork, the workflow still builds the site and skips the deploy. To turn Pages on, go to the repository's **Settings → Pages → Build and deployment → Source: GitHub Actions**, then run the Download site workflow once. The address is `https://<owner>.github.io/<repository>/` unless you add a custom domain on the same settings page.
 
-**Private repo:** Pages on a private repository needs a paid GitHub plan (Pro or above). The site itself is public either way. Release files of a private repo need a GitHub login to download, so the build copies the .dmg into the site and serves it from there. On a public repo the button links to the release file instead.
+**If the repository is private**, Pages needs a paid GitHub plan (Pro or above). The website itself is public either way. Release files of a private repository need a GitHub login to download, so the build copies the `.dmg` into the site and serves it from there. On a public repository, which this one is, the download button links to the release file instead.
 
 ## Signing and notarization (optional)
 
