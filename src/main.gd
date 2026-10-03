@@ -11,7 +11,9 @@ extends Node3D
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
-##   --first-frame-out=<json>                    time to first frame, quit
+##   --pacing                                    bench with vsync on; count missed frames
+##   --first-frame-out=<json>                    launch time and wave-1 hitches, quit
+##   --sync-boot / --async-boot                  force one-frame setup / the loading screen
 
 const RenderSpike := preload("res://src/spike/render_spike.gd")
 
@@ -21,7 +23,16 @@ func _ready() -> void:
 		_boot_spike()
 		return
 	var game := Game.new()
+	var windowed := DisplayServer.get_name() != "headless"
+	game.async_boot = (windowed or Cli.has("async-boot")) and not Cli.has("sync-boot")
+	if Cli.has("first-frame-out"):
+		var probe := FirstFrame.new()
+		probe.out_path = Cli.get_str("first-frame-out")
+		probe.game = game
+		add_child(probe)
 	add_child(game)
+	if not game.is_booted:
+		await game.booted
 	if Cli.has("quality"):
 		var preset := Quality.from_name(Cli.get_str("quality"))
 		game.quality_overrides = _overrides(preset)
@@ -34,6 +45,15 @@ func _ready() -> void:
 		game.set_mode(game.sim.hard, game.sim.infinite, true)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
+	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).
+	# world/<part> hides one world builder, e.g. world/_nature.
+	for part in PerfFlags.get_str("hide", "").split(",", false):
+		var path := part.split("/")
+		var node: Variant = game.get(path[0])
+		if path.size() > 1 and node != null:
+			node = node.get(path[1])
+		if node is Node3D or node is CanvasLayer:
+			node.visible = false
 	if Cli.has("warp-wave"):
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
 	_attach_tools(
@@ -58,15 +78,12 @@ func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
 		shot.settle_frames = int(Cli.get_str("settle", "90"))
 		shot.set_view = set_view
 		add_child(shot)
-	elif Cli.has("first-frame-out"):
-		var probe := FirstFrame.new()
-		probe.out_path = Cli.get_str("first-frame-out")
-		add_child(probe)
 	elif Cli.has("bench"):
 		var bench := Bench.new()
 		bench.duration = Cli.get_float("bench", 20.0)
 		bench.out_path = Cli.get_str("bench-out")
 		bench.label = Cli.get_str("quality", "balanced")
+		bench.pacing = Cli.has("pacing")
 		bench.settings = settings
 		add_child(bench)
 

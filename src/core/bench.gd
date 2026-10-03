@@ -7,6 +7,9 @@ var duration := 20.0
 var warmup := 4.0
 var out_path := ""
 var label := ""
+## Keep vsync on and count frames that miss the display's refresh: what a
+## player feels, rather than uncapped headroom.
+var pacing := false
 ## Seconds per entry in the report's timeline, to spot thermal throttling.
 var window := 30.0
 ## The quality values the run used, overrides included, echoed in the report.
@@ -17,6 +20,9 @@ var _elapsed := 0.0
 var _unfocused := 0.0
 var _frame_ms := PackedFloat32Array()
 var _cpu_ms := PackedFloat32Array()
+var _prof := {}
+var _missed := 0
+var _worst_ms := 0.0
 var _timeline: Array[float] = []
 var _window_start := 0
 var _window_ms := 0.0
@@ -26,7 +32,9 @@ var _primitives := 0.0
 
 func _ready() -> void:
 	DisplayServer.window_move_to_foreground()
-	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	if not pacing:
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Prof.enabled = true
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 
 
@@ -38,6 +46,10 @@ func _process(delta: float) -> void:
 		_elapsed = 0.0
 		_frame_ms.clear()
 		_cpu_ms.clear()
+		_prof.clear()
+		_missed = 0
+		_worst_ms = 0.0
+		Prof.take()
 		_timeline.clear()
 		_window_start = 0
 		_window_ms = 0.0
@@ -50,6 +62,12 @@ func _process(delta: float) -> void:
 		return
 	var vp := get_viewport().get_viewport_rid()
 	_frame_ms.append(delta * 1000.0)
+	_worst_ms = maxf(_worst_ms, delta * 1000.0)
+	if delta * 1000.0 > _refresh_ms() * 1.25:
+		_missed += 1
+	var sections := Prof.take()
+	for k in sections:
+		_prof[k] = _prof.get(k, 0.0) + sections[k]
 	_window_ms += delta * 1000.0
 	if _window_ms >= window * 1000.0:
 		var frames := _frame_ms.size() - _window_start
@@ -66,6 +84,22 @@ func _process(delta: float) -> void:
 	if _elapsed >= warmup + duration:
 		_finish()
 		set_process(false)
+
+
+func _refresh_ms() -> float:
+	var hz := DisplayServer.screen_get_refresh_rate()
+	return 1000.0 / (hz if hz > 1.0 else 60.0)
+
+
+func _per_frame(totals: Dictionary) -> Dictionary:
+	var out := {}
+	var n := maxf(_frame_ms.size(), 1)
+	var sum := 0.0
+	for k in totals:
+		out[k] = snappedf(totals[k] / n, 0.01)
+		sum += totals[k] / n
+	out["total"] = snappedf(sum, 0.01)
+	return out
 
 
 static func percentile(values: PackedFloat32Array, p: float) -> float:
@@ -110,6 +144,12 @@ func _finish() -> void:
 		"avg_frame_ms": snappedf(avg, 0.01),
 		"avg_cpu_ms": snappedf(mean(_cpu_ms), 0.01),
 		"timeline_fps": _timeline,
+		"pacing": pacing,
+		"refresh_hz": DisplayServer.screen_get_refresh_rate(),
+		"missed_frames": _missed,
+		"missed_pct": snappedf(100.0 * _missed / maxf(_frame_ms.size(), 1), 0.01),
+		"worst_frame_ms": snappedf(_worst_ms, 0.1),
+		"cpu_ms_per_frame": _per_frame(_prof),
 		"flags": PerfFlags.active(),
 		"max_draw_calls": _draw_calls,
 		"max_primitives": _primitives,

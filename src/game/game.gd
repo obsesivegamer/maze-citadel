@@ -11,9 +11,13 @@ signal selection_changed(tile: Vector2i)
 signal speed_changed(speed: int)
 signal pause_changed(paused: bool)
 signal quality_changed(preset: Quality.Preset)
+## Setup is complete and the match can start (immediately for a sync boot).
+signal booted
 
 const NONE := Vector2i(-1, -1)
 const MAX_STEPS_PER_FRAME := 12
+## Share of the loading bar given to the battle rehearsal.
+const REHEARSAL_SHARE := 0.35
 
 ## Map and mode carried across the scene reload that switches map.
 static var _carry := {}
@@ -33,6 +37,11 @@ var build_choice: StringName = &"archer"
 var selected := NONE
 ## Optional object with step() that plays instead of the player (--autoplay).
 var autoplay: Object
+## Build over many frames behind a loading screen and rehearse a battle so
+## every shader compiles before play. main.gd turns it on for the real game;
+## headless tools keep the one-frame setup.
+var async_boot := false
+var is_booted := false
 
 var world: World
 var camera: CameraRig
@@ -44,6 +53,7 @@ var hud: Hud
 var audio: AudioDirector
 
 var _acc := 0.0
+var _loading: LoadingScreen
 
 
 ## The map comes from a map switch in progress, else --map, else the last pick.
@@ -62,6 +72,9 @@ func _init() -> void:
 
 func _ready() -> void:
 	InputSetup.register()
+	if async_boot:
+		_boot_async()
+		return
 	world = _add(World.new())
 	camera = _add(CameraRig.new())
 	path_preview = _add(PathPreview.new())
@@ -73,7 +86,70 @@ func _ready() -> void:
 	for s in [world, camera, path_preview, units, fx, builder, hud, audio]:
 		s.setup(self)
 	set_quality(Quality.from_name(Save.setting("quality", "balanced")))
+	_finish_boot()
+
+
+## One step per frame so the window keeps answering (no spinning cursor) and
+## each frame compiles only the shaders of what was just added; then a hidden
+## rehearsal compiles the combat shaders. The camera comes first because
+## nothing 3D is drawn, or compiled, without one.
+func _boot_async() -> void:
+	var screen := LoadingScreen.new()
+	add_child(screen)
+	await _frames(2)
+	camera = _add(CameraRig.new())
+	camera.setup(self)
+	world = _add(World.new())
+	var steps := world.setup_steps(self)
+	# Audio before the HUD: its settings panel reads the saved volumes.
+	var late: Array = [
+		["Marking the path", _boot_part.bind(&"path_preview", PathPreview)],
+		["Mustering the units", _boot_part.bind(&"units", Units)],
+		["Readying the effects", _boot_part.bind(&"fx", Fx)],
+		["Arming the builder", _boot_part.bind(&"builder", BuildController)],
+		["Tuning the war drums", _boot_part.bind(&"audio", AudioDirector)],
+		["Raising the banners", _boot_part.bind(&"hud", Hud)],
+		["Lighting the scene", _apply_saved_quality],
+	]
+	steps.append_array(late)
+	for i in steps.size():
+		screen.set_progress((1.0 - REHEARSAL_SHARE) * i / steps.size(), steps[i][0])
+		await _frames(1)
+		steps[i][1].call()
+		await _frames(1)
+	var stage := WarmupStage.new()
+	add_child(stage)
+	_loading = screen
+	await stage.run(self, _on_rehearsal_progress)
+	screen.finish()
+	_finish_boot()
+
+
+## Creates, adds and sets up one subsystem, storing it in the named member.
+func _boot_part(member: StringName, kind: GDScript) -> void:
+	var node: Node = kind.new()
+	add_child(node)
+	set(member, node)
+	node.setup(self)
+
+
+func _apply_saved_quality() -> void:
+	set_quality(Quality.from_name(Save.setting("quality", "balanced")))
+
+
+func _on_rehearsal_progress(f: float) -> void:
+	_loading.set_progress(1.0 - REHEARSAL_SHARE + REHEARSAL_SHARE * f, "Rehearsing the battle")
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await get_tree().process_frame
+
+
+func _finish_boot() -> void:
 	_flush()
+	is_booted = true
+	booted.emit()
 
 
 func _add(node: Node) -> Node:
@@ -82,6 +158,9 @@ func _add(node: Node) -> Node:
 
 
 func _process(delta: float) -> void:
+	if not is_booted:
+		return
+	Prof.begin(&"sim")
 	if not paused and not is_over():
 		_acc += delta * speed
 		var steps := 0
@@ -95,7 +174,10 @@ func _process(delta: float) -> void:
 			_flush()
 		if steps == MAX_STEPS_PER_FRAME:
 			_acc = 0.0
+	Prof.end(&"sim")
+	Prof.begin(&"units")
 	units.sync(clampf(_acc / GameSim.DT, 0.0, 1.0))
+	Prof.end(&"units")
 
 
 func _flush() -> void:

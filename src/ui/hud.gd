@@ -137,6 +137,7 @@ func _announce(wave: int) -> void:
 
 
 func _process(delta: float) -> void:
+	Prof.begin(&"hud")
 	var sim := _game.sim
 	_top.refresh()
 	if sim.gold != _gold:
@@ -153,6 +154,7 @@ func _process(delta: float) -> void:
 		_fusing = fusing
 		_plaque.set_fusing(fusing)
 	_refresh_hints()
+	Prof.end(&"hud")
 
 
 func _refresh_hints() -> void:

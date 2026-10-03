@@ -4,8 +4,9 @@
 
 ### Resume here
 
-1. **Screen slot D (~25 min, Mac cool and plugged in): `ALLOW_WINDOW=1 tools/slot_d.sh`.** It finishes M8: launch time of the dev build and of an app exported with the shader baker (windowed export), the rebalanced Cinematic (SDFGI/SSR off, render scale 0.7) in the wave-24 battle ×3 with a Balanced control, and a 10-minute Balanced soak with per-30 s fps. Then record the results in [perf.md](perf.md).
-2. M7 juice tuning from the slot-1 screenshots (`docs/screens/m3-*.jpg`), M9 asset pruning + v1.0.
+1. **M8 tuning slot 1 (~50 min, Mac cool and plugged in):** `ALLOW_WINDOW=1 tools/perf_matrix.sh --captures=combined,combined-rs07 tools/perf_configs/slot1.txt`. All world, units and renderer switches alone and together, plus combined at render scale 0.6 / 0.7. Headless census with everything on: triangles 3.52 M → 2.39 M, shadow 3.04 M → 0.55 M.
+2. Slot 2: `tools/perf_configs/units.txt` and the renderer extras; fidelity check of the winners side by side; then graduate the winning flags into the presets and delete the losing switches.
+3. Then M7 juice tuning, M9 asset pruning and v1.0.
 
 Game rules, numbers and content: [GDD.md](GDD.md).
 

@@ -30,6 +30,9 @@ var id: StringName
 var level := 1
 ## Set while the sell animation plays; Units frees the view when it ends.
 var removing := false
+## Whether idle particles run; Units clears it while the camera is far out
+## (UnitPerf tower-idle-fx=near).
+var idle_fx := true
 
 var _pivot := Node3D.new()
 var _model: Node3D
@@ -84,12 +87,15 @@ func rebuild(t: SimTower, kind: StringName) -> void:
 	for g: Node3D in _glow:
 		g.set_meta("base_scale", g.scale)
 	var muzzle: float = _model.get_meta("muzzle_height", 2.5)
-	for effect: StringName in _model.get_meta("idle", []):
+	var effects: Array = [] if UnitPerf.tower_idle_fx() == "off" else _model.get_meta("idle", [])
+	for effect: StringName in effects:
 		var p := ParticleKit.make(UnitFx.spec(effect))
 		p.position.y = muzzle * UnitFx.IDLE_HEIGHT.get(effect, 1.0)
 		ParticleKit.apply_quality(p, _quality)
 		_pivot.add_child(p)
 		_idle.append(p)
+	if not idle_fx:
+		set_idle_fx(false)
 	_update_ring()
 	_anim_kind = kind
 	_anim = 0.0
@@ -99,6 +105,15 @@ func apply_quality(ratio: float) -> void:
 	_quality = ratio
 	for p in _idle:
 		ParticleKit.apply_quality(p, ratio)
+
+
+func set_idle_fx(on: bool) -> void:
+	idle_fx = on
+	if removing:
+		return
+	for p in _idle:
+		p.emitting = on
+		p.visible = on
 
 
 func on_fired() -> void:
