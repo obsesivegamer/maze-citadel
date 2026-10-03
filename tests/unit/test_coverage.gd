@@ -56,8 +56,11 @@ func test_every_tower_has_an_icon_words_and_shot_look() -> void:
 ## crater that hurts, so only those blurbs may promise one.
 func test_blurbs_promise_craters_only_when_they_burn() -> void:
 	for id: StringName in TowerDefs.TOWERS:
-		var says_crater: bool = TowerInfo.BLURBS[id].to_lower().contains("crater")
-		var burns: bool = TowerDefs.stat(id, "crater_dps", 1, 0.0) > 0.0
+		var blurb: String = TowerInfo.BLURBS[id]
+		var says_crater := blurb.to_lower().contains("crater")
+		var burns := false
+		for level in range(1, TowerDefs.MAX_LEVEL + 1):
+			burns = burns or TowerDefs.stat(id, "crater_dps", level, 0.0) > 0.0
 		check(says_crater == burns, "%s blurb mentions a crater iff it has crater_dps" % id)
 
 
