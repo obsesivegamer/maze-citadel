@@ -20,6 +20,7 @@ const CAMERA_TIPS := {
 }
 const CAMERA_GLYPHS := {&"full": &"cam_full", &"portal": &"cam_portal", &"gate": &"cam_gate"}
 
+var left_panel: PanelContainer
 var center_panel: PanelContainer
 
 var _game: Game
@@ -70,6 +71,7 @@ func _build_left() -> void:
 	p.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	p.position = MARGIN
 	add_child(p)
+	left_panel = p
 	var row := UiKit.hbox(GROUP_GAP)
 	p.add_child(row)
 	_gold_box.add_child(UiIcon.new(&"coin", ICON_PX))

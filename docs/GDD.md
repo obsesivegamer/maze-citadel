@@ -20,6 +20,8 @@ Inspirations: Element TD (element counters, leaks that loop), Gem TD (fusion), W
 
 Around the plateau: cliffs, outer walls with banners, pine forest, a river with a watermill, a village of huts, sheep fields, drifting clouds.
 
+**Maps** ([maps.md](maps.md)). The table above is **Citadel Plateau**, the default. **Fallen Rampart** keeps the same plateau but opens the portal at columns 5–6 and the gate at columns 13–14, and a broken wall crosses row 13 with three 2-tile breaches, plus two 2 × 2 boulder heaps. Ruins can't be built on. The map is picked from a MAP panel under the gold counter during the opening build phase; switching clears the board, keeps the mode, and is remembered. Best waves are kept per map.
+
 The first frame is the game. No title screen, no menu, no empty scene.
 
 ## 2. Pathing rules

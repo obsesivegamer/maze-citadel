@@ -72,6 +72,21 @@ Tried on both maps to soften Hard + Twists, and dropped:
 
 A softer Undying moved nothing: waves 21 and 26–28 leaked as much as before. Bounty overshoots as it did for Hard itself: even +10% makes Twists easier than no twists on the Citadel, while Rampart Hard still loses half its games.
 
+## Fallen Rampart (2026-10-02)
+
+The second map ([maps.md](maps.md)), same bots and seeds, `-- --map=rampart`. The smart rows are with the between-waves fusion rule from [Epics and Twists](#epics-and-twists-2026-10-02) (before it, Hard ended with 4.2 lives). The smart bot walls the north half (rows 3, 7, 11), plugs the middle and east breaches, leaves the west breach open, and walls the south half (rows 17, 21, 25). Its opening wall grows from column 6.5, where the route from the north-west portal crosses it; growing it from the board's middle made the bot buy five Frost Spires in a row and lose at wave 2.
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|
+| smart | normal | 4/4 | 17.5, 16–18 | 2.0 | 57% / 64% / 100% / 92% | – |
+| smart | hard | 4/4 | 3.8, 2–5 | 8.0 | 100% / 82% / 100% / 100% | – |
+| archers | normal | 0/4 | 0.0, 0–0 | 7.0 | 100% / 57% / 100% / 100% | w40, w40, w40, w40 |
+| no_air | normal | 0/4 | 0.0, 0–0 | 2.0 | – / – / – / – | w2, w2, w2, w2 |
+
+Lives lost per wave (seed 0): smart/normal {30: 2} · smart/hard {10: 2, 21: 1, 26: 1, 30: 4, 38: 4, 40: 4} · archers {10: 2, 26: 1, 28: 1, 30: 6, 33: 3, 38: 3, 40: 4} · no_air {1: 7, 2: 13}
+
+Against the Citadel Plateau: Normal and Hard play about the same (the twin Ogres on wave 30 now take one pass of 2 lives on Normal, and Hard ends with 3.8 lives instead of 5.5); archers-only lasts two waves longer, since every creep passes the same breach. The no-anti-air bot dies at wave 2 instead of wave 5: its three opening siege towers can't hold the first Wolf Riders on this map. That bot is a strawman for the Harpy waves, so the target row above still describes the Citadel.
+
 ## Late bosses (2026-10-02)
 
 The twin Ogres on wave 30 and the Dreadlord on wave 40 leaked in every game on both modes, so the last two boss waves were a fixed toll rather than a fight. When they reached the gate on their first pass (seeds 0–3), the Ogres still had 10–48% of their HP on Normal and 46–63% on Hard, and the Dreadlord 5–10% on Normal and 37–40% on Hard. Three changes:

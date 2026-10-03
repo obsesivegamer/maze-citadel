@@ -42,7 +42,7 @@ const SHRED_MAX := 10.0
 const SHRED_TIME := 6.0
 const BOLT_HIT_RADIUS := 0.8
 
-var grid := Grid.new()
+var grid: Grid
 var field := FlowField.new()
 var gold := START_GOLD
 var lives := START_LIVES
@@ -76,7 +76,8 @@ var _twist_plan_to := 0
 var _twist_plan_seed := 0
 
 
-func _init() -> void:
+func _init(map := MapDefs.DEFAULT) -> void:
+	grid = Grid.new(map)
 	field.compute(grid)
 
 
@@ -318,7 +319,7 @@ func _spawn() -> void:
 	if _spawn_timer > 0.0:
 		return
 	var entry: Array = _spawn_queue.pop_front()
-	var c := spawn_creep(entry[0], entry[1], entry[2], Grid.SPAWN_POINT)
+	var c := spawn_creep(entry[0], entry[1], entry[2], grid.spawn_point)
 	# Spacing follows the creep type, not a Swift creep's boosted speed.
 	var fast: bool = CreepDefs.CREEPS[c.type].speed >= 4.5
 	_spawn_timer = FAST_SPAWN_INTERVAL if fast else SPAWN_INTERVAL
@@ -478,24 +479,24 @@ func _move(c: SimCreep) -> void:
 		c.heading = to / d
 		c.pos += c.heading * minf(c.effective_speed() * DT, d)
 	c.progress = _progress(c)
-	if c.pos.y >= Grid.GATE_POINT.y - 0.05:
+	if c.pos.y >= grid.gate_point.y - 0.05:
 		_leak(c)
 
 
 func _steer_target(c: SimCreep) -> Vector2:
 	if c.flying:
-		return Grid.GATE_POINT
+		return grid.gate_point
 	var t := Grid.tile_at(c.pos)
 	if t.y < 0:
 		return Grid.center(field.entry_tile())
 	if not Grid.in_bounds(t) or field.distance(t) == 0.0:
-		return Grid.GATE_POINT
+		return grid.gate_point
 	return Grid.center(field.next_tile(t))
 
 
 func _progress(c: SimCreep) -> float:
 	if c.flying:
-		return Grid.GATE_POINT.distance_to(c.pos)
+		return grid.gate_point.distance_to(c.pos)
 	var t := Grid.tile_at(c.pos)
 	if t.y < 0:
 		return field.distance(field.entry_tile()) * Grid.TILE + Grid.TILE
@@ -508,7 +509,7 @@ func _leak(c: SimCreep) -> void:
 	var cost := 2 if c.boss else 1
 	lives = maxi(lives - cost, 0)
 	c.leaked = true
-	c.pos = Grid.SPAWN_POINT
+	c.pos = grid.spawn_point
 	c.prev_pos = c.pos
 	events.append({"type": &"leaked", "id": c.id, "cost": cost, "lives": lives})
 	if lives == 0:

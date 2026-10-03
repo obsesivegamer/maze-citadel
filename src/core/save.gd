@@ -1,6 +1,6 @@
 class_name Save
 extends RefCounted
-## Best results per mode and player settings in user://save.cfg
+## Best results per map and mode, and player settings in user://save.cfg
 ## (~/Library/Application Support/Maze Citadel/save.cfg).
 
 const PATH := "user://save.cfg"
@@ -15,18 +15,20 @@ static func _file() -> ConfigFile:
 	return _cfg
 
 
-## "normal", "hard_twists", "normal_infinite", "hard_twists_infinite", ...
-## Runs without twists keep the keys they had before Twists mode existed.
-static func mode_key(hard: bool, infinite: bool, twists := false) -> String:
-	return (
+## "normal", "hard_twists", "normal_infinite", "hard_twists_infinite", ...; on
+## other maps prefixed with the map, e.g. "rampart_hard". Runs on the default
+## map without twists keep the keys they had before maps and Twists existed.
+static func mode_key(hard: bool, infinite: bool, twists := false, map := MapDefs.DEFAULT) -> String:
+	var key := (
 		("hard" if hard else "normal")
 		+ ("_twists" if twists else "")
 		+ ("_infinite" if infinite else "")
 	)
+	return key if map == MapDefs.DEFAULT else "%s_%s" % [map, key]
 
 
 static func sim_key(sim: GameSim) -> String:
-	return mode_key(sim.hard, sim.infinite, sim.twists)
+	return mode_key(sim.hard, sim.infinite, sim.twists, sim.grid.map)
 
 
 static func best_wave(mode: String) -> int:

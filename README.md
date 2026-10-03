@@ -6,9 +6,9 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps (El
 
 ## Run it
 
-1. Build or download `MazeCitadel-<version>.dmg`, open it, and drag **Maze Citadel** to Applications (or run it from the disk image).
+1. Download `MazeCitadel-<version>.dmg` from the download site or the GitHub Releases page (or build it with `tools/export.sh`), open it, and drag **Maze Citadel** to Applications (or run it from the disk image).
 2. Double-click it. The game opens straight into the citadel with the builder ready.
-3. A copy downloaded from GitHub shows macOS's "unidentified developer" prompt once: right-click the app → **Open**. The app is ad-hoc signed, not notarized.
+3. A downloaded copy is ad-hoc signed, not notarized, so the first launch says Apple could not verify it. Click **Done**, then **System Settings → Privacy & Security → Open Anyway**. On macOS 13 or 14, Control-click the app → **Open** also works.
 
 Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon only; macOS 13 or later.
 
@@ -19,7 +19,8 @@ Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon 
 - **Waves:** they start on a timer; `N` calls the next one early. `Space` pauses, `F` cycles ×1/×2/×3.
 - **Camera:** WASD/arrows or two-finger drag to pan, scroll or pinch to zoom, middle-drag or Option-drag to orbit, `Q`/`E` rotate, `R` reset, `C` cycle portal/gate views, `B` follow the boss.
 - **Counters:** every wave carries an armor class and an element. Pierce beats Light armor and Air, Siege beats Armored, Poison ignores armor; each element deals double damage to the next one in Light → Dark → Aqua → Flame → Verdant → Stone → Light. The banner before each wave tells you what's coming.
-- **Lives:** 20. A leak costs 1 (boss 2), and the creep loops back to the portal for another pass with no bounty. Clear wave 40 to win; Hard, Infinite and Twists (random creep abilities from wave 11, shown a wave ahead) are on the top bar before wave 1. Your best wave per mode is saved.
+- **Lives:** 20. A leak costs 1 (boss 2), and the creep loops back to the portal for another pass with no bounty. Clear wave 40 to win; Hard, Infinite and Twists (random creep abilities from wave 11, shown a wave ahead) are on the top bar before wave 1. Your best wave per map and mode is saved.
+- **Maps:** pick one from the MAP panel before wave 1. **Citadel Plateau** is the open board. **Fallen Rampart** puts the portal and gate on opposite corners and splits the board with a broken wall: plug two of its three breaches and every creep comes through the third.
 
 ## Develop
 
@@ -31,6 +32,9 @@ Needs Godot 4.7.2 (`brew install --cask godot`), its macOS export templates, `gi
 | `tools/smoke.sh 18000` | The autoplay bot plays ~20 waves headless |
 | `godot --headless --path . --script res://tests/bots/run_balance.gd` | Balance table ([docs/balance.md](docs/balance.md)) |
 | `tools/export.sh` | `dist/MazeCitadel.app` and `.dmg` (arm64, ad-hoc signed) |
+| `tools/verify_dmg.sh` | Mounts the `.dmg`, checks bundle, version, arch and signature, runs the game headless from it |
+| `python3 tools/build_site.py` | Download site in `build/site/`, filled from the newest release |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | CI builds, verifies and publishes the release, then updates the site ([docs/RELEASING.md](docs/RELEASING.md)) |
 | `ALLOW_WINDOW=1 tools/slot.sh` | Captures, benchmarks and launch check; opens windows |
 
 Design: [docs/GDD.md](docs/GDD.md) · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Performance: [docs/perf.md](docs/perf.md)

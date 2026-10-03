@@ -3,7 +3,8 @@ extends Node3D
 ## Ground under everything (GDD §1): the lowland heightfield with painted
 ## roads, banks and fields; the raised plateau whose top shows the build grid;
 ## the rock cliff skirt around it; the gate ramp; the river with its bridge;
-## and boulders heaped at the cliff foot.
+## and boulders heaped at the cliff foot. The portal paving, gate ramp and
+## blight follow the map's portal and gate.
 
 const TEX := "res://assets/environment/"
 const GRASS_A := TEX + "tex_pamnawi_handpainted_grass/grass_48.jpg"
@@ -47,6 +48,9 @@ const CLIFF_ROCK_SPACING := 3.3
 const BRIDGE_SCALE := 6.5
 const WATER_HALF_WIDTH := 6.3
 
+## The board being drawn; its ruins darken the plateau under them.
+var grid: Grid
+
 var _macro: NoiseTexture2D
 var _rng := RandomNumberGenerator.new()
 
@@ -88,6 +92,7 @@ func _build_lowland() -> void:
 	verts.resize(n * n)
 	colors.resize(n * n)
 	var river := WorldLayout.river()
+	var blight := WorldLayout.blight_center()
 	for j in n:
 		var z := _warp(j * 2.0 / (n - 1) - 1.0)
 		for i in n:
@@ -110,7 +115,7 @@ func _build_lowland() -> void:
 					- smoothstep(
 						WorldLayout.BLIGHT_RADIUS * 0.35,
 						WorldLayout.BLIGHT_RADIUS,
-						p.distance_to(WorldLayout.BLIGHT_CENTER)
+						p.distance_to(blight)
 					)
 				),
 				1.0 if WorldLayout.in_rects(p, WorldLayout.FIELDS, -0.5) else 0.0
@@ -198,13 +203,28 @@ func _build_plateau() -> void:
 	m.set_shader_parameter(&"grid_half", Vector2(Grid.WIDTH, Grid.DEPTH) * 0.5)
 	m.set_shader_parameter(&"tile", Grid.TILE)
 	m.set_shader_parameter(&"grass_tint", PLATEAU_GRASS_TINT)
-	m.set_shader_parameter(&"blight_center", Vector2(0, WorldLayout.PLATEAU_MIN.y + 2.0))
+	var px := Coords.portal().x
+	var gx := WorldLayout.gate_x()
+	m.set_shader_parameter(&"blight_center", Vector2(px, WorldLayout.PLATEAU_MIN.y + 2.0))
+	m.set_shader_parameter(&"paved_north", Vector4(px - 2.0, -40.0, px + 2.0, -26.0))
+	m.set_shader_parameter(&"paved_south", Vector4(gx - 2.0, 26.0, gx + 2.0, 40.0))
+	if not grid.obstacles.is_empty():
+		m.set_shader_parameter(&"ruins", _ruin_mask())
 	st.set_material(m)
 	var mi := MeshInstance3D.new()
 	mi.name = "Plateau"
 	mi.mesh = st.commit()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+
+
+## One texel per tile, white under ruins; the plateau shader samples it with
+## linear filtering so the trodden dirt fades out around each ruin.
+func _ruin_mask() -> ImageTexture:
+	var img := Image.create(Grid.COLS, Grid.ROWS, false, Image.FORMAT_L8)
+	for t: Vector2i in grid.obstacles:
+		img.set_pixelv(t, Color.WHITE)
+	return ImageTexture.create_from_image(img)
 
 
 func _rock_material() -> StandardMaterial3D:
@@ -268,15 +288,19 @@ func _build_skirt() -> void:
 ## low stone parapets.
 func _build_ramp() -> void:
 	var hw := WorldLayout.RAMP_HALF_WIDTH
+	var gx := WorldLayout.gate_x()
 	var z0 := WorldLayout.PLATEAU_MAX.y - 0.4
 	var z1 := WorldLayout.RAMP_END_Z
 	var top := Coords.PLATEAU_TOP
-	var low := WorldLayout.ground_y(0, z1) - 0.05
+	var low := WorldLayout.ground_y(gx, z1) - 0.05
 	var base := WorldLayout.LOWLAND_Y - 1.5
 	var road := SurfaceTool.new()
 	road.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var corners := [
-		Vector3(-hw, top, z0), Vector3(hw, top, z0), Vector3(hw, low, z1), Vector3(-hw, low, z1)
+		Vector3(gx - hw, top, z0),
+		Vector3(gx + hw, top, z0),
+		Vector3(gx + hw, low, z1),
+		Vector3(gx - hw, low, z1),
 	]
 	for i in [0, 1, 2, 0, 2, 3]:
 		var v: Vector3 = corners[i]
@@ -294,7 +318,7 @@ func _build_ramp() -> void:
 	var sides := SurfaceTool.new()
 	sides.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for sx in [-1.0, 1.0]:
-		var x: float = sx * hw
+		var x: float = gx + sx * hw
 		var quad := [
 			Vector3(x, top, z0), Vector3(x, low, z1), Vector3(x, base, z1), Vector3(x, base, z0)
 		]
@@ -319,7 +343,7 @@ func _build_ramp() -> void:
 		while z < z1 - seg * 0.3:
 			var y := lerpf(top, low, (z - z0) / (z1 - z0))
 			var b := Basis(Vector3.RIGHT, slope).scaled(Vector3.ONE * fs)
-			xforms.append(Transform3D(b, Vector3(sx * (hw - 0.35), y - 0.1, z)))
+			xforms.append(Transform3D(b, Vector3(gx + sx * (hw - 0.35), y - 0.1, z)))
 			z += seg
 	add_child(WorldKit.multimesh(fence, xforms))
 
@@ -376,7 +400,7 @@ func _build_cliff_rocks() -> void:
 	for k in ring.size():
 		var p: Vector2 = ring[k][0]
 		var nrm: Vector2 = ring[k][1]
-		if absf(p.x) < WorldLayout.RAMP_HALF_WIDTH + 2.5 and p.y > 0:
+		if absf(p.x - WorldLayout.gate_x()) < WorldLayout.RAMP_HALF_WIDTH + 2.5 and p.y > 0:
 			continue
 		var path: String = CLIFF_ROCKS[_rng.randi() % CLIFF_ROCKS.size()]
 		var foot := p + nrm * (WorldLayout.CLIFF_RUN + _rng.randf_range(-0.3, 1.2))

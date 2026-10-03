@@ -14,6 +14,7 @@ const ANNOUNCE_LEAD := 3.0
 var _game: Game
 var _root := Control.new()
 var _top := HudTopBar.new()
+var _map_picker := HudMapPicker.new()
 var _cards := {}
 var _tooltip := TowerTooltip.new()
 var _banner := WaveBanner.new()
@@ -37,6 +38,8 @@ func setup(game: Game) -> void:
 	_root.add_child(_top)
 	_top.setup(game)
 	_top.settings_pressed.connect(_settings.toggle)
+	_root.add_child(_map_picker)
+	_map_picker.setup(game, _top.left_panel)
 	_build_cards()
 	_root.add_child(_banner)
 	_root.add_child(_plaque)

@@ -1,7 +1,7 @@
 // The buildable plateau (GDD §1): bright grass with faint 2 m tile lines and a
 // subtle checker inside the 40 × 56 m grid, a darker dirt-and-grass rim
-// outside it, cobbles on the unbuildable portal and gate tiles, and scorched
-// earth around the portal.
+// outside it, cobbles on the unbuildable portal and gate tiles, trodden dirt
+// under the map's ruins, and scorched earth around the portal.
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
@@ -21,6 +21,9 @@ uniform vec3 cobble_tint : source_color = vec3(1.0);
 // Paved strips as (x0, z0, x1, z1).
 uniform vec4 paved_north = vec4(-2.0, -40.0, 2.0, -26.0);
 uniform vec4 paved_south = vec4(-2.0, 26.0, 2.0, 40.0);
+// Ruin tiles (one texel per tile, white = ruin); black when the map has none.
+uniform sampler2D ruins : hint_default_black, filter_linear, repeat_disable;
+uniform vec3 ruin_tint : source_color = vec3(0.72, 0.66, 0.58);
 uniform vec2 blight_center = vec2(0.0, -34.0);
 uniform float blight_radius = 9.0;
 uniform vec3 blight_tint : source_color = vec3(0.45, 0.2, 0.17);
@@ -66,6 +69,11 @@ void fragment() {
 	col = mix(col, col * (1.0 - line_strength), line * in_grid);
 	float frame = 1.0 - smoothstep(0.1 - aa, 0.1 + aa, abs(outside));
 	col = mix(col, col * 0.62, frame);
+
+	vec2 ruin_uv = (p + grid_half) / (2.0 * grid_half);
+	float ruin = smoothstep(0.1, 0.6, texture(ruins, ruin_uv).r) * in_grid;
+	vec3 rubble = mix(d, d * ruin_tint, smoothstep(0.3, 0.7, m2));
+	col = mix(col, rubble, ruin * 0.85);
 
 	float pave = max(rect_mask(p, paved_north), rect_mask(p, paved_south));
 	vec3 cob = texture(cobble, p * 0.3).rgb * cobble_tint;

@@ -118,8 +118,9 @@ const WALKS := [
 	[Vector2(33.5, -9), Vector2(36.5, -33), Vector2(35, -30), Vector2(33, -14)],
 ]
 const VILLAGE_CENTER := Vector2(0, 80)
-## Corrupted ground around the portal: dead trees, red rocks, no pines.
-const BLIGHT_CENTER := Vector2(0, -44)
+## Corrupted ground around the portal (blight_center()): dead trees, red
+## rocks, no pines.
+const BLIGHT_Z := -44.0
 const BLIGHT_RADIUS := 17.0
 
 const ROLL_AMP := 0.7
@@ -129,6 +130,7 @@ const HILL_HEIGHT := 34.0
 
 static var _river: WorldPath
 static var _roads: Array[WorldPath] = []
+static var _roads_map: StringName = &""
 static var _noise: FastNoiseLite
 static var _hill_noise: FastNoiseLite
 
@@ -139,11 +141,29 @@ static func river() -> WorldPath:
 	return _river
 
 
+## The main road starts at the foot of the gate ramp; on a map whose gate is
+## off-centre it bends back to the bridge before the river.
 static func roads() -> Array[WorldPath]:
-	if _roads.is_empty():
-		for r in ROADS:
-			_roads.append(WorldPath.new(PackedVector2Array(r), 2.0, 10.0))
+	if _roads_map != Coords.map:
+		_roads_map = Coords.map
+		_roads.clear()
+		for i in ROADS.size():
+			var pts := PackedVector2Array(ROADS[i])
+			var gx := gate_x()
+			if i == 0 and gx != 0.0:
+				pts = PackedVector2Array([Vector2(gx, 40), Vector2(gx, 47), Vector2(0, 54)])
+				pts.append_array(PackedVector2Array(ROADS[0].slice(2)))
+			_roads.append(WorldPath.new(pts, 2.0, 10.0))
 	return _roads
+
+
+## World x of the gate (and its ramp) and of the portal on the current map.
+static func gate_x() -> float:
+	return Coords.gate().x
+
+
+static func blight_center() -> Vector2:
+	return Vector2(Coords.portal().x, BLIGHT_Z)
 
 
 static func _ensure_noise() -> void:
@@ -206,7 +226,8 @@ static func in_rects(p: Vector2, rects: Array, margin: float) -> bool:
 static func is_open(p: Vector2, margin: float) -> bool:
 	if plateau_sdf(p) < CLIFF_RUN + margin:
 		return false
-	if absf(p.x) < RAMP_HALF_WIDTH + 2.0 + margin and p.y > PLATEAU_MAX.y and p.y < RAMP_END_Z:
+	var ramp := absf(p.x - gate_x()) < RAMP_HALF_WIDTH + 2.0 + margin
+	if ramp and p.y > PLATEAU_MAX.y and p.y < RAMP_END_Z:
 		return false
 	if river().distance_to(p) < RIVER_HALF_WIDTH + 1.0 + margin:
 		return false

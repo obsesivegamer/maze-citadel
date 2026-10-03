@@ -2,6 +2,7 @@ class_name Placement
 extends RefCounted
 ## Anti-block validation (GDD §2). A tower may go on a tile only if, with it
 ## in place, the portal still reaches the gate and no ground creep is cut off.
+## Map ruins are never buildable.
 
 enum Result {
 	OK,
@@ -12,6 +13,7 @@ enum Result {
 	BLOCKS_PATH,
 	TRAPS_CREEP,
 	NO_GOLD,
+	OBSTACLE,
 }
 
 
@@ -27,8 +29,10 @@ static func check(
 ) -> Result:
 	if not Grid.in_bounds(tile):
 		return Result.OUT_OF_BOUNDS
-	if Grid.is_reserved(tile):
+	if grid.is_reserved(tile):
 		return Result.RESERVED
+	if grid.is_obstacle(tile):
+		return Result.OBSTACLE
 	if grid.is_blocked(tile):
 		return Result.OCCUPIED
 	if tile in body_tiles:
@@ -37,7 +41,7 @@ static func check(
 	var field := FlowField.new()
 	field.compute(grid)
 	grid.set_blocked(tile, false)
-	if not Grid.SPAWN_TILES.any(field.reachable):
+	if not grid.spawn_tiles.any(field.reachable):
 		return Result.BLOCKS_PATH
 	for c in center_tiles:
 		if grid.is_walkable(c) and not field.reachable(c):
@@ -63,4 +67,6 @@ static func describe(result: Result) -> String:
 			return "That would trap a creep"
 		Result.NO_GOLD:
 			return "Not enough gold"
+		Result.OBSTACLE:
+			return "Ruins block this tile"
 	return "Can't build here"

@@ -126,11 +126,28 @@ static func swaying(path: String, amp: float, flutter := 0.03) -> ArrayMesh:
 	var src: ArrayMesh = _mesh_parts(path)[0][0]
 	var mesh: ArrayMesh = src.duplicate()
 	var height := maxf(src.get_aabb().end.y, 0.1)
+	var cutouts: Array[bool] = []
+	for s in src.get_surface_count():
+		var base := src.surface_get_material(s) as BaseMaterial3D
+		cutouts.append(base != null and base.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED)
+	# Bark = the opaque surfaces of a plant with leaf cards; grass and crops
+	# are opaque single-sided blades and keep their detail and both faces.
+	var bark: Array[bool] = []
+	for c in cutouts:
+		bark.append(not c and cutouts.has(true))
+	var bark_lod := PerfFlags.get_int("nature-bark-lod", 0)
+	if bark_lod > 0 and bark.has(true):
+		mesh = FoliageVariants.with_lod(src, bark_lod, bark)
+	var leaf_priority := PerfFlags.get_int("leaf-priority", 0)
 	for s in mesh.get_surface_count():
 		var base := src.surface_get_material(s) as BaseMaterial3D
-		var cutout := base != null and base.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+		var cutout := cutouts[s]
 		var m := ShaderMaterial.new()
-		m.shader = FOLIAGE_CUTOUT_SHADER if cutout else FOLIAGE_SHADER
+		m.shader = FoliageVariants.shader(
+			FOLIAGE_CUTOUT_SHADER if cutout else FOLIAGE_SHADER, bark[s]
+		)
+		if cutout and leaf_priority != 0:
+			m.render_priority = leaf_priority
 		if base != null:
 			var tex := mipmapped_texture(base.albedo_texture)
 			if tex != null:
@@ -238,10 +255,16 @@ static func multimesh(
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = mesh
 	mm.instance_count = xforms.size()
+	var box := AABB()
+	var local := mesh.get_aabb()
 	for i in xforms.size():
 		mm.set_instance_transform(i, xforms[i])
+		box = xforms[i] * local if i == 0 else box.merge(xforms[i] * local)
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
+	# The headless dummy renderer can't read instance transforms back, so
+	# headless perf probes cull and pick LODs from this instead.
+	mmi.set_meta(&"bounds", box)
 	if not shadows:
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mmi

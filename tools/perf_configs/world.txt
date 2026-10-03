@@ -1,0 +1,11 @@
+# World-side (foliage) switches from the world perf pass. Headless probe
+# estimates are for the full view (main / shadow triangle change):
+#   chunk 32 -39/-25%, bark LOD 2 -24/-34%, shadow proxy 0/-82%,
+#   lod bias 0.5 -12/-12%, shadow radius 50 m shadow -70%.
+# Format: name | engine args | game args
+nature-combo     |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1
+nature-combo-lod |  | --pf-nature-chunk=32 --pf-nature-bark-lod=2 --pf-nature-shadow-proxy=1 --pf-nature-lod-bias=0.5 --pf-nature-fade=false
+nature-chunk     |  | --pf-nature-chunk=32
+nature-bark-lod  |  | --pf-nature-bark-lod=2
+nature-proxy     |  | --pf-nature-shadow-proxy=1
+nature-radius50  |  | --pf-nature-shadow-radius=50

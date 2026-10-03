@@ -5,6 +5,10 @@ extends RefCounted
 
 const PLATEAU_TOP := 1.6
 
+## The map being drawn (Game sets it before the world is built). Only the
+## portal and gate move between maps; the plateau is the same everywhere.
+static var map := MapDefs.DEFAULT
+
 
 static func to_world(p: Vector2, y := PLATEAU_TOP) -> Vector3:
 	return Vector3(p.x - Grid.WIDTH / 2.0, y, p.y - Grid.DEPTH / 2.0)
@@ -24,8 +28,8 @@ static func world_to_tile(w: Vector3) -> Vector2i:
 
 ## Portal and gate centres in world space.
 static func portal() -> Vector3:
-	return to_world(Vector2(Grid.WIDTH / 2.0, -3.0))
+	return to_world(Vector2(MapDefs.portal_x(map), -3.0))
 
 
 static func gate() -> Vector3:
-	return to_world(Vector2(Grid.WIDTH / 2.0, Grid.DEPTH + 3.0))
+	return to_world(Vector2(MapDefs.gate_x(map), Grid.DEPTH + 3.0))
