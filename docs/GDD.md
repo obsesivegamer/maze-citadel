@@ -1,8 +1,18 @@
 # Maze Citadel — Game Design
 
-The numbers below are **starting values**. The balance sim in M6 tunes them; when it does, this file gets updated in the same commit.
+This is the design reference for Maze Citadel: every rule, tower, creep and wave, with the numbers the game uses. If you only want to play, the [README](../README.md#how-to-play) covers what you need. Come here when you want to know exactly how something works.
 
-Inspirations: Element TD (element counters, leaks that loop), Gem TD (fusion), Wintermaul One (open mazing, anti-block), Poker TD / Cube Defense (cheap filler + tech towers). Not a clone: no Blizzard names, models or sounds ship.
+## Overview
+
+Maze Citadel is a single-player maze tower defense. Creeps walk from a portal at the north end of a plateau to a gate at the south end, and the player's towers are the maze they walk through. A longer road gives every tower more time to shoot. The player can bend the road as far as they like but can never close it.
+
+Two counter systems sit on top of the maze. Each tower has an attack type that is strong or weak against each armor class, and an element that is strong or weak around a ring of six. Every wave announces its armor and element ahead of time, so the game rewards reading what's coming and building for it. The forty waves start with one lesson each and build up to mixed pressure, with a boss every tenth wave.
+
+The design borrows from the Warcraft III custom maps it grew out of: the element counters and looping leaks of Element TD, the fusion of Gem TD, the open mazing and anti-block rule of Wintermaul One, and the mix of cheap filler and tech towers from Poker TD and Cube Defense. It isn't a clone, and no Blizzard names, models or sounds ship with it.
+
+The numbers on this page are the ones in the game. They began as estimates and were tuned by having bots play full games, and [balance.md](balance.md) records what changed and why. When a number changes in the game, this page changes in the same commit.
+
+The section numbers below are stable, because comments in the code refer to them, for example "GDD §10".
 
 ---
 
@@ -223,7 +233,7 @@ Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom
 | 9 | 12 Footmen + 4 Priestesses | Aqua | Armor + heal |
 | 10 | Ogre Chieftain + 8 Grunts | Flame | Boss aura, −2 leak |
 
-The full 40-row table lives in `data/waves` (M6). Elements rotate so each one appears 6–7 times.
+The full 40-row table is in `src/data/wave_defs.gd`. Elements rotate so each one appears 6–7 times.
 
 ## 10. Controls and camera
 

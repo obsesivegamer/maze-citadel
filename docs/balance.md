@@ -1,6 +1,24 @@
 # Balance log
 
-Bots play full games headless: `godot --headless --path . --script res://tests/bots/run_balance.gd` (about 15 minutes for 4 seeds of every run on one core; `-- --only=smart:hard` runs one row, `--seeds=N` sets the sample, `--per-wave` prints how far each wave got, `--twists` plays Twists mode with bot seed n on twist schedule n + 1).
+This is the record of how Maze Citadel's numbers were tuned. Three bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. The rules and numbers as they are now are in [GDD.md](GDD.md).
+
+## Running the bots
+
+```sh
+godot --headless --path . --script res://tests/bots/run_balance.gd
+```
+
+A full run plays 4 seeds of every row and takes about 15 minutes on one core. Options go after a `--`:
+
+| Option | What it does |
+|---|---|
+| `--only=smart:hard` | Runs a single row |
+| `--seeds=N` | Sets how many games each row plays |
+| `--per-wave` | Prints how far each wave got |
+| `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
+| `--map=rampart` | Plays on Fallen Rampart |
+
+## The bots
 
 | Bot | Plays like |
 |---|---|
