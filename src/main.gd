@@ -12,6 +12,7 @@ extends Node3D
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
 ##   --pacing                                    bench with vsync on; count missed frames
+##   --bench-any-focus                           bench without keyboard focus (always-on-top window)
 ##   --first-frame-out=<json>                    launch time and wave-1 hitches, quit
 ##   --sync-boot / --async-boot                  force one-frame setup / the loading screen
 
@@ -58,7 +59,8 @@ func _ready() -> void:
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
 	_attach_tools(
 		func(view: String) -> void: game.camera.preset(StringName(view), true),
-		game.quality_settings
+		game.quality_settings,
+		func() -> Dictionary: return _context(game)
 	)
 
 
@@ -70,7 +72,7 @@ func _boot_spike() -> void:
 	_attach_tools(world.set_view, settings)
 
 
-func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
+func _attach_tools(set_view: Callable, settings: Dictionary, context := Callable()) -> void:
 	if Cli.has("shot"):
 		var shot := Shot.new()
 		shot.prefix = Cli.get_str("shot")
@@ -84,8 +86,19 @@ func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
 		bench.out_path = Cli.get_str("bench-out")
 		bench.label = Cli.get_str("quality", "balanced")
 		bench.pacing = Cli.has("pacing")
+		bench.any_focus = Cli.has("bench-any-focus")
+		bench.context = context
 		bench.settings = settings
 		add_child(bench)
+
+
+static func _context(game: Game) -> Dictionary:
+	return {
+		"wave": game.sim.wave,
+		"phase": game.sim.phase,
+		"creeps": game.sim.creeps.size(),
+		"towers": game.sim.towers.size(),
+	}
 
 
 ## Any preset key given on the command line overrides that key, cast to the
