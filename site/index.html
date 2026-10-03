@@ -741,24 +741,38 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   var panels = document.querySelectorAll(".os-panel");
   if (!choices && !tabs.length) return;
   var ua = navigator.userAgent || "";
-  var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ua).toLowerCase();
-  var os = /win/.test(p) ? "windows" : /linux|x11/.test(p) && !/android|arm|aarch/i.test(p + ua + (navigator.platform || "")) ? "linux" : "mac";
-  var mine = choices && choices.querySelector('[data-os="' + os + '"]');
-  if (mine && os !== "mac") {
-    choices.querySelector('[data-os="mac"]').classList.add("alt");
-    mine.classList.remove("alt");
-    choices.insertBefore(mine, choices.firstChild);
-  }
-  if (!tabs.length) return;
+  var uad = navigator.userAgentData;
+  var p = ((uad && uad.platform) || navigator.platform || ua).toLowerCase();
+  var os = /win/.test(p) ? "windows" : /linux|x11/.test(p) && !/android|arm|aarch/i.test(p + ua) ? "linux" : "mac";
   function show(id) {
     tabs.forEach(function (t) { t.setAttribute("aria-pressed", String(t.dataset.os === id)); });
     panels.forEach(function (panel) { panel.hidden = panel.dataset.os !== id; });
   }
-  tabs.forEach(function (t) {
-    t.addEventListener("click", function () { show(t.dataset.os); });
-  });
-  tabs[0].parentNode.hidden = false;
-  show(document.querySelector('.os-tab[data-os="' + os + '"]') ? os : "mac");
+  function promote(id) {
+    var mine = choices && choices.querySelector('[data-os="' + id + '"]');
+    if (mine && id !== "mac") {
+      choices.querySelector('[data-os="mac"]').classList.add("alt");
+      mine.classList.remove("alt");
+      choices.insertBefore(mine, choices.firstChild);
+    }
+    if (tabs.length) show(document.querySelector('.os-tab[data-os="' + id + '"]') ? id : "mac");
+  }
+  if (tabs.length) {
+    tabs.forEach(function (t) {
+      t.addEventListener("click", function () { show(t.dataset.os); });
+    });
+    tabs[0].parentNode.hidden = false;
+  }
+  // Browsers report x86_64 even on ARM Linux, where this build can't run.
+  // Chromium can tell the real CPU on request; elsewhere, assume x86.
+  if (os === "linux" && uad && uad.getHighEntropyValues) {
+    promote("mac");
+    uad.getHighEntropyValues(["architecture"]).then(function (v) {
+      if (v.architecture === "x86") promote("linux");
+    }, function () {});
+  } else {
+    promote(os);
+  }
 })();
 
 // Practice board: a slice of the plateau in the game's own colors, seen from

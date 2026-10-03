@@ -45,7 +45,8 @@ func test_quality_fits_driver_and_screen() -> void:
 	check_near(Quality.for_display(b, "", 0).render_scale, 0.5, 1e-4, "headless leaves the scale")
 	for driver in ["opengl3", "opengl3_angle", "opengl3_es"]:
 		var gl := Quality.for_display(b, driver, 1080)
-		check_eq([gl.upscaler, gl.render_scale], ["bilinear", 1.0], "%s renders full size" % driver)
+		check_eq(gl.upscaler, "bilinear", "%s upscales bilinearly" % driver)
+		check_near(gl.render_scale, 720.0 / 1080.0, 1e-4, "%s keeps the floor" % driver)
 	check_eq(b.upscaler, "metalfx_temporal", "the preset itself is not modified")
 
 
