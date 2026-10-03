@@ -43,7 +43,7 @@
   --el-flame: #ff8538;
   --el-verdant: #80e059;
   --el-stone: #c7ad8a;
-  /* The practice board, in the game's own colors. */
+  /* The practice board, in the game's own colors (the board script reads these). */
   --grass: #6fae4f;
   --grass-alt: #67a548;
   --grass-edge: #2f4a22;
@@ -66,7 +66,7 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--stone); scroll-behavior: smooth; }
+html { background: var(--stone); scroll-behavior: smooth; scroll-padding-top: 88px; }
 body {
   margin: 0;
   background: var(--stone);
@@ -81,21 +81,34 @@ a:hover { color: var(--text); }
 h1, h2, h3 { text-wrap: balance; margin: 0; }
 p { margin: 0; }
 .wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Top bar */
-.top { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 28px; padding-block: 14px; }
+/* Top bar. It rides on the hero at first, as part of the picture. Once the
+   page moves it turns into a solid bar that stays, and once the hero's own
+   download button is out of sight it carries one of its own. */
+.bar {
+  position: sticky; top: 0; z-index: 30; height: 72px; margin-bottom: -72px;
+  background: rgba(13, 11, 10, 0.92); border-bottom: 1px solid var(--stone-line);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.bar.at-top { background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 4px 28px; height: 100%; }
 .brand {
   display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
   font: 800 1.2rem/1 var(--display); letter-spacing: 0.04em; color: var(--gold-bright); text-decoration: none;
 }
 .brand svg { width: 26px; height: 26px; flex: none; }
-.top nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0 22px; font-size: var(--step--1); font-weight: 500; }
+.top nav { display: flex; align-items: center; gap: 0 22px; font-size: var(--step--1); font-weight: 500; }
 .top nav a { color: var(--text); text-decoration: none; padding-block: 12px; }
 .top nav a:hover { color: var(--gold-bright); }
 .top nav .nav-get {
   padding: 8px 16px; border: 1px solid var(--gold-dim); border-radius: var(--radius);
   background: var(--shade); color: var(--gold-bright);
+  max-width: 9rem; overflow: hidden; white-space: nowrap;
+  transition: max-width 0.25s ease, padding 0.25s ease, margin 0.25s ease, opacity 0.2s ease, border-color 0.2s ease, visibility 0.25s;
 }
+.bar.no-get .nav-get { max-width: 0; padding-inline: 0; margin-left: -22px; border-color: transparent; opacity: 0; visibility: hidden; }
 
 /* Hero */
 .hero { position: relative; isolation: isolate; overflow: hidden; background: var(--stone-deep); }
@@ -112,7 +125,7 @@ p { margin: 0; }
     linear-gradient(to top, var(--stone) 0%, var(--shade) 30%, var(--shade-soft) 70%),
     linear-gradient(to right, var(--shade) 0%, var(--shade-soft) 60%);
 }
-.hero-inner { display: grid; gap: 22px; padding-block: clamp(120px, 20vw, 280px) 72px; }
+.hero-inner { display: grid; gap: 22px; padding-block: calc(72px + clamp(120px, 20vw, 280px)) 72px; }
 .eyebrow {
   font: 500 var(--step--1)/1.2 var(--body);
   letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
@@ -179,32 +192,18 @@ h3 { font: 600 var(--step-1)/1.2 var(--display); color: var(--gold-bright); }
 .split-top { align-items: flex-start; }
 
 /* The practice board */
-.maze-copy { flex: 1 1 360px; display: grid; gap: 16px; align-content: start; padding-top: 12px; }
-.road { display: flex; align-items: baseline; gap: 14px; margin-top: 8px; }
+.maze { display: grid; gap: 36px; }
+.maze-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px 56px; }
+.maze-copy { flex: 1 1 360px; display: grid; gap: 16px; align-content: start; }
+.road { display: flex; align-items: baseline; gap: 14px; }
 .road b { font: 800 3.4rem/1 var(--display); color: var(--gold-bright); font-variant-numeric: tabular-nums; }
 .road span { font-size: var(--step--1); line-height: 1.4; color: var(--text-dim); }
-.board { flex: 1 1 380px; max-width: 440px; margin-inline: auto; display: grid; gap: 14px; padding: 18px; background: var(--stone-deep); }
+.board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 18px; background: var(--stone-deep); }
 .board-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; font-size: var(--step--1); color: var(--text-dim); }
 .board-head h3 { font-size: var(--step-0); }
-.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 8px; border-radius: 5px; background: var(--grass-edge); }
-.tile {
-  aspect-ratio: 1; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 5px;
-  background: var(--grass); display: grid; place-items: center; cursor: pointer;
-}
-.tile.alt { background: var(--grass-alt); }
-.tile::after { content: ""; display: block; width: 0; height: 0; border-radius: 50%; }
-.tile:hover { filter: brightness(1.12); }
-.tile.road { background: var(--road); }
-.tile.road::after { width: 22%; height: 22%; background: var(--road-stone); }
-.tile.tower::after { width: 66%; height: 66%; background: var(--roof); box-shadow: inset 0 0 0 3px var(--text), 0 3px 0 var(--roof-deep); }
-.tile.portal { background: var(--portal); cursor: default; }
-.tile.portal::after { width: 56%; height: 56%; background: var(--portal-core); box-shadow: 0 0 0 4px #ffb27a; }
-.tile.gate { background: var(--roof); cursor: default; }
-.tile.gate::after { width: 46%; height: 46%; border-radius: 40% 40% 3px 3px; background: #dbe7ff; }
-.tile.portal:hover, .tile.gate:hover { filter: none; }
-.tile.refused { background: var(--refused); }
-.tile.refused::after { width: 24%; height: 24%; background: #fff; }
-.board-msg { min-height: 3.1em; font-size: var(--step--1); line-height: 1.55; color: var(--text-dim); }
+#board { display: block; width: 100%; height: 0; touch-action: manipulation; outline: none; }
+.board-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 28px; }
+.board-msg { flex: 1 1 320px; font-size: var(--step--1); line-height: 1.55; color: var(--text-dim); }
 .board-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .ghost {
   min-height: 44px; padding: 0 18px; border-radius: var(--radius);
@@ -327,6 +326,9 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   .keys { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
+  .bar { margin-bottom: 0; }
+  .bar.at-top { background: var(--stone); }
+  .top nav a:not(.nav-get) { display: none; }
   .hero { background: var(--stone); }
   .hero-art {
     position: relative; height: auto; aspect-ratio: 16 / 10;
@@ -345,7 +347,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
 </head>
 <body>
 
-<header class="hero">
+<div class="bar" id="bar">
   <div class="wrap top">
     <a class="brand" href="#top">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 27V11h3V7h3v4h2V7h4v4h2V7h3v4h3v16h-8v-5a3 3 0 0 0-6 0v5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
@@ -359,6 +361,28 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
       <a class="nav-get" href="#download">Download</a>
     </nav>
   </div>
+</div>
+<script>
+// Top bar: it sits on the hero at first. Once the page moves it turns solid,
+// and it only offers the download once the hero's own button is out of sight.
+// (Run here, before the page is drawn, so the bar never flashes its other look.)
+(function () {
+  var bar = document.getElementById("bar");
+  function moved() { bar.classList.toggle("at-top", window.scrollY < 12); }
+  bar.classList.add("no-get");
+  moved();
+  window.addEventListener("scroll", moved, { passive: true });
+  document.addEventListener("DOMContentLoaded", function () {
+    var get = document.getElementById("download");
+    if (!get || !("IntersectionObserver" in window)) { bar.classList.remove("no-get"); return; }
+    new IntersectionObserver(function (seen) {
+      bar.classList.toggle("no-get", seen[seen.length - 1].isIntersecting);
+    }, { rootMargin: "-72px 0px 0px 0px" }).observe(get);
+  });
+})();
+</script>
+
+<header class="hero">
   <img class="hero-art" src="img/hero.jpg" width="1600" height="969"
        alt="Wave 24 pours out of the red demon portal into a wall of archer, frost and plague towers">
   <div class="hero-inner wrap" id="top">
@@ -395,28 +419,34 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
 
 <main>
   <section id="maze" aria-labelledby="maze-title">
-    <div class="wrap split split-top">
-      <div class="maze-copy">
-        <p class="kicker">Build the maze</p>
-        <h2 id="maze-title">Every tower is also a wall</h2>
-        <div class="prose">
-          <p>Towers block the tile they stand on, so where you build decides the demons' road. Stretch it and every tower gets longer to shoot. On the real <strong>20 × 28 tile plateau</strong> the glowing path redraws with every tower you place.</p>
-          <p>Wall as hard as you like, but never shut the road: a tower that would cut the portal off from the gate won't build. Try it on this practice board.</p>
+    <div class="wrap maze">
+      <div class="maze-top">
+        <div class="maze-copy">
+          <p class="kicker">Build the maze</p>
+          <h2 id="maze-title">Every tower is also a wall</h2>
+          <div class="prose">
+            <p>Towers block the tile they stand on, so where you build decides the demons' road. Stretch it and every tower gets longer to shoot. On the real <strong>20 × 28 tile plateau</strong> the glowing path redraws with every tower you place.</p>
+            <p>Wall as hard as you like, but never shut the road: a tower that would cut the portal off from the gate won't build. Try it on this practice board.</p>
+          </div>
         </div>
-        <p class="road" aria-live="polite"><b id="road-len">18</b><span>tiles of road<br>a straight road is 10</span></p>
+        <p class="road"><b id="road-len">21</b><span>tiles of road<br>a straight road is <span id="road-straight">21</span></span></p>
       </div>
       <div class="board framed">
         <div class="board-head">
           <h3>Practice board</h3>
-          <span>7 × 10 tiles</span>
+          <span id="board-size">21 × 11 tiles</span>
         </div>
-        <div class="grid" id="maze-grid" role="group" aria-label="Practice board, 7 by 10 tiles. Portal at the top, gate at the bottom."></div>
+        <canvas id="board" tabindex="0" role="application" aria-describedby="maze-msg"
+                aria-label="Practice board. The arrow keys move over the tiles. Enter builds a tower, or sells the one that is there.">A practice board: towers bend the road that runs from the demon portal to the town gate.</canvas>
         <noscript><p class="board-msg">Turn on JavaScript to build on the practice board.</p></noscript>
-        <p class="board-msg" id="maze-msg" aria-live="polite">Click grass to build a tower and click a tower to sell it. See how long you can make the road.</p>
-        <div class="board-actions">
-          <button type="button" class="ghost" id="maze-clear">Clear the board</button>
-          <button type="button" class="ghost" id="maze-starter">Starter maze</button>
+        <div class="board-foot">
+          <p class="board-msg" id="maze-msg" aria-live="polite">Click a tile to build a tower and click a tower to sell it. See how long you can make the road.</p>
+          <div class="board-actions">
+            <button type="button" class="ghost" id="maze-clear">Clear the board</button>
+            <button type="button" class="ghost" id="maze-starter">Starter maze</button>
+          </div>
         </div>
+        <p class="sr-only" id="maze-cursor" aria-live="polite"></p>
       </div>
     </div>
   </section>
@@ -582,104 +612,569 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   show(cards[0].dataset.tower);
 })();
 
-// Practice board: a 7 x 10 corner of the plateau. Towers block tiles, the road
-// is the shortest walk from portal to gate, and a tower that would leave no
-// walk at all is refused, as in the game.
+// Practice board: a slice of the plateau in the game's own colors, seen from
+// above its near edge. Towers block tiles, the road is the shortest walk from
+// portal to gate, and a tower that would leave no walk at all is refused, as
+// in the game. The first time it scrolls into view it unrolls, the starter
+// maze rises wall by wall, and demons then walk the road.
 (function () {
-  var grid = document.getElementById("maze-grid");
-  if (!grid) return;
-  var ROWS = 10, COLS = 7, PORTAL = "0,3", GATE = "9,3";
-  var STARTER = ["3,0", "3,1", "3,2", "3,3", "3,4", "6,2", "6,3", "6,4", "6,5", "6,6"];
+  "use strict";
+  var canvas = document.getElementById("board");
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext("2d");
   var lenEl = document.getElementById("road-len");
+  var straightEl = document.getElementById("road-straight");
+  var sizeEl = document.getElementById("board-size");
   var msgEl = document.getElementById("maze-msg");
-  var towers = new Set(STARTER);
-  var refused = "";
-  var tiles = [];
+  var cursorEl = document.getElementById("maze-cursor");
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var css = window.getComputedStyle(document.documentElement);
+  function ink(name) { return css.getPropertyValue("--" + name).trim(); }
+  var GRASS = ink("grass"), GRASS_ALT = ink("grass-alt"), EARTH = ink("grass-edge"), ROAD = ink("road"), PEBBLE = ink("road-stone");
+  var ROOF = ink("roof"), ROOF_DEEP = ink("roof-deep"), FLAME = ink("portal"), EMBER = ink("portal-core"), NO = ink("refused");
+  var CREAM = ink("text"), GOLD = ink("gold-bright");
 
-  function road(blocked) {
-    var prev = {}, seen = new Set([PORTAL]), queue = [[0, 3]];
-    var steps = [[1, 0], [0, 1], [0, -1], [-1, 0]];
-    while (queue.length) {
-      var cur = queue.shift();
-      if (cur[0] + "," + cur[1] === GATE) break;
-      for (var i = 0; i < steps.length; i++) {
-        var r = cur[0] + steps[i][0], c = cur[1] + steps[i][1], k = r + "," + c;
-        if (r < 0 || c < 0 || r >= ROWS || c >= COLS || seen.has(k) || blocked.has(k)) continue;
-        seen.add(k);
-        prev[k] = cur[0] + "," + cur[1];
-        queue.push([r, c]);
+  var TAU = Math.PI * 2;
+  var TILT = 50 * Math.PI / 180, SIN = Math.sin(TILT), COS = Math.cos(TILT);
+  var SEAM = 0.04;                      // the dark seam around every tile
+  var EDGE = 0.1;                       // gap between a tower and the edge of its tile
+  var RING = 0.24;                      // the cream ring on its roof, as a share of a tile
+  var RANGE = 2.4, SPEED = 2.6, EVERY = 0.55, DAMAGE = 5.5;
+  var TOUGH = 7.4, HEALTH = 1;          // a demon's health per starter tower; HEALTH is set with the board's size
+  var DC = [1, 0, 0, -1], DR = [0, 1, -1, 0];   // east, south, north, west
+
+  var C = 0, R = 0, N = 0, PORTAL = 0, GATE = 0;          // the grid
+  var W = 0, H = 0, K = 1, CX = 0, CY = 0, D = 1;         // the camera
+  var order = [];                                         // columns, outside in, so nearer faces draw last
+  var towers = [], dist = null, route = [], onRoad = null, creeps = [], shots = [], rings = [], queue = [];
+  var clock = 0, last = 0, loop = 0, running = false, visible = false, begun = false, live = false;
+  var hover = -1, keyed = false, ghost = null, ghostFor = -1, ghostAt = 0;
+  var comet = 2, flash = 0, nope = -1, nopeAt = -9, waveIn = 0, spawnIn = 0, toSpawn = 0;
+  var px = 0, py = 0, ps = 1, stepDir = 0;
+
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function ease(u) { return 1 - Math.pow(1 - u, 3); }
+  function back(u) { u -= 1; return u * u * (2.70158 * u + 1.70158) + 1; }
+
+  // Camera: the board lies flat and is seen from above its near edge.
+  function size() {
+    var w = canvas.parentNode.clientWidth;
+    var cols = w < 520 ? 11 : w < 860 ? 17 : 21, rows = w < 520 ? 9 : 11;
+    var fresh = cols !== C || rows !== R, c;
+    C = cols; R = rows; N = C * R; PORTAL = (R >> 1) * C; GATE = PORTAL + C - 1;
+    order = [];
+    for (c = 0; c < C; c++) order.push(c);
+    order.sort(function (a, b) { return Math.abs(b + 0.5 - C / 2) - Math.abs(a + 0.5 - C / 2); });
+    D = R * 3.4;
+    var depth = R / 2 * SIN, near = D / (D - depth), far = D / (D + depth);
+    K = (w - 8) / (C * near);
+    var head = 1.45 * SIN * far * K + 4;                  // room above the far edge for its towers
+    var farY = -R / 2 * COS * far * K, nearY = R / 2 * COS * near * K;
+    var foot = 0.6 * SIN * near * K + 6;                  // the slab's front face
+    W = w; H = Math.ceil(head - farY + nearY + foot);
+    CX = w / 2; CY = head - farY;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    straightEl.textContent = C;
+    sizeEl.textContent = C + " × " + R + " tiles";
+    // Demons are as tough as the starter maze is long, so it just holds them
+    // and more walls make it easy. On any size of board.
+    HEALTH = TOUGH * (R - 1) * (Math.floor((C * 0.62 - 2) / 3) + 1);
+    return fresh;
+  }
+  function proj(x, y, z) {            // board space (tiles, z up) to the screen: sets px, py, ps
+    var Y = y - R / 2;
+    ps = D / (D - Y * SIN - z * COS);
+    px = CX + (x - C / 2) * ps * K;
+    py = CY + (Y * COS - z * SIN) * ps * K;
+  }
+  function trace(a) {                 // adds a closed shape through x, y, z triples to the current path
+    for (var i = 0; i < a.length; i += 3) {
+      proj(a[i], a[i + 1], a[i + 2]);
+      if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+  }
+  function face(a) { ctx.beginPath(); trace(a); }
+  function tile(c, r) { trace([c + SEAM, r + SEAM, 0, c + 1 - SEAM, r + SEAM, 0, c + 1 - SEAM, r + 1 - SEAM, 0, c + SEAM, r + 1 - SEAM, 0]); }
+  function tileAt(sx, sy) {           // the ground tile under a screen point, or -1
+    var u = (sx - CX) / K, v = (sy - CY) / K;
+    var Y = v * D / (D * COS + v * SIN), X = u * (D - Y * SIN) / D;
+    var c = Math.floor(X + C / 2), r = Math.floor(Y + R / 2);
+    return c < 0 || r < 0 || c >= C || r >= R ? -1 : r * C + c;
+  }
+  function pick(sx, sy) {             // a tower's body counts as its tile
+    var r, c, t, x0, x1, y1;
+    for (r = R - 1; r >= 0; r--) {
+      for (c = 0; c < C; c++) {
+        t = towers[r * C + c];
+        if (!t || t.out >= 0) continue;
+        proj(c + EDGE, r + 1 - EDGE, 0); x0 = px; y1 = py;
+        proj(c + 1 - EDGE, r + 1 - EDGE, 0); x1 = px;
+        proj(c + 0.5, r + EDGE, t.h);
+        if (sx >= x0 && sx <= x1 && sy >= py && sy <= y1) return r * C + c;
       }
     }
-    if (!seen.has(GATE)) return null;
-    var path = [];
-    for (var at = GATE; at; at = prev[at]) path.push(at);
-    return path;
+    return tileAt(sx, sy);
   }
 
-  function draw() {
-    var path = road(towers) || [];
-    var onRoad = new Set(path);
-    tiles.forEach(function (b) {
-      var k = b.dataset.k, rc = k.split(","), where = "row " + (+rc[0] + 1) + ", column " + (+rc[1] + 1);
-      var kind = "grass", label = "Grass, " + where + ". Build a tower";
-      if (k === PORTAL) { kind = "portal"; label = "Demon portal"; }
-      else if (k === GATE) { kind = "gate"; label = "Town gate"; }
-      else if (k === refused) { kind = "refused"; label = "Refused, " + where + ": it would seal the road"; }
-      else if (towers.has(k)) { kind = "tower"; label = "Tower, " + where + ". Sell it"; }
-      else if (onRoad.has(k)) { kind = "road"; label = "Road, " + where + ". Build a tower"; }
-      b.className = "tile " + kind + ((+rc[0] + +rc[1]) % 2 ? " alt" : "");
-      b.setAttribute("aria-label", label);
-    });
-    lenEl.textContent = path.length;
+  // Rules
+  function standing(j) { var t = towers[j]; return !!t && t.out < 0; }
+  function field(extra) {             // steps to the gate from every open tile; `extra` is one more wall
+    var d = new Int16Array(N), q = new Int16Array(N), head = 0, tail = 0, i, j, k, c, r, cc, rr;
+    for (i = 0; i < N; i++) d[i] = -1;
+    d[GATE] = 0; q[tail++] = GATE;
+    while (head < tail) {
+      i = q[head++]; c = i % C; r = (i - c) / C;
+      for (k = 0; k < 4; k++) {
+        cc = c + DC[k]; rr = r + DR[k];
+        if (cc < 0 || rr < 0 || cc >= C || rr >= R) continue;
+        j = rr * C + cc;
+        if (d[j] >= 0 || j === extra || standing(j)) continue;
+        d[j] = d[i] + 1; q[tail++] = j;
+      }
+    }
+    return d;
   }
-
+  // The neighbor one step nearer the gate. Of several, it heads for the gate's
+  // row first and otherwise keeps straight on, which draws the cleanest road.
+  function onward(d, i, dir) {
+    var want = d[i] - 1, c = i % C, r = (i - c) / C, mid = R >> 1, n, k, cc, rr;
+    var first = r < mid ? 1 : r > mid ? 2 : dir;
+    if (want < 0) return -1;
+    for (n = -2; n < 4; n++) {
+      k = n === -2 ? first : n === -1 ? dir : n;
+      cc = c + DC[k]; rr = r + DR[k];
+      if (cc < 0 || rr < 0 || cc >= C || rr >= R) continue;
+      if (d[rr * C + cc] === want) { stepDir = k; return rr * C + cc; }
+    }
+    return -1;
+  }
+  function settle(d) {                // adopt a field and redraw the road from it
+    var i = PORTAL, dir = 0;
+    dist = d || field(-1);
+    route = []; onRoad = new Uint8Array(N);
+    while (i >= 0) {
+      route.push(i); onRoad[i] = 1;
+      if (i === GATE) break;
+      i = onward(dist, i, dir); dir = stepDir;
+    }
+    lenEl.textContent = route.length;
+    ghostFor = -1;
+  }
+  // Whether a tower may stand on tile i: the field with it in place, or why
+  // not ("seal": it leaves no road; "creep": a demon is in the way).
+  function check(i) {
+    var n, d;
+    for (n = 0; n < creeps.length; n++) if (creeps[n].tile === i || creeps[n].next === i) return "creep";
+    d = field(i);
+    if (d[PORTAL] < 0) return "seal";
+    for (n = 0; n < creeps.length; n++) if (d[creeps[n].next] < 0) return "seal";
+    return d;
+  }
+  function raise(i, mark) {
+    towers[i] = {
+      c: i % C, r: (i - i % C) / C, h: 0.7 + 0.13 * (i * 7 % 3),
+      born: calm.matches ? -9 : clock, out: -1, cool: Math.random(), lit: 0
+    };
+    if (mark && !calm.matches) rings.push({ x: i % C + 0.5, y: (i - i % C) / C + 0.5, color: "#fff", age: 0, life: 0.45, size: 0.95 });
+  }
   function say(text) { msgEl.textContent = text; }
-
-  function toggle(k) {
-    if (k === PORTAL || k === GATE) return;
-    if (towers.has(k)) {
-      towers.delete(k);
-      refused = "";
+  function toggle(i) {
+    var d;
+    if (i < 0 || !begun) return;
+    nope = -1;
+    if (i === PORTAL) { say("That is the demon portal. The road starts here."); return; }
+    if (i === GATE) { say("That is the town gate. Every demon that reaches it costs a life."); return; }
+    if (standing(i)) {
+      if (calm.matches) towers[i] = undefined; else towers[i].out = clock;
+      settle(); comet = 0;
       say("Sold. The road redraws the moment a tower goes.");
-    } else {
-      var next = new Set(towers);
-      next.add(k);
-      if (road(next)) {
-        towers = next;
-        refused = "";
-        say("Built. Every tile you add to the road is more time under fire.");
+    } else if (!towers[i]) {
+      d = check(i);
+      if (typeof d === "string") {
+        nope = i; nopeAt = clock;
+        say(d === "creep" ? "A demon is standing there. Build once it has passed." :
+          "That tower would seal the road, so it won't build. Leave the demons a way through.");
       } else {
-        refused = k;
-        say("That tower would seal the road, so it won't build. Leave the demons a way through.");
+        raise(i, true);
+        settle(d); comet = 0;
+        say("Built. Every tile you add to the road is more time under fire.");
       }
     }
+    refresh();
+  }
+
+  // The starter maze, wall by wall. Returns when the last tower lands.
+  function at(t, fn) {
+    var i = queue.length;
+    while (i > 0 && queue[i - 1][0] > t) i--;
+    queue.splice(i, 0, [t, fn]);
+  }
+  function drain(all) { while (queue.length && (all || queue[0][0] <= clock)) queue.shift()[1](); }
+  function plant(i) {
+    var d;
+    if (towers[i]) return;
+    d = check(i);
+    if (d === "creep") { at(clock + 0.3, function () { plant(i); }); return; }
+    if (d === "seal") return;
+    raise(i, false);
+    settle(d);
+  }
+  function walls(from, pace) {
+    var t = from, wall = 0, c, n;
+    function later(when, i) { at(when, function () { plant(i); }); }
+    for (c = 2; c <= C * 0.62; c += 3, wall++) {
+      for (n = 0; n < R - 1; n++) later(t + n * 0.045 * pace, (wall % 2 ? R - 1 - n : n) * C + c);
+      t += ((R - 1) * 0.045 + 0.2) * pace;
+    }
+    return t;
+  }
+  function opening(skip) {
+    towers = new Array(N); creeps = []; shots = []; rings = []; queue = [];
+    clock = skip ? 5 : 0; comet = 2; toSpawn = 0; live = false; hover = -1; begun = true;
+    settle();
+    at(walls(clock + 1.5, 1) + 0.25, function () { live = true; waveIn = 0; });
+    if (skip || calm.matches) drain(true);
+  }
+
+  function update(dt) {
+    var i, n, t, cr, best, bestLeft, left, dx, dy, a, b;
+    drain(false);
+    for (i = 0; i < N; i++) if (towers[i] && towers[i].out >= 0 && clock - towers[i].out > 0.16) towers[i] = undefined;
+
+    // Waves leave the portal a few demons at a time.
+    if (live) {
+      waveIn -= dt; spawnIn -= dt;
+      if (waveIn <= 0 && creeps.length < 24) { toSpawn = 9; waveIn = 12; }
+      if (toSpawn > 0 && spawnIn <= 0) {
+        toSpawn--; spawnIn = 0.46;
+        n = onward(dist, PORTAL, 0);
+        if (n >= 0) creeps.push({ tile: PORTAL, next: n, dir: stepDir, p: 0, hp: HEALTH, hit: 0, x: 0.5, y: (R >> 1) + 0.5 });
+      }
+    }
+    for (i = 0; i < creeps.length; i++) {
+      cr = creeps[i];
+      cr.hit = Math.max(0, cr.hit - dt * 7);
+      cr.p += SPEED * dt;
+      while (cr.p >= 1) {
+        cr.p -= 1; cr.tile = cr.next;
+        if (cr.tile === GATE) { cr.tile = PORTAL; cr.dir = 0; cr.p = 0; flash = 1; }   // a leak: it loops back for another pass
+        n = onward(dist, cr.tile, cr.dir);
+        if (n < 0) { cr.next = cr.tile; cr.p = 0; break; }
+        cr.next = n; cr.dir = stepDir;
+      }
+      a = cr.tile % C; b = cr.next % C;
+      cr.x = a + (b - a) * cr.p + 0.5;
+      a = (cr.tile - a) / C; b = (cr.next - b) / C;
+      cr.y = a + (b - a) * cr.p + 0.5;
+    }
+    // Every tower shoots the demon nearest the gate that it can reach.
+    for (i = 0; i < N; i++) {
+      t = towers[i];
+      if (!t || t.out >= 0) continue;
+      t.lit = Math.max(0, t.lit - dt * 6);
+      t.cool -= dt;
+      if (t.cool > 0 || clock - t.born < 0.4) continue;
+      best = null; bestLeft = 1e9;
+      for (n = 0; n < creeps.length; n++) {
+        cr = creeps[n]; dx = cr.x - t.c - 0.5; dy = cr.y - t.r - 0.5;
+        if (dx * dx + dy * dy > RANGE * RANGE) continue;
+        left = dist[cr.next] + 1 - cr.p;
+        if (left < bestLeft) { bestLeft = left; best = cr; }
+      }
+      if (!best) continue;
+      t.cool = EVERY * (0.85 + Math.random() * 0.3); t.lit = 1;
+      best.hp -= DAMAGE; best.hit = 1;
+      shots.push({ x: t.c + 0.5, y: t.r + 0.5, z: t.h, to: best, age: 0 });
+      if (best.hp <= 0) {
+        creeps.splice(creeps.indexOf(best), 1);
+        rings.push({ x: best.x, y: best.y, color: FLAME, age: 0, life: 0.5, size: 0.9 });
+      }
+    }
+    for (i = shots.length - 1; i >= 0; i--) if ((shots[i].age += dt) > 0.14) shots.splice(i, 1);
+    for (i = rings.length - 1; i >= 0; i--) if ((rings[i].age += dt) > rings[i].life) rings.splice(i, 1);
+    flash = Math.max(0, flash - dt * 2.5);
+    if (comet < 2) comet += dt / (0.45 + route.length * 0.008);
+  }
+
+  // Drawing
+  function tower(c, r, h, alpha, lit, bad, dx) {     // a blue-roofed block with a cream ring, like the board's old tokens
+    var x0 = c + EDGE + dx, x1 = c + 1 - EDGE + dx, y0 = r + EDGE, y1 = r + 1 - EDGE;
+    ctx.globalAlpha = alpha * 0.3;
+    face([x0, y1, 0, x1, y1, 0, x1 + 0.05, y1 + 0.22, 0, x0 + 0.05, y1 + 0.22, 0]);   // its shadow on the grass
+    ctx.fillStyle = "#0d0b0a"; ctx.fill();
+    ctx.globalAlpha = alpha;
+    if (c + 0.5 < C / 2) face([x1, y0, 0, x1, y1, 0, x1, y1, h, x1, y0, h]);
+    else face([x0, y0, 0, x0, y1, 0, x0, y1, h, x0, y0, h]);
+    ctx.fillStyle = bad ? "#6e1c1f" : "#132c61"; ctx.fill();
+    face([x0, y1, 0, x1, y1, 0, x1, y1, h, x0, y1, h]);
+    ctx.fillStyle = bad ? "#a52a2e" : ROOF_DEEP; ctx.fill();
+    face([x0, y0, h, x1, y0, h, x1, y1, h, x0, y1, h]);
+    ctx.fillStyle = bad ? NO : ROOF; ctx.fill();
+    proj(c + 0.5 + dx, r + 0.5, h);
+    ctx.beginPath(); ctx.ellipse(px, py, RING * K * ps, RING * K * ps * COS, 0, 0, TAU);
+    if (lit > 0) { ctx.fillStyle = "rgba(255,255,255," + 0.85 * lit + ")"; ctx.fill(); }   // it flares as it fires
+    ctx.strokeStyle = bad ? "#fff" : CREAM; ctx.lineWidth = Math.max(1.5, K * 0.06); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function rise(t) {                  // a tower grows in and shrinks out
+    var u;
+    if (t.out >= 0) return t.h * Math.max(0, 1 - (clock - t.out) / 0.16);
+    u = (clock - t.born) / 0.42;
+    return u >= 1 ? t.h : t.h * back(Math.max(0, u));
+  }
+  function creep(cr) {
+    var gx, gy, rad;
+    proj(cr.x, cr.y, 0); gx = px; gy = py;
+    proj(cr.x, cr.y, 0.3); rad = 0.16 * K * ps;
+    ctx.fillStyle = "rgba(13,11,10,0.35)";
+    ctx.beginPath(); ctx.ellipse(gx, gy, rad, rad * COS, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = cr.hit > 0.5 ? "#fff" : FLAME;
+    ctx.beginPath(); ctx.arc(px, py, rad, 0, TAU); ctx.fill();
+    ctx.strokeStyle = EMBER; ctx.lineWidth = Math.max(1.5, rad * 0.3); ctx.stroke();
+    if (cr.hp < HEALTH) {             // what is left of it, as an arc
+      ctx.strokeStyle = CREAM; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(px, py, rad + 3.5, -TAU / 4, -TAU / 4 + TAU * clamp(cr.hp / HEALTH)); ctx.stroke();
+    }
+  }
+  function beacon(at, fill, core, rim, rgb, power) {   // the portal and the gate: a marked tile under a pillar of light
+    var c = at % C, r = (at - c) / C, bx, by, wide, rad, topY, g, a = clock * 1.6;
+    ctx.beginPath(); tile(c, r); ctx.fillStyle = fill; ctx.fill();
+    proj(c + 0.5, r + 0.5, 2.8); topY = py;
+    proj(c + 0.5, r + 0.5, 0); bx = px; by = py; wide = 0.3 * K * ps; rad = 0.3 * K * ps;
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.ellipse(bx, by, rad, rad * COS, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = rim; ctx.lineWidth = Math.max(2, K * 0.07); ctx.stroke();
+    ctx.lineWidth = Math.max(1.5, K * 0.05); ctx.strokeStyle = CREAM;
+    ctx.beginPath(); ctx.ellipse(bx, by, rad * 0.55, rad * 0.55 * COS, 0, a, a + 2.2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(bx, by, rad * 0.55, rad * 0.55 * COS, 0, a + TAU / 2, a + TAU / 2 + 2.2); ctx.stroke();
+    g = ctx.createLinearGradient(0, by, 0, topY);
+    g.addColorStop(0, "rgba(" + rgb + "," + Math.min(0.9, 0.5 * power) + ")"); g.addColorStop(1, "rgba(" + rgb + ",0)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(bx - wide, by); ctx.lineTo(bx + wide, by); ctx.lineTo(bx + wide * 0.5, topY); ctx.lineTo(bx - wide * 0.5, topY); ctx.closePath(); ctx.fill();
+  }
+  function stones() {                 // pale stones drift down the road toward the gate
+    var n = route.length, pts = [], i, j, c, hi, lo;
+    if (n < 2) return;
+    for (i = 0; i < n; i++) { c = route[i] % C; proj(c + 0.5, (route[i] - c) / C + 0.5, 0); pts.push(px, py); }
+    ctx.save();
+    ctx.lineJoin = ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(pts[0], pts[1]);
+    for (i = 1; i < n - 1; i++) ctx.quadraticCurveTo(pts[2 * i], pts[2 * i + 1], (pts[2 * i] + pts[2 * i + 2]) / 2, (pts[2 * i + 1] + pts[2 * i + 3]) / 2);
+    ctx.lineTo(pts[2 * n - 2], pts[2 * n - 1]);
+    ctx.strokeStyle = PEBBLE; ctx.lineWidth = Math.max(3.5, K * 0.13);
+    ctx.setLineDash([0.01, Math.max(12, K * 0.42)]); ctx.lineDashOffset = -clock * K * 0.7;
+    ctx.stroke();
+    if (comet < 1.2) {                // a pulse runs down a road that has just changed
+      hi = Math.min(n - 1, comet * (n - 1)); lo = Math.max(0, hi - Math.max(2, n * 0.06));
+      ctx.setLineDash([]); ctx.beginPath();
+      for (i = Math.floor(lo); i <= Math.ceil(hi); i++) {
+        j = Math.min(n - 1, i);
+        if (i === Math.floor(lo)) ctx.moveTo(pts[2 * j], pts[2 * j + 1]); else ctx.lineTo(pts[2 * j], pts[2 * j + 1]);
+      }
+      ctx.strokeStyle = "#fff"; ctx.globalAlpha = 0.9 * clamp((1.2 - comet) / 0.2); ctx.lineWidth = Math.max(3, K * 0.1); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function draw() {
+    var open = calm.matches ? 1 : ease(clamp(clock / 0.95)), sweep = open * (C + 1) - 0.5;
+    var i, c, r, n, t, a, g, u, farY, nearY, x0, y0, x1, y1, wob;
+    ctx.clearRect(0, 0, W, H);
+    if (!begun) return;
+    ctx.save();
+    if (open < 1) {                   // the board is unrolled from the portal side
+      proj(sweep, 0, 0); x0 = px; y0 = py; proj(sweep, R, 0); x1 = px; y1 = py;
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.lineTo(x0 + (x1 - x0) * (0 - y0) / (y1 - y0), 0); ctx.lineTo(x0 + (x1 - x0) * (H - y0) / (y1 - y0), H);
+      ctx.lineTo(0, H); ctx.closePath(); ctx.clip();
+    }
+
+    // The plateau: a slab of earth, grass tile by tile, the road in terracotta.
+    proj(0, 0, 0); farY = py; proj(0, R, 0); nearY = py; proj(0, R, -0.6);
+    g = ctx.createLinearGradient(0, nearY, 0, py);
+    g.addColorStop(0, EARTH); g.addColorStop(1, "rgba(13,11,10,0)");
+    face([0, R, 0, C, R, 0, C, R, -0.6, 0, R, -0.6]); ctx.fillStyle = g; ctx.fill();
+    face([0, 0, 0, C, 0, 0, C, R, 0, 0, R, 0]); ctx.fillStyle = EARTH; ctx.fill();
+    for (a = 0; a < 3; a++) {         // one path per color: grass, darker grass, road
+      ctx.beginPath();
+      for (i = 0; i < N; i++) {
+        c = i % C; r = (i - c) / C;
+        if (i === PORTAL || i === GATE) continue;
+        if ((onRoad[i] ? 2 : (c + r) % 2) === a) tile(c, r);
+      }
+      ctx.fillStyle = a === 2 ? ROAD : a ? GRASS_ALT : GRASS; ctx.fill();
+    }
+    g = ctx.createLinearGradient(0, farY, 0, nearY);     // the far rows sit a little deeper in shade
+    g.addColorStop(0, "rgba(13,11,10,0.32)"); g.addColorStop(1, "rgba(13,11,10,0)");
+    face([0, 0, 0, C, 0, 0, C, R, 0, 0, R, 0]); ctx.fillStyle = g; ctx.fill();
+    if (keyed) { ctx.strokeStyle = GOLD; ctx.lineWidth = 3; ctx.stroke(); }   // the rim, while the keyboard is on the board
+
+    if (hover >= 0) {
+      c = hover % C; r = (hover - c) / C;
+      face([c, r, 0, c + 1, r, 0, c + 1, r + 1, 0, c, r + 1, 0]);
+      ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fill();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+      if (!towers[hover] && hover !== PORTAL && hover !== GATE && (ghostFor !== hover || clock - ghostAt > 0.2)) {
+        ghost = check(hover); ghostFor = hover; ghostAt = clock;
+      }
+    }
+    stones();
+
+    // Far rows first, so nearer towers stand in front.
+    for (r = 0; r < R; r++) {
+      if (r === R >> 1) {
+        beacon(PORTAL, FLAME, EMBER, "#ffb27a", "255,122,47", 1);
+        beacon(GATE, ROOF, ROOF_DEEP, "#dbe7ff", "170,200,255", 1 + flash * 1.4);
+      }
+      for (n = 0; n < C; n++) {
+        c = order[n]; i = r * C + c; t = towers[i];
+        if (t) tower(c, r, rise(t), 1, t.lit, false, 0);
+        else if (i === nope && (calm.matches || clock - nopeAt < 0.4)) {
+          u = clock - nopeAt; wob = calm.matches ? 0 : Math.sin(u * 44) * 0.07 * (1 - u / 0.4);
+          tower(c, r, 0.83, 0.9, 0, true, wob);
+        } else if (i === hover && i !== PORTAL && i !== GATE) {
+          tower(c, r, 0.83, 0.55, 0, typeof ghost === "string", 0);
+        }
+      }
+      for (n = 0; n < creeps.length; n++) if (Math.floor(creeps[n].y) === r) creep(creeps[n]);
+    }
+
+    ctx.lineCap = "round";
+    for (n = 0; n < shots.length; n++) {
+      a = shots[n];
+      proj(a.x, a.y, a.z); x0 = px; y0 = py; proj(a.to.x, a.to.y, 0.3);
+      ctx.globalAlpha = 1 - a.age / 0.14; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(px, py); ctx.stroke();
+    }
+    for (n = 0; n < rings.length; n++) {
+      a = rings[n]; u = a.age / a.life;
+      proj(a.x, a.y, 0.02); g = a.size * K * ps * (0.3 + 0.7 * ease(u));
+      ctx.globalAlpha = 1 - u; ctx.strokeStyle = a.color; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(px, py, g, g * COS, 0, 0, TAU); ctx.stroke();
+    }
+    if (open < 1) {                   // the bright edge of the unrolling board
+      proj(sweep, 0, 0); x0 = px; y0 = py; proj(sweep, R, 0);
+      ctx.globalAlpha = 1 - open * open; ctx.strokeStyle = GOLD; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(px, py); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // The loop runs only while the board is on screen, and not at all for
+  // people who ask for less motion: they get the finished maze, standing still.
+  function frame(mine, now) {
+    if (mine !== loop || !running) return;
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now; clock += dt;
+    update(dt); draw();
+    requestAnimationFrame(function (next) { frame(mine, next); });
+  }
+  function play() {
+    if (running || !begun || calm.matches || !visible || document.hidden) return;
+    var mine = ++loop;
+    running = true; last = performance.now();
+    requestAnimationFrame(function (now) { frame(mine, now); });
+  }
+  function refresh() { if (!running) draw(); }
+  function quiet() {
+    var i;
+    running = false;
+    if (!calm.matches || !begun) return;
+    drain(true); creeps = []; shots = []; rings = [];
+    for (i = 0; i < N; i++) if (towers[i]) { if (towers[i].out >= 0) towers[i] = undefined; else towers[i].born = -9; }
+    settle(); draw();
+  }
+  function begin() {                  // the first time the board is properly in view
+    if (begun) return;
+    opening(false);
     draw();
   }
 
-  for (var r = 0; r < ROWS; r++) {
-    for (var c = 0; c < COLS; c++) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.dataset.k = r + "," + c;
-      grid.appendChild(b);
-      tiles.push(b);
-    }
+  function spot(e) {
+    var box = canvas.getBoundingClientRect();
+    return pick(e.clientX - box.left, e.clientY - box.top);
   }
-  grid.addEventListener("click", function (e) {
-    var b = e.target.closest(".tile");
-    if (b) toggle(b.dataset.k);
+  function tell(i) {
+    var c = i % C, r = (i - c) / C;
+    var what = i === PORTAL ? "the demon portal" : i === GATE ? "the town gate" :
+      standing(i) ? "a tower. Enter sells it" : (onRoad[i] ? "road" : "grass") + ". Enter builds a tower";
+    cursorEl.textContent = "Row " + (r + 1) + ", column " + (c + 1) + ": " + what + ".";
+  }
+  canvas.addEventListener("pointermove", function (e) {
+    var i = begun ? spot(e) : -1;
+    if (i === hover) return;
+    hover = i; canvas.style.cursor = i >= 0 ? "pointer" : "";
+    refresh();
   });
+  canvas.addEventListener("pointerleave", function () { hover = -1; refresh(); });
+  canvas.addEventListener("click", function (e) { toggle(spot(e)); });
+  canvas.addEventListener("keydown", function (e) {
+    var c, r;
+    if (!begun) return;
+    keyed = true;
+    if (hover < 0) hover = (R >> 1) * C + (C >> 1);
+    c = hover % C; r = (hover - c) / C;
+    if (e.key === "ArrowLeft") c = Math.max(0, c - 1);
+    else if (e.key === "ArrowRight") c = Math.min(C - 1, c + 1);
+    else if (e.key === "ArrowUp") r = Math.max(0, r - 1);
+    else if (e.key === "ArrowDown") r = Math.min(R - 1, r + 1);
+    else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(hover); tell(hover); return; }
+    else return;
+    e.preventDefault();
+    hover = r * C + c; tell(hover); refresh();
+  });
+  canvas.addEventListener("focus", function () {
+    try { if (!canvas.matches(":focus-visible")) return; } catch (old) { /* no such selector: show the cursor anyway */ }
+    begin();
+    keyed = true;
+    if (hover < 0) hover = (R >> 1) * C + (C >> 1);
+    tell(hover); refresh(); play();
+  });
+  canvas.addEventListener("blur", function () { keyed = false; hover = -1; refresh(); });
   document.getElementById("maze-clear").addEventListener("click", function () {
-    towers = new Set(); refused = "";
-    say("A clear board: the road runs straight down. Build to bend it.");
-    draw();
+    var i;
+    begin();
+    queue = []; nope = -1;
+    for (i = 0; i < N; i++) if (standing(i)) { if (calm.matches) towers[i] = undefined; else towers[i].out = clock; }
+    settle(); comet = 0; live = true;
+    say("A clear board: the road runs straight across. Build to bend it.");
+    refresh(); play();
   });
   document.getElementById("maze-starter").addEventListener("click", function () {
-    towers = new Set(STARTER); refused = "";
-    say("Two walls and a switchback. Add towers to stretch it further.");
-    draw();
+    begin();
+    towers = new Array(N); queue = []; nope = -1; live = true;
+    settle();
+    walls(clock + 0.05, 0.55);
+    if (calm.matches) drain(true);
+    say("Walls and switchbacks. Add towers to stretch the road further.");
+    refresh(); play();
   });
-  draw();
+
+  var resized = 0;
+  window.addEventListener("resize", function () {
+    cancelAnimationFrame(resized);
+    resized = requestAnimationFrame(function () {
+      if (size() && begun) opening(true);
+      refresh();
+    });
+  });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) running = false; else play(); });
+  if (calm.addEventListener) calm.addEventListener("change", function () { if (calm.matches) quiet(); else play(); });
+
+  size();
+  if (window.matchMedia("(pointer: coarse)").matches) say("Tap a tile to build a tower and tap a tower to sell it. See how long you can make the road.");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (seen) {
+      var now = seen[seen.length - 1];
+      visible = now.isIntersecting;
+      if (now.intersectionRatio >= 0.3) begin();
+      if (visible) play(); else running = false;
+    }, { threshold: [0, 0.3] }).observe(canvas);
+  } else { visible = true; begin(); play(); }
 })();
 </script>
 </body>
