@@ -29,6 +29,9 @@ var quality_settings := {}
 ## Per-setting overrides layered on every preset (the benchmark's
 ## --<setting>=<value> flags, which price one effect at a time).
 var quality_overrides := {}
+## Preset to boot with instead of the saved one (benchmarks, --quality), so
+## the loading-screen warm-up compiles exactly the shaders that will be used.
+var boot_quality: Variant = null
 ## Tower the builder is placing, or &"" when not building.
 var build_choice: StringName = &"archer"
 var selected := NONE
@@ -68,7 +71,7 @@ func _ready() -> void:
 	audio = _add(AudioDirector.new())
 	for s in [world, camera, path_preview, units, fx, builder, hud, audio]:
 		s.setup(self)
-	set_quality(Quality.from_name(Save.setting("quality", "balanced")))
+	_apply_saved_quality()
 	_finish_boot()
 
 
@@ -117,7 +120,10 @@ func _boot_part(member: StringName, kind: GDScript) -> void:
 
 
 func _apply_saved_quality() -> void:
-	set_quality(Quality.from_name(Save.setting("quality", "balanced")))
+	if boot_quality != null:
+		set_quality(boot_quality, false)
+	else:
+		set_quality(Quality.from_name(Save.setting("quality", "balanced")))
 
 
 func _on_rehearsal_progress(f: float) -> void:
@@ -258,12 +264,15 @@ func toggle_pause() -> void:
 	pause_changed.emit(paused)
 
 
-func set_quality(preset: Quality.Preset) -> void:
+## `remember` saves the choice as the player's setting; benchmark and
+## command-line presets pass false so they don't overwrite it.
+func set_quality(preset: Quality.Preset, remember := true) -> void:
 	quality = preset
 	quality_settings = Quality.apply(
 		preset, get_viewport(), world.env, world.sun, quality_overrides
 	)
-	Save.set_setting("quality", Quality.NAMES[preset])
+	if remember:
+		Save.set_setting("quality", Quality.NAMES[preset])
 	quality_changed.emit(preset)
 
 

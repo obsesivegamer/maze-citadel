@@ -28,13 +28,13 @@ func _ready() -> void:
 		probe.out_path = Cli.get_str("first-frame-out")
 		probe.game = game
 		add_child(probe)
-	add_child(game)
-	if not game.is_booted:
-		await game.booted
 	if Cli.has("quality"):
 		var preset := Quality.from_name(Cli.get_str("quality"))
 		game.quality_overrides = _overrides(preset)
-		game.set_quality(preset)
+		game.boot_quality = preset
+	add_child(game)
+	if not game.is_booted:
+		await game.booted
 	if Cli.has("autoplay"):
 		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
 		game.choose_build(&"")
