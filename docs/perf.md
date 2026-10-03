@@ -187,7 +187,24 @@ Launch (warm, twice): first frame 0.6 s, playable 3.8–4.0 s, worst frame in th
 1. Frozen wave-35 battle (`--speed=0`), uncapped: 67.6 fps for 3.5 min, then throttled to ~59.5 fps (−12%) and stays there.
 2. Real play from wave 30 capped at 60 fps (`--max-fps 60`, the GPU idles part of each frame): 60.0 fps for 3 min, then 56–58 fps for the remaining 7 (waves 32+) with runs of 22–25 ms frames (53 frames over 20.8 ms in 10 min). Not butter yet in long late-game sessions: needs ~2–3 ms more, or less heat.
 
+### Late waves on a hot Mac
+1. The 22–25 ms runs land on moments like "wave cleared" (wave 32 at sim time 1489 s, 0 creeps): no single effect, just the heavier moments going over once the GPU is throttled. The wave banner and crowd cheer are cheap.
+2. Terrain's ~3.5 ms is per-pixel lighting and shadow sampling over most of the screen: its meshes total 88k triangles and the 680 m lowland casts no shadow.
+3. Balanced-only trims at wave 38 (controls 14.23–14.26 ms): render scale 0.45 −1.01 ms, SSAO off −0.55, shadow distance 110 m −0.48 (cuts shadows at the portal end), fog off −0.13, coarser trees / lighter big effects ~0.
+4. Render scale 0.45 always on softens close-ups visibly (gate cobblestones), so it isn't shipped as a default. Changing the scale mid-battle stalls one frame (~92–99 ms), then ~7 frames run 1–3 ms slow.
+5. Metal reports no GPU frame time to the game (`viewport_get_measured_render_time_gpu` reads 0), so a governor has to judge from frame times.
+
+### Heat governor (tried, removed)
+Idea: when 10 s of wave frames average under ~58 fps, step the render scale down by 0.05 at the next "wave cleared" (up to twice), hiding the one-frame switch stall behind the banner. Two hot 10-minute soaks from wave 30 capped at 60 fps (`--max-fps 60`):
+
+| Run | 30 s windows after throttling | Frames over 20.8 ms | Worst |
+|---|---|---|---|
+| No governor (`real60`) | 56–58 fps | 53 | 25 ms |
+| One step to 0.45 (`gov60`) | 56–60 fps | 750 | 127 ms |
+| Up to two steps, 0.40 (`gov60b`) | 54–59 fps | 1482 | 142 ms |
+
+After a switch, a hot Mac stalls for ~0.6 s at a time (frames of 50–140 ms) every few waves; no governor run is free of it, no run without a switch shows it, and short cool replays of the same moments with or without a switch are clean. One 0.05 step also buys only ~7% against ~12% of throttling. Removed: a steady ~57 fps beats repeated 130 ms freezes. Mid-game render-scale changes are off the table on this Mac.
+
 ### Next
-1. Find what makes the late-wave runs of 22–25 ms frames (wave 32+, few creeps on screen: likely an effect or boss).
-2. Terrain still costs ~3.5 ms; find where (geometry, shadow casting, prepass).
-3. Re-run the capped 10-minute real-play soak until it holds 60.
+1. Hot late waves still average ~57 fps on Balanced. The biggest lever left that keeps the look: render the 3D view at the panel's own resolution. The default "looks like 1470 × 956" mode draws 2940 × 1782 and macOS shrinks it to the 2560-wide panel, so MetalFX and post-processing work on ~32% more pixels than the screen shows. Needs the 3D in a SubViewport (picking, overlays and captures map coordinates), so it's its own change.
+2. The Performance preset holds 60 when hot for players who want that now.
