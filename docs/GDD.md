@@ -160,7 +160,7 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | Key | Tower | Family | Cost L1 / +L2 / +L3 | Attack · Element | Air? | L1 stats | Signature |
 |---|---|---|---|---|---|---|---|
 | 1 | Archer Tower | Alliance | 25 / +15 / +35 | Pierce · Light | ✓ | 9 dmg, 0.6 s, 9 m (L2 15, L3 24) | Cheap maze filler. L3 fires 2 arrows. |
-| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Flame | — | 30 splash r2.2, 1.5 s, 10 m (L2 60, L3 110) | Arcing shells, craters (6 s), small shake |
+| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Flame | — | 30 splash r2.2, 1.5 s, 10 m (L2 60, L3 110) | Arcing shells, scorch marks (6 s, look only), small shake |
 | 3 | Frost Spire | Elven | 50 / +40 / +70 | Magic · Aqua | ✓ | 8 dmg, 1.0 s, 9 m | 35% slow for 2 s. L2 splash slow r1.5. L3 frost ring every 3rd shot. |
 | 4 | Plague Cauldron | Forsaken | 45 / +35 / +65 | Poison · Dark | ✓ | 6 dps × 5 s per stack, 1.2 s, 8.5 m | Stacks ×5, ignores armor, halves healing |
 | 5 | Bard's Pavilion | Support | 80 / +60 / +90 | — | — | Aura r7 m | +15% damage (L2 +20%, L3 +25% and +10% attack speed). Highest aura wins. |
