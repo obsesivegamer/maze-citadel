@@ -6,10 +6,11 @@ extends Control
 ## paused beforehand stays paused. The HUD routes keys to whichever is up
 ## (Hud.modal_action()).
 
-## A click on the dimmed screen around the panel.
+## A click on the dimmed screen around the panel (not the scroll wheel).
 signal dim_pressed
 
 const DIM := Color(0, 0, 0, 0.45)
+const CLICKS: Array[MouseButton] = [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE]
 
 var _game: Game
 var _paused_here := false
@@ -60,5 +61,6 @@ func close_modal() -> void:
 
 
 func _on_dim_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+	var mb := event as InputEventMouseButton
+	if mb != null and mb.pressed and mb.button_index in CLICKS:
 		dim_pressed.emit()

@@ -123,6 +123,8 @@ func test_field_guide_pauses_and_shows_the_next_wave() -> void:
 	check(game.paused, "a game paused before opening stays paused")
 	game.toggle_pause()
 	guide.open()
+	guide._on_dim_input(_click(MOUSE_BUTTON_WHEEL_DOWN))
+	check(guide.visible, "scrolling over the dim keeps the guide open")
 	guide._on_dim_input(_click())
 	check(not guide.visible and not game.paused, "a click beside the guide closes it")
 	check_eq(
@@ -131,6 +133,35 @@ func test_field_guide_pauses_and_shows_the_next_wave() -> void:
 	)
 	guide.free()
 	game.free()
+
+
+func test_guide_over_the_welcome() -> void:
+	var game := Game.new()
+	var tut := _tutorial(game)
+	var guide := FieldGuide.new()
+	guide.setup(game)
+	tut.start()
+	guide.open()
+	guide.close_panel()
+	check(tut.welcome_visible() and game.paused, "closing the guide leaves the welcome paused")
+	tut.begin()
+	check(not game.paused, "Begin resumes")
+	check_eq(tut.counsel_wave(), 1)
+	guide.free()
+	_free(tut, game)
+	# A game the player paused stays paused through both.
+	game = Game.new()
+	game.toggle_pause()
+	tut = _tutorial(game)
+	guide = FieldGuide.new()
+	guide.setup(game)
+	tut.start()
+	guide.open()
+	guide.close_panel()
+	tut.begin()
+	check(game.paused, "the player's pause outlasts the welcome and the guide")
+	guide.free()
+	_free(tut, game)
 
 
 func test_wheel_focus() -> void:
@@ -149,9 +180,9 @@ func _key(code: Key) -> InputEventKey:
 	return e
 
 
-func _click() -> InputEventMouseButton:
+func _click(button := MOUSE_BUTTON_LEFT) -> InputEventMouseButton:
 	var e := InputEventMouseButton.new()
-	e.button_index = MOUSE_BUTTON_LEFT
+	e.button_index = button
 	e.pressed = true
 	return e
 
