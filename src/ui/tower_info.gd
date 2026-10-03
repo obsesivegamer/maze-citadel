@@ -42,7 +42,7 @@ const SHORT_NAMES := {
 }
 const BLURBS := {
 	&"archer": "Cheap maze filler. Level 3 fires two arrows.",
-	&"cannon": "Arcing shells that splash and leave craters.",
+	&"cannon": "Arcing shells that splash every ground creep near the blast.",
 	&"frost": "Slows its target. L2 slows in a splash; L3 adds a frost ring every 3rd shot.",
 	&"plague": "Poison stacks up to 5, ignores armor and halves healing.",
 	&"bard": "Aura: towers in range deal more damage. The strongest aura wins.",
@@ -368,4 +368,5 @@ static func hints(state: StringName) -> Array:
 		["F", "Speed"],
 		["R/C", "Camera"],
 		["B", "Boss"],
+		["H", "Field Guide"],
 	]
