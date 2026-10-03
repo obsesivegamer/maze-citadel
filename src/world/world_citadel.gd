@@ -24,8 +24,8 @@ const TOWER_SCALE := 4.2
 const GATE_TOWER_SCALE := 4.6
 const TORCH_SCALE := 2.0
 const BANNER_SCALE := 1.25
-## Wall line: the south wall runs through the gate; side walls run north
-## along the rim to SIDE_END_Z.
+## Wall line: the south wall runs through the gate (wherever the map puts it,
+## Coords.gate()); side walls run north along the rim to SIDE_END_Z.
 const WALL_Z := 31.0
 const SIDE_X := 22.4
 const SIDE_END_Z := 3.0
@@ -41,8 +41,13 @@ const FLASH_ENERGY := 12.0
 const FLASH_TIME := 0.4
 const TORCH_LIGHT_COLOR := Color(1.0, 0.62, 0.3)
 const TORCH_LIGHT_ENERGY := 1.8
+## Banners hang at these fractions of each south wall run, gate end first;
+## runs shorter than BANNER_MIN_RUN carry none.
+const BANNER_AT: Array[float] = [0.409, 0.75]
+const BANNER_MIN_RUN := 8.0
 
 var _top := Coords.PLATEAU_TOP
+var _gx := Coords.gate().x
 var _veil_mat := ShaderMaterial.new()
 var _gate_light := OmniLight3D.new()
 var _torch_lights: Array[OmniLight3D] = []
@@ -95,20 +100,22 @@ func _wall_run(xforms: Array[Transform3D], from: Vector2, to: Vector2) -> void:
 
 func _build_walls() -> void:
 	var xforms: Array[Transform3D] = []
-	for sx in [-1.0, 1.0]:
-		_wall_run(
-			xforms, Vector2(sx * (GATE_TOWER_X + 2.0), WALL_Z), Vector2(sx * CORNER.x, WALL_Z)
-		)
-		_wall_run(xforms, Vector2(sx * SIDE_X, CORNER.y - 1.5), Vector2(sx * SIDE_X, SIDE_END_Z))
-	add_child(WorldKit.multimesh(WorldKit.merged(WALL), xforms))
 	var wall_h := WorldKit.bounds(WALL).size.y * WALL_SCALE
 	var wall_d := WorldKit.bounds(WALL).size.z * WALL_SCALE * 0.5
 	for sx in [-1.0, 1.0]:
-		for x in [14.0, 18.5]:
-			_banner_at(Vector3(sx * x, _top + wall_h, WALL_Z + wall_d), 0.0, 0.8)
-			_banner_at(Vector3(sx * x, _top + wall_h, WALL_Z - wall_d), PI, 0.8)
+		var from: float = _gx + sx * (GATE_TOWER_X + 2.0)
+		var to: float = sx * CORNER.x
+		if (to - from) * sx > 1.0:
+			_wall_run(xforms, Vector2(from, WALL_Z), Vector2(to, WALL_Z))
+		if absf(to - from) >= BANNER_MIN_RUN:
+			for f in BANNER_AT:
+				var x := lerpf(from, to, f)
+				_banner_at(Vector3(x, _top + wall_h, WALL_Z + wall_d), 0.0, 0.8)
+				_banner_at(Vector3(x, _top + wall_h, WALL_Z - wall_d), PI, 0.8)
+		_wall_run(xforms, Vector2(sx * SIDE_X, CORNER.y - 1.5), Vector2(sx * SIDE_X, SIDE_END_Z))
 		for z in [10.0, 24.0]:
 			_banner_at(Vector3(sx * (SIDE_X + wall_d), _top + wall_h, z), sx * PI / 2, 0.8)
+	add_child(WorldKit.multimesh(WorldKit.merged(WALL), xforms))
 
 
 func _build_towers() -> void:
@@ -123,7 +130,7 @@ func _build_towers() -> void:
 	add_child(WorldKit.multimesh(WorldKit.merged(TOWER), corners))
 	var gate_towers: Array[Transform3D] = []
 	for sx in [-1.0, 1.0]:
-		var c := Vector3(sx * GATE_TOWER_X, _top, WALL_Z)
+		var c := Vector3(_gx + sx * GATE_TOWER_X, _top, WALL_Z)
 		gate_towers.append(WorldKit.placed(c, 0.0, GATE_TOWER_SCALE))
 		# Banners on the two hex faces toward the outside and the two inside.
 		var apothem := WorldKit.bounds(TOWER).size.x * 0.5 * GATE_TOWER_SCALE + 0.05
@@ -214,8 +221,8 @@ func _build_torches() -> void:
 	for side in [-1.0, 1.0]:
 		for x in [3.4, 9.8]:
 			var d := gate_d if x < 5.0 else wall_d
-			var inner := Vector3(side * x, _top + 3.3, WALL_Z - d)
-			var outer := Vector3(side * x, _top + 3.3, WALL_Z + d)
+			var inner := Vector3(_gx + side * x, _top + 3.3, WALL_Z - d)
+			var outer := Vector3(_gx + side * x, _top + 3.3, WALL_Z + d)
 			for pair in [[inner, PI], [outer, 0.0]]:
 				var t := WorldKit.placed(pair[0], pair[1], TORCH_SCALE)
 				xforms.append(t)

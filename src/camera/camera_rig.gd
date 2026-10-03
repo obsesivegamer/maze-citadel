@@ -54,6 +54,12 @@ func setup(game: Game) -> void:
 func preset(preset_name: StringName, snap := false) -> void:
 	var p: Dictionary = PRESETS[preset_name]
 	_target = p.target
+	# The portal and gate views follow the map's portal and gate.
+	match preset_name:
+		&"portal":
+			_target.x += Coords.portal().x
+		&"gate":
+			_target.x += Coords.gate().x
 	_yaw = p.yaw
 	_pitch = p.pitch
 	_distance = p.distance

@@ -26,7 +26,7 @@ func compute(grid: Grid) -> void:
 	dist.resize(Grid.COLS * Grid.ROWS)
 	dist.fill(INF)
 	var heap := MinHeap.new()
-	for g in Grid.GOAL_TILES:
+	for g in grid.goal_tiles:
 		if grid.is_walkable(g):
 			dist[Grid.index(g)] = 0.0
 			heap.push(0.0, Grid.index(g))
@@ -84,8 +84,8 @@ func next_tile(t: Vector2i) -> Vector2i:
 
 ## The spawn tile creeps enter through: the reachable one closest to the gate.
 func entry_tile() -> Vector2i:
-	var best := Grid.SPAWN_TILES[0]
-	for s in Grid.SPAWN_TILES:
+	var best := _grid.spawn_tiles[0]
+	for s in _grid.spawn_tiles:
 		if distance(s) < distance(best):
 			best = s
 	return best
@@ -93,7 +93,7 @@ func entry_tile() -> Vector2i:
 
 ## Tile centres from the portal to the gate along the current field.
 func route() -> PackedVector2Array:
-	var out := PackedVector2Array([Grid.SPAWN_POINT])
+	var out := PackedVector2Array([_grid.spawn_point])
 	var t := entry_tile()
 	if not reachable(t):
 		return out
@@ -102,7 +102,7 @@ func route() -> PackedVector2Array:
 		if distance(t) == 0.0:
 			break
 		t = next_tile(t)
-	out.append(Grid.GATE_POINT)
+	out.append(_grid.gate_point)
 	return out
 
 

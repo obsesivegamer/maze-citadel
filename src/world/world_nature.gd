@@ -132,7 +132,7 @@ func set_density(fraction: float) -> void:
 
 ## Probability (0..1) that a candidate point grows a pine.
 func _pine_density(p: Vector2) -> float:
-	if p.distance_to(WorldLayout.BLIGHT_CENTER) < WorldLayout.BLIGHT_RADIUS + 4.0:
+	if p.distance_to(WorldLayout.blight_center()) < WorldLayout.BLIGHT_RADIUS + 4.0:
 		return 0.0
 	var d := 0.12
 	if p.y < -40.0:
@@ -167,7 +167,7 @@ func _broadleaf_density(p: Vector2) -> float:
 
 
 func _dead_density(p: Vector2) -> float:
-	var b := p.distance_to(WorldLayout.BLIGHT_CENTER)
+	var b := p.distance_to(WorldLayout.blight_center())
 	return (
 		0.55
 		* (1.0 - smoothstep(WorldLayout.BLIGHT_RADIUS * 0.5, WorldLayout.BLIGHT_RADIUS + 6.0, b))
@@ -198,7 +198,7 @@ func _flower_density(p: Vector2) -> float:
 
 func _rock_density(p: Vector2) -> float:
 	var d := 0.12
-	if p.distance_to(WorldLayout.BLIGHT_CENTER) < WorldLayout.BLIGHT_RADIUS + 6.0:
+	if p.distance_to(WorldLayout.blight_center()) < WorldLayout.BLIGHT_RADIUS + 6.0:
 		d = 0.5
 	return d
 

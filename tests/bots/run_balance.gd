@@ -2,6 +2,7 @@ extends SceneTree
 ## Headless balance run: every strategy × mode over several bot seeds, prints
 ## a markdown table. Seed 0 is the bot's plain plan; other seeds vary its
 ## timing, wall order and tower picks the way different players would.
+## --map=rampart plays the Fallen Rampart (default: Citadel Plateau).
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
 ##        [-- --seeds=4 --only=smart:hard --per-wave]
 ## --per-wave also prints how far each wave got (percent of the route).
@@ -22,6 +23,11 @@ const BOSS_WAVES: Array[int] = [10, 20, 30, 40]
 func _initialize() -> void:
 	var seeds := int(Cli.get_str("seeds", "4"))
 	var only := Cli.get_str("only")
+	var map := StringName(Cli.get_str("map", MapDefs.DEFAULT))
+	if not MapDefs.has(map):
+		printerr("unknown map %s (maps: %s)" % [map, ", ".join(MapDefs.ORDER)])
+		quit(1)
+		return
 	print(
 		(
 			"| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | "
@@ -45,14 +51,14 @@ func _initialize() -> void:
 ## shows how close a wave came even when nothing leaked.
 func _play(strategy: StringName, hard: bool, bot_seed: int) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
-	var sim := GameSim.new()
+	var sim := GameSim.new(StringName(Cli.get_str("map", MapDefs.DEFAULT)))
 	sim.hard = hard
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
 	var boss_walked := {}
 	var start := {}
-	var fly_route := Grid.SPAWN_POINT.distance_to(Grid.GATE_POINT)
+	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
 	while sim.time < MAX_GAME_SECONDS:
 		bot.step()
 		for e in sim.drain_events():

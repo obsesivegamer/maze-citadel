@@ -21,6 +21,8 @@ var _mesh_info := {}
 
 
 func _initialize() -> void:
+	# The Citadel Plateau unless --map says otherwise, not the last map pick.
+	Game._carry = {"map": Cli.get_str("map", MapDefs.DEFAULT)}
 	game = Game.new()
 	root.add_child(game)
 	process_frame.connect(_go, CONNECT_ONE_SHOT)

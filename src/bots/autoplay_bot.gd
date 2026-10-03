@@ -4,7 +4,25 @@ extends RefCounted
 ## a serpentine maze of 1-tile walls built from the portal side, then
 ## upgrades and fusions. Used by the balance runs and by --autoplay.
 
-const WALL_ROWS: Array[int] = [3, 7, 11, 15, 19, 23]
+## The serpentine per map as [row, gap columns, centre], built in order and
+## each wall from its centre column outwards (default the board's middle).
+## Map ruins count as wall already. On the Rampart the opening wall grows from
+## where the route from the north-west portal crosses it; the bot leaves the
+## west breach open and plugs the other two, so both halves run full width.
+const WALLS := {
+	&"citadel": [[3, [19]], [7, [0]], [11, [19]], [15, [0]], [19, [19]], [23, [0]]],
+	&"rampart":
+	[
+		[3, [19], 6.5],
+		[7, [0]],
+		[11, [19]],
+		[13, [1, 2]],
+		[17, [19]],
+		[21, [0]],
+		[25, [19]],
+	],
+}
+const WALL_CENTER := 9.5
 const DECIDE_EVERY := 1.0
 const UPGRADE_RESERVE := 120
 
@@ -82,15 +100,17 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 		_rng = RandomNumberGenerator.new()
 		_rng.seed = p_seed
 		_timer = _rng.randf() * DECIDE_EVERY
-	for i in WALL_ROWS.size():
-		var gap := Grid.COLS - 1 if i % 2 == 0 else 0
+	var grid := sim.grid
+	for wall: Array in WALLS[grid.map]:
 		# Build each wall from the middle outwards: the opening towers sit on the
 		# straight route, and the wall bends the path as it grows.
+		var mid: float = wall[2] if wall.size() > 2 else WALL_CENTER
 		var cols := range(Grid.COLS)
-		cols.sort_custom(func(a: int, b: int) -> bool: return absf(a - 9.5) < absf(b - 9.5))
+		cols.sort_custom(func(a: int, b: int) -> bool: return absf(a - mid) < absf(b - mid))
 		for col in cols:
-			if col != gap:
-				plan.append(Vector2i(col, WALL_ROWS[i]))
+			var tile := Vector2i(col, wall[0])
+			if not col in wall[1] and not grid.is_blocked(tile) and not grid.is_reserved(tile):
+				plan.append(tile)
 
 
 func step() -> void:

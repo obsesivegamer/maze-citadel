@@ -15,7 +15,10 @@ signal quality_changed(preset: Quality.Preset)
 const NONE := Vector2i(-1, -1)
 const MAX_STEPS_PER_FRAME := 12
 
-var sim := GameSim.new()
+## Map and mode carried across the scene reload that switches map.
+static var _carry := {}
+
+var sim: GameSim
 var speed := 1
 var paused := false
 var quality := Quality.Preset.BALANCED
@@ -41,6 +44,18 @@ var hud: Hud
 var audio: AudioDirector
 
 var _acc := 0.0
+
+
+## The map comes from a map switch in progress, else --map, else the last pick.
+func _init() -> void:
+	var map := StringName(_carry.get("map", Cli.get_str("map", Save.setting("map", ""))))
+	if not MapDefs.has(map):
+		map = MapDefs.DEFAULT
+	sim = GameSim.new(map)
+	sim.hard = _carry.get("hard", false)
+	sim.infinite = _carry.get("infinite", false)
+	_carry = {}
+	Coords.map = map
 
 
 func _ready() -> void:
@@ -84,7 +99,7 @@ func _process(delta: float) -> void:
 func _flush() -> void:
 	for e in sim.drain_events():
 		if e.type == &"defeat" or e.type == &"victory":
-			Save.record(Save.mode_key(sim.hard, sim.infinite), sim.wave, sim.score())
+			Save.record(Save.sim_key(sim), sim.wave, sim.score())
 		sim_event.emit(e)
 
 
@@ -191,6 +206,18 @@ func set_mode(hard: bool, infinite: bool) -> bool:
 		return false
 	sim.hard = hard
 	sim.infinite = infinite
+	return true
+
+
+## Map can change only before wave 1 spawns, like the mode. The board is
+## rebuilt from scratch (towers placed so far are cleared); the mode carries
+## over and the pick is remembered for the next launch.
+func change_map(id: StringName) -> bool:
+	if sim.wave > 0 or id == sim.grid.map or not MapDefs.has(id):
+		return false
+	Save.set_setting("map", String(id))
+	_carry = {"map": id, "hard": sim.hard, "infinite": sim.infinite}
+	restart()
 	return true
 
 
