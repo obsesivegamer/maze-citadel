@@ -1,0 +1,257 @@
+# Builds the Mac .dmg on a macOS runner, verifies it (tools/verify_dmg.sh) and
+# keeps it as a run artifact. A pushed version tag (v0.2.0, or v0.2.0-beta.1
+# for a pre-release) also publishes it as a GitHub Release and refreshes the
+# download site. Signing and notarization run only when their secrets exist;
+# otherwise the build is ad-hoc signed, same as tools/export.sh on a Mac.
+# How to release and which secrets to add: docs/RELEASING.md.
+name: Mac release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/release-mac.yml
+      - tools/export.sh
+      - tools/verify_dmg.sh
+      - tools/notarize.sh
+      - export_presets.cfg
+
+concurrency:
+  group: mac-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  gate:
+    name: Gate (import, lint, tests, smoke)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: List LFS objects
+        run: git lfs ls-files --long | cut -d' ' -f1 | sort > .lfs-ids
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          key: lfs-${{ hashFiles('.lfs-ids') }}
+          restore-keys: lfs-
+      - name: Pull LFS files
+        run: git lfs pull
+
+      - uses: actions/cache@v4
+        id: godot-cache
+        with:
+          path: ~/.local/bin/godot
+          key: godot-linux-${{ env.GODOT_VERSION }}
+      - name: Install Godot
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          zip="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "$base/SHA512-SUMS.txt"
+          curl -fsSLO "$base/$zip"
+          grep " $zip\$" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "$zip"
+          mkdir -p ~/.local/bin
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/.local/bin/godot
+      - name: Install gdtoolkit
+        run: pipx install "gdtoolkit==4.*"
+
+      - uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-linux-${{ hashFiles('**/*.import', 'project.godot') }}
+          restore-keys: godot-import-linux-
+      - name: Run tools/check.sh
+        run: tools/check.sh
+
+  build:
+    name: Build and verify .dmg
+    runs-on: macos-15
+    timeout-minutes: 75
+    env:
+      HAS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 != '' && secrets.MACOS_CERTIFICATE_PASSWORD != '' }}
+      HAS_NOTARY: ${{ secrets.APPLE_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_APP_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag matches project.godot
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [[ "$tag_version" != "$version" && "$tag_version" != "$version"-* ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match config/version=\"$version\" in project.godot"
+            exit 1
+          fi
+      - name: List LFS objects
+        run: git lfs ls-files --long | cut -d' ' -f1 | sort > .lfs-ids
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          key: lfs-${{ hashFiles('.lfs-ids') }}
+          restore-keys: lfs-
+      - name: Pull LFS files
+        run: git lfs pull
+
+      - uses: actions/cache@v4
+        id: godot-cache
+        with:
+          path: |
+            ~/godot
+            ~/Library/Application Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-macos-${{ env.GODOT_VERSION }}
+      - name: Install Godot and macOS export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          templates="Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mkdir -p ~/godot && cd ~/godot
+          curl -fsSLO "$base/SHA512-SUMS.txt"
+          curl -fsSLO "$base/$editor"
+          curl -fsSLO "$base/$templates"
+          grep -E " ($editor|$templates)\$" SHA512-SUMS.txt | shasum -a 512 -c -
+          ditto -x -k "$editor" .
+          dest="$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          # Only the macOS template; the full archive is over 1 GB.
+          unzip -q -j -o "$templates" templates/macos.zip templates/version.txt -d "$dest"
+          rm -f "$editor" "$templates" SHA512-SUMS.txt
+      - name: Point tools at Godot
+        run: |
+          echo "GODOT=$HOME/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+          "$HOME/godot/Godot.app/Contents/MacOS/Godot" --version
+
+      - uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-macos-${{ hashFiles('**/*.import', 'project.godot') }}
+          restore-keys: godot-import-macos-
+      - name: Import assets
+        run: |
+          "$GODOT" --headless --path . --import 2>&1 | tail -5
+
+      - name: Load the Developer ID certificate
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password=$(uuidgen)
+          echo "$P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          rm -f "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -k "$keychain_password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          identity=$(security find-identity -v -p codesigning "$keychain" \
+            | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)
+          if [[ -z "$identity" ]]; then
+            echo "::error::No 'Developer ID Application' identity in MACOS_CERTIFICATE_P12_BASE64"
+            exit 1
+          fi
+          echo "MACOS_SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          echo "Signing as $identity"
+
+      - name: Export .app and .dmg
+        run: tools/export.sh
+
+      - name: Notarize and staple
+        if: env.HAS_SIGNING == 'true' && env.HAS_NOTARY == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: tools/notarize.sh dist/MazeCitadel-*.dmg
+
+      # No LAUNCH_CHECK here: GitHub's virtual Macs lack GPU features the
+      # Forward+ renderer needs (R32_Uint atomic images) and the windowed game
+      # crashes there. Run it on a real Mac: LAUNCH_CHECK=1 ALLOW_WINDOW=1.
+      - name: Verify the .dmg
+        env:
+          REQUIRE_NOTARIZED: ${{ env.HAS_SIGNING == 'true' && env.HAS_NOTARY == 'true' && '1' || '0' }}
+        run: tools/verify_dmg.sh dist/MazeCitadel-*.dmg
+
+      - name: Summary
+        if: always()
+        run: |
+          info=dist/build-info.json
+          [[ -f "$info" ]] || { echo "No build-info.json: the build or verification failed." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          python3 - "$info" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json, sys
+          i = json.load(open(sys.argv[1]))
+          print(f"### Maze Citadel {i['version']}: verified\n")
+          print("| Check | Result |\n|---|---|")
+          rows = [
+              ("File", f"`{i['dmg']}` ({i['size_bytes'] / 1048576:.1f} MB)"),
+              ("SHA-256", f"`{i['sha256']}`"),
+              ("Binary", f"{i['arch']}, macOS {i['min_macos']}+"),
+              ("Signature", i["signature"]),
+              ("Notarized", "yes, ticket stapled" if i["notarized"] else "no"),
+              ("Headless run from the .dmg", f"{i['smoke']['frames']} frames, {i['smoke']['seconds']} s, no errors"),
+              ("Godot", i["godot"]),
+          ]
+          for k, v in rows:
+              print(f"| {k} | {v} |")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MazeCitadel-macOS
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+            dist/build-info.json
+
+      - name: Remove the signing keychain
+        if: always() && env.HAS_SIGNING == 'true'
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [gate, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: MazeCitadel-macOS
+          path: dist
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(jq -r .version dist/build-info.json)
+          files=(dist/*.dmg dist/*.sha256 dist/build-info.json)
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            flags=()
+            [[ "$GITHUB_REF_NAME" == *-* ]] && flags+=(--prerelease)
+            gh release create "$GITHUB_REF_NAME" "${files[@]}" "${flags[@]}" \
+              --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes \
+              --title "Maze Citadel $version"
+          fi
+      - name: Refresh the download site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # A release made with the workflow token does not trigger other
+        # workflows, so start the site build on main directly.
+        run: gh workflow run site.yml --repo "$GITHUB_REPOSITORY" --ref main

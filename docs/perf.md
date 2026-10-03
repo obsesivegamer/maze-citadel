@@ -97,3 +97,8 @@ Frame times need the Mac, so this compares the load each map puts on the rendere
 
 The ruins are one baked static mesh; the rest of the difference is the bot's maze and creeps on that map. The Balanced battle is limited by pixel count, not geometry (foliage at 0.5 cut 2% of primitives and changed nothing measurable), so the Rampart should hold the same ~63 fps. Confirm with one battle bench on the M3 Air: `ALLOW_WINDOW=1 BENCH_TAG=rampart tools/bench.sh 20 balanced --autoplay --warp-wave=24 --warp-into=18 --map=rampart`.
 
+## Cinematic rebalance (2026-10-02, not yet measured)
+
+Slot 1 showed Cinematic at about 2× Balanced's cost (20 fps in the battle) with SDFGI and SSR adding little to this bright, stylized scene. Cinematic is now render scale 0.7 (MetalFX temporal), SSAO high, fog high, 4096 shadows with 4 cascades, SDFGI and SSR off: in effect the old Balanced (49.7 fps in the battle at 0.7) plus stronger AO, fog and shadows. Expected 40-50 fps in the battle; `tools/slot_d.sh` measures it.
+
+Also new: bench reports `timeline_fps` (average fps per 30 s) for thermal soaks, and `--first-frame-out` records launch time (first frame, frame 60, worst of the first 120 frames).

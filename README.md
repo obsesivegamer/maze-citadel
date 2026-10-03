@@ -6,9 +6,9 @@ A single-player maze tower defense in the spirit of Warcraft III custom maps (El
 
 ## Run it
 
-1. Build or download `MazeCitadel-<version>.dmg`, open it, and drag **Maze Citadel** to Applications (or run it from the disk image).
+1. Download `MazeCitadel-<version>.dmg` from the download site or the GitHub Releases page (or build it with `tools/export.sh`), open it, and drag **Maze Citadel** to Applications (or run it from the disk image).
 2. Double-click it. The game opens straight into the citadel with the builder ready.
-3. A copy downloaded from GitHub shows macOS's "unidentified developer" prompt once: right-click the app → **Open**. The app is ad-hoc signed, not notarized.
+3. A downloaded copy is ad-hoc signed, not notarized, so the first launch says Apple could not verify it. Click **Done**, then **System Settings → Privacy & Security → Open Anyway**. On macOS 13 or 14, Control-click the app → **Open** also works.
 
 Tested on a MacBook Air 13" M3 (8-core GPU, 16 GB), macOS 26.6.2. Apple Silicon only; macOS 13 or later.
 
@@ -32,6 +32,9 @@ Needs Godot 4.7.2 (`brew install --cask godot`), its macOS export templates, `gi
 | `tools/smoke.sh 18000` | The autoplay bot plays ~20 waves headless |
 | `godot --headless --path . --script res://tests/bots/run_balance.gd` | Balance table ([docs/balance.md](docs/balance.md)) |
 | `tools/export.sh` | `dist/MazeCitadel.app` and `.dmg` (arm64, ad-hoc signed) |
+| `tools/verify_dmg.sh` | Mounts the `.dmg`, checks bundle, version, arch and signature, runs the game headless from it |
+| `python3 tools/build_site.py` | Download site in `build/site/`, filled from the newest release |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | CI builds, verifies and publishes the release, then updates the site ([docs/RELEASING.md](docs/RELEASING.md)) |
 | `ALLOW_WINDOW=1 tools/slot.sh` | Captures, benchmarks and launch check; opens windows |
 
 Design: [docs/GDD.md](docs/GDD.md) · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Performance: [docs/perf.md](docs/perf.md)

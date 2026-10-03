@@ -10,6 +10,7 @@ extends Node3D
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
+##   --first-frame-out=<json>                    time to first frame, quit
 
 const RenderSpike := preload("res://src/spike/render_spike.gd")
 
@@ -53,6 +54,10 @@ func _attach_tools(set_view: Callable, settings: Dictionary) -> void:
 		shot.settle_frames = int(Cli.get_str("settle", "90"))
 		shot.set_view = set_view
 		add_child(shot)
+	elif Cli.has("first-frame-out"):
+		var probe := FirstFrame.new()
+		probe.out_path = Cli.get_str("first-frame-out")
+		add_child(probe)
 	elif Cli.has("bench"):
 		var bench := Bench.new()
 		bench.duration = Cli.get_float("bench", 20.0)
