@@ -71,7 +71,7 @@ func setup(game: Game) -> void:
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
 	if Tutorial.wanted():
-		_tutorial.start()
+		_start_tutorial.call_deferred()
 
 
 func _build_cards() -> void:
@@ -167,13 +167,45 @@ func _process(delta: float) -> void:
 	_refresh_hints()
 
 
+## After the caller's own setup, so a bot attached right after the Game is
+## added still keeps the welcome card away.
+func _start_tutorial() -> void:
+	if _game.autoplay == null:
+		_tutorial.start()
+
+
+## The HUD gets input before the builder and camera, so keys stop here while
+## a modal is up.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"field_guide"):
-		_guide.toggle()
-		get_viewport().set_input_as_handled()
-	elif _guide.visible and event.is_action_pressed(&"deselect"):
-		_guide.close_panel()
-		get_viewport().set_input_as_handled()
+	var action := modal_action(event, _guide.visible, _tutorial.welcome_visible())
+	match action:
+		&"":
+			return
+		&"close_guide":
+			_guide.close_panel()
+		&"open_guide":
+			_guide.open()
+		&"begin":
+			_tutorial.begin()
+	get_viewport().set_input_as_handled()
+
+
+## What a key does with the Field Guide or the welcome card up. Both are
+## modal: the topmost takes Esc and nothing else reaches the game behind
+## (&"swallow"); Space and Enter also begin from the welcome. Without either,
+## only H is the HUD's (&"" passes the key on).
+static func modal_action(event: InputEvent, guide_open: bool, welcome_open: bool) -> StringName:
+	var guide_key := event.is_action_pressed(&"field_guide")
+	if guide_open:
+		return &"close_guide" if guide_key or event.is_action_pressed(&"deselect") else &"swallow"
+	if welcome_open:
+		if guide_key:
+			return &"open_guide"
+		for a in [&"deselect", &"pause", &"ui_accept"]:
+			if event.is_action_pressed(a):
+				return &"begin"
+		return &"swallow"
+	return &"open_guide" if guide_key else &""
 
 
 func _refresh_hints() -> void:

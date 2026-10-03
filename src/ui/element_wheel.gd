@@ -20,14 +20,12 @@ const DIM := 0.28
 ## The highlighted element, or &"" for none.
 var focus: StringName = &"":
 	set = set_focus
-## Hover picks the focus; off for the small wheel on the welcome card.
-var interactive := true
 
 
-## `px` is the wheel's height; it is SIDE_ROOM wider on each side.
+## `px` is the wheel's height; it is SIDE_ROOM wider on each side. `hover`
+## lets the mouse pick the focus (off for the small wheel on the welcome card).
 func _init(px := 280.0, hover := true) -> void:
 	custom_minimum_size = Vector2(px + 2.0 * SIDE_ROOM, px)
-	interactive = hover
 	mouse_filter = Control.MOUSE_FILTER_STOP if hover else Control.MOUSE_FILTER_IGNORE
 	mouse_exited.connect(func() -> void: set_focus(&""))
 
@@ -61,7 +59,7 @@ func element_at(pos: Vector2) -> StringName:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if interactive and event is InputEventMouseMotion:
+	if event is InputEventMouseMotion:
 		set_focus(element_at((event as InputEventMouseMotion).position))
 
 

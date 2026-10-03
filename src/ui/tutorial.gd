@@ -5,8 +5,9 @@ extends Control
 ## behind it), then a counsel card for the next wave from the moment the
 ## previous one starts, with the towers it names glowing on the card bar, and
 ## a one-time tip the first time a counter hit, a resisted hit or an immune hit
-## shows up. Finishing wave 10's counsel, or Skip, turns it off for the next
-## launch; Settings → Tutorial turns it back on. Scripted runs never show it.
+## shows up. Playing through to wave 10, or Skip, turns it off for the next
+## launch; Settings → Tutorial turns it back on. Scripted and headless runs
+## never show it. The HUD routes keys to it while the welcome is up.
 
 signal guide_requested
 
@@ -24,12 +25,14 @@ const MARK_COLOR := Color(0.55, 0.92, 0.45)
 const SCRIPTED_FLAGS: Array[String] = [
 	"no-tutorial", "autoplay", "shot", "bench", "first-frame-out", "warp-wave"
 ]
+## One-time tips on the first hit of each kind; {keys} come from the tables (tip()).
 const TIPS := {
 	&"strong":
-	"Gold numbers with “!” are counter hits: the tower's element beats the creep's, 200% damage.",
+	"Gold numbers with “!” are counter hits: the tower's element beats the creep's, {strong} damage.",
 	&"weak":
-	"Small grey-blue numbers are resisted hits: the creep's element beats the tower's, 50% damage.",
-	&"immune": "IMMUNE: the steam shroud blocks every hit for 1.5 s. Keep the pressure on.",
+	"Small grey-blue numbers are resisted hits: the creep's element beats the tower's, {weak} damage.",
+	&"immune":
+	"IMMUNE: the steam shroud blocks every hit for {immune_time} s. Keep the pressure on.",
 }
 
 ## The welcome card has been seen since launch (survives scene reloads).
@@ -57,18 +60,35 @@ var _paused_here := false
 var _time := 0.0
 
 
-## Shows the tutorial unless a scripted-run flag is set; `--tutorial` forces it.
+## Shows the tutorial unless the run is headless (tools and probes) or a
+## scripted-run flag is set; `--tutorial` forces it.
 static func wanted() -> bool:
-	return wanted_for(Cli.args(), Save.setting("tutorial", true))
+	var headless := DisplayServer.get_name() == "headless"
+	return wanted_for(Cli.args(), Save.setting("tutorial", true), headless)
 
 
-static func wanted_for(args: Dictionary, saved: bool) -> bool:
+static func wanted_for(args: Dictionary, saved: bool, headless := false) -> bool:
 	if args.has("tutorial"):
 		return true
+	if headless:
+		return false
 	for flag in SCRIPTED_FLAGS:
 		if args.has(flag):
 			return false
 	return saved
+
+
+static func tip(kind: StringName) -> String:
+	return (
+		TIPS[kind]
+		. format(
+			{
+				"strong": Counsel.pct(Damage.STRONG, false),
+				"weak": Counsel.pct(Damage.WEAK, false),
+				"immune_time": Counsel.num(GameSim.TANK_IMMUNE_TIME),
+			}
+		)
+	)
 
 
 ## `cards` maps tower ids to their bottom-bar cards, for the glow marks.
@@ -107,12 +127,13 @@ func finish(remember := true) -> void:
 		Save.set_setting("tutorial", false)
 
 
-## Settings → Tutorial.
+## Settings → Tutorial. Turning it on goes straight to the counsel card: the
+## welcome would open under the settings panel.
 func on_setting(key: String, on: bool) -> void:
 	if key != "tutorial":
 		return
 	if on and step == Step.OFF:
-		start()
+		_advance(_game.sim.wave)
 	elif not on and step != Step.OFF:
 		finish(false)
 
@@ -193,12 +214,12 @@ func _build_welcome() -> void:
 	)
 	box.add_child(outro)
 	var buttons := UiKit.hbox(12)
-	var begin := UiKit.text_button(_game, "Begin")
-	begin.add_theme_font_override("font", UiTheme.heading(700))
-	begin.add_theme_font_size_override("font_size", UiTheme.SIZE_LARGE)
-	begin.custom_minimum_size = Vector2(180, 38)
-	begin.pressed.connect(_begin)
-	buttons.add_child(begin)
+	var go := UiKit.text_button(_game, "Begin")
+	go.add_theme_font_override("font", UiTheme.heading(700))
+	go.add_theme_font_size_override("font_size", UiTheme.SIZE_LARGE)
+	go.custom_minimum_size = Vector2(180, 38)
+	go.pressed.connect(begin)
+	buttons.add_child(go)
 	var skip := UiKit.text_button(_game, "Skip tutorial")
 	skip.custom_minimum_size = Vector2(140, 38)
 	skip.pressed.connect(finish)
@@ -261,7 +282,8 @@ func _hide_welcome() -> void:
 	_paused_here = false
 
 
-func _begin() -> void:
+## Closes the welcome card and shows the first counsel.
+func begin() -> void:
 	_hide_welcome()
 	_advance(_game.sim.wave)
 
@@ -303,8 +325,6 @@ func _graduate() -> void:
 	_card.visible = true
 	_card.reset_size()
 	_mark(_empty())
-	if persist:
-		Save.set_setting("tutorial", false)
 
 
 func _hide_card() -> void:
@@ -323,6 +343,10 @@ func _on_sim_event(e: Dictionary) -> void:
 				_hide_card()
 			elif step == Step.COUNSEL:
 				_advance(e.wave)
+				# Played through to the end: off for the next launch. Turning it on
+				# from Settings after wave 10 only shows the closing card.
+				if step == Step.GRADUATED and persist:
+					Save.set_setting("tutorial", false)
 		&"hit":
 			if step == Step.COUNSEL and TIPS.has(e.counter):
 				_show_tip(e.counter)
@@ -335,7 +359,7 @@ func _show_tip(kind: StringName) -> void:
 	if _tips_shown.has(kind) or not _card.visible:
 		return
 	_tips_shown[kind] = true
-	_tip.text = "[color=#%s][b]Tip:[/b] %s[/color]" % [UiTheme.hex(UiTheme.GOLD_BRIGHT), TIPS[kind]]
+	_tip.text = "[color=#%s][b]Tip:[/b] %s[/color]" % [UiTheme.hex(UiTheme.GOLD_BRIGHT), tip(kind)]
 	_tip.visible = true
 	_card.reset_size()
 
@@ -348,12 +372,6 @@ func _mark(ids: Array[StringName]) -> void:
 func _empty() -> Array[StringName]:
 	var out: Array[StringName] = []
 	return out
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if _welcome.visible and event.is_action_pressed(&"deselect"):
-		_begin()
-		get_viewport().set_input_as_handled()
 
 
 ## The marks pulse by fading the whole overlay, so they redraw only when the

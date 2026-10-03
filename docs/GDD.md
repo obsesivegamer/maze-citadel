@@ -264,7 +264,7 @@ In the spirit of a Warcraft III map's quest log and timed hints. All advice is c
 | Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
 | Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
 
-The tutorial turns itself off after wave 10's counsel or on Skip; Settings → Help → Tutorial turns it back on. Bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it.
+The welcome card and the Field Guide are modal: no key reaches the game behind them, `Esc` closes the topmost, and `Space` or `Enter` also begin from the welcome. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it.
 
 ## 12. World life and juice (checklist)
 

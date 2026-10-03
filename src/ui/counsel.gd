@@ -28,23 +28,25 @@ const CLASS_LABELS := {
 	&"light": "Light armor", &"armored": "Armored", &"air": "Air", &"boss": "Boss armor"
 }
 ## What a creep type changes about the counter, said when it first appears.
+## The {keys} come from the creep and sim tables (creep_note()).
 const CREEP_NOTES := {
 	&"wolf_rider": "Wolf Riders are fast and frail: a long maze gives your towers more shots.",
-	&"footman": "Shield Footmen carry 4 armor. Siege smashes it; Pierce glances off.",
+	&"footman": "Shield Footmen carry {footman_armor} armor. Siege smashes it; Pierce glances off.",
 	&"priestess": "Priestesses heal the creeps around them. Poison halves that healing.",
 	&"harpy": "Harpies fly straight over the maze. Only towers with the wing icon hit them.",
 	&"ghoul": "Ghouls rise once at a third of their HP, so each one has to fall twice.",
 	&"steam_tank":
 	(
-		"Steam Tanks carry 10 armor and turn IMMUNE for 1.5 s every 6 s."
-		+ " Poison ignores armor and the Runesmith shreds it."
+		"Steam Tanks carry {tank_armor} armor and turn IMMUNE for {immune_time} s every"
+		+ " {immune_period} s. Poison ignores armor and the Runesmith shreds it."
 	),
 	&"ogre":
 	(
-		"Bosses cost 2 lives if they leak. The Ogre gives nearby escorts +3 armor"
+		"Bosses cost 2 lives if they leak. The Ogre gives nearby escorts +{aura_armor} armor"
 		+ " and a little speed."
 	),
-	&"dreadlord": "The Dreadlord summons three Felhounds every 10 s. Bosses cost 2 lives.",
+	&"dreadlord":
+	"The Dreadlord summons {summons} Felhounds every {summon_period} s." + " Bosses cost 2 lives.",
 }
 
 
@@ -248,8 +250,25 @@ static func creep_notes(wave: int, first_only := false) -> Array[String]:
 	for g in TowerInfo.wave_groups(wave):
 		var type: StringName = g[0]
 		if CREEP_NOTES.has(type) and (not first_only or first_wave_of(type) == wave):
-			out.append(CREEP_NOTES[type])
+			out.append(creep_note(type))
 	return out
+
+
+static func creep_note(type: StringName) -> String:
+	return (
+		CREEP_NOTES[type]
+		. format(
+			{
+				"footman_armor": CreepDefs.CREEPS[&"footman"].armor,
+				"tank_armor": CreepDefs.CREEPS[&"steam_tank"].armor,
+				"immune_time": num(GameSim.TANK_IMMUNE_TIME),
+				"immune_period": num(GameSim.TANK_IMMUNE_PERIOD),
+				"aura_armor": num(GameSim.OGRE_AURA_ARMOR),
+				"summons": GameSim.SUMMON_COUNT,
+				"summon_period": num(GameSim.SUMMON_PERIOD),
+			}
+		)
+	)
 
 
 ## The first wave a creep type spawns on (0 if never, e.g. summons).
@@ -294,6 +313,11 @@ static func summary(wave: int) -> String:
 ## "350%"; coloured green above 100% and red below unless `color` is false.
 static func pct(m: float, color := true) -> String:
 	return _pct(m, color)
+
+
+## A table number as written in text: 6.0 → "6", 1.5 → "1.5".
+static func num(x: float) -> String:
+	return str(roundi(x)) if is_equal_approx(x, roundf(x)) else String.num(x)
 
 
 ## Drops BBCode tags, for plain-text tooltips and tests.

@@ -8,7 +8,9 @@ func test_scripted_runs_skip_the_tutorial() -> void:
 	check(not Tutorial.wanted_for({}, false), "finished or turned off")
 	for flag in ["autoplay", "shot", "bench", "first-frame-out", "warp-wave", "no-tutorial"]:
 		check(not Tutorial.wanted_for({flag: "true"}, true), "--%s skips it" % flag)
+	check(not Tutorial.wanted_for({}, true, true), "headless tools and probes skip it")
 	check(Tutorial.wanted_for({"tutorial": "true", "shot": "x"}, false), "--tutorial forces it")
+	check(Tutorial.wanted_for({"tutorial": "true"}, false, true), "even headless")
 
 
 func test_walks_waves_one_to_ten() -> void:
@@ -17,7 +19,7 @@ func test_walks_waves_one_to_ten() -> void:
 	tut.start()
 	check(tut.welcome_visible(), "welcome first")
 	check(game.paused, "the opening countdown waits behind the welcome")
-	tut._begin()
+	tut.begin()
 	check(not tut.welcome_visible() and not game.paused, "begin resumes")
 	check_eq(tut.counsel_wave(), 1)
 	check_eq(tut.marked(), Counsel.best_towers(1), "picks glow on the card bar")
@@ -42,6 +44,7 @@ func test_tips_show_once() -> void:
 	check_eq(tut.tip_text(), "", "neutral hits teach nothing")
 	game.sim_event.emit({"type": &"hit", "id": 1, "amount": 10.0, "counter": &"strong"})
 	check(tut.tip_text().contains("counter hits"), "strong-hit tip")
+	check(tut.tip_text().contains("200% damage"), "numbers come from the damage table")
 	game.sim_event.emit({"type": &"hit", "id": 1, "amount": 2.0, "counter": &"weak"})
 	check(tut.tip_text().contains("resisted"), "weak-hit tip replaces it")
 	game.sim_event.emit({"type": &"hit", "id": 1, "amount": 10.0, "counter": &"strong"})
@@ -63,6 +66,44 @@ func test_skip_and_settings() -> void:
 	tut.on_setting("tutorial", false)
 	check_eq(tut.step, Tutorial.Step.OFF)
 	_free(tut, game)
+	# From Settings before wave 1 on a fresh launch: no welcome under the panel.
+	game = Game.new()
+	tut = _tutorial(game)
+	tut.on_setting("tutorial", true)
+	check(not tut.welcome_visible() and not game.paused, "straight to the counsel card")
+	check_eq(tut.counsel_wave(), 1)
+	_free(tut, game)
+	# After the tutorial waves: only the closing card.
+	game = Game.new()
+	game.sim.wave = Counsel.TUTORIAL_WAVES + 2
+	tut = _tutorial(game)
+	tut.on_setting("tutorial", true)
+	check_eq(tut.step, Tutorial.Step.GRADUATED)
+	_free(tut, game)
+
+
+func test_modals_keep_keys_from_the_game() -> void:
+	InputSetup.register()
+	var esc := _key(KEY_ESCAPE)
+	var space := _key(KEY_SPACE)
+	var enter := _key(KEY_ENTER)
+	var h := _key(KEY_H)
+	var n := _key(KEY_N)
+	var one := _key(KEY_1)
+	check_eq(Hud.modal_action(n, false, false), &"", "no modal: keys reach the game")
+	check_eq(Hud.modal_action(esc, false, false), &"", "Esc still deselects")
+	check_eq(Hud.modal_action(h, false, false), &"open_guide")
+	for k in [space, n, one]:
+		check_eq(Hud.modal_action(k, true, false), &"swallow", "guide blocks %s" % k.as_text())
+		check_eq(Hud.modal_action(k, true, true), &"swallow", "guide over welcome")
+	check_eq(Hud.modal_action(esc, true, false), &"close_guide")
+	check_eq(Hud.modal_action(h, true, false), &"close_guide")
+	check_eq(Hud.modal_action(esc, true, true), &"close_guide", "topmost first")
+	for k in [esc, space, enter]:
+		check_eq(Hud.modal_action(k, false, true), &"begin", "%s begins" % k.as_text())
+	check_eq(Hud.modal_action(h, false, true), &"open_guide", "guide over the welcome")
+	check_eq(Hud.modal_action(n, false, true), &"swallow", "no early wave")
+	check_eq(Hud.modal_action(one, false, true), &"swallow", "no build pick")
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:
@@ -92,6 +133,14 @@ func test_wheel_focus() -> void:
 	check_eq(wheel.element_at(wheel.node_center(3)), &"flame", "Flame at the bottom")
 	check_eq(wheel.element_at(wheel.size / 2.0), &"", "nothing in the middle")
 	wheel.free()
+
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.pressed = true
+	return e
 
 
 func _tutorial(game: Game) -> Tutorial:

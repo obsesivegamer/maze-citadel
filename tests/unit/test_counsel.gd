@@ -101,13 +101,25 @@ func test_tower_vs_wave() -> void:
 
 
 func test_creep_notes_on_first_appearance() -> void:
-	check_eq(Counsel.creep_notes(4, true), [Counsel.CREEP_NOTES[&"priestess"]])
+	check_eq(Counsel.creep_notes(4, true), [Counsel.creep_note(&"priestess")])
+	check_eq(
+		Counsel.creep_note(&"steam_tank"),
+		(
+			"Steam Tanks carry 10 armor and turn IMMUNE for 1.5 s every 6 s."
+			+ " Poison ignores armor and the Runesmith shreds it."
+		),
+		"numbers from the creep and sim tables"
+	)
+	check(
+		Counsel.creep_note(&"dreadlord").begins_with("The Dreadlord summons 3 Felhounds every 10 s")
+	)
 	check_eq(Counsel.creep_notes(9, true), [], "footmen and priestesses seen before")
 	check_eq(Counsel.creep_notes(9).size(), 2, "all notes outside the tutorial")
 	check_eq(Counsel.first_wave_of(&"harpy"), 5)
 	check_eq(Counsel.first_wave_of(&"felhound"), 0, "summons never spawn from the table")
 	for type in Counsel.CREEP_NOTES:
 		check(CreepDefs.CREEPS.has(type), "note for a real creep: %s" % type)
+		check(not Counsel.creep_note(type).contains("{"), "%s note fully formatted" % type)
 
 
 func test_lessons_cover_the_tutorial() -> void:
