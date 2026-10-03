@@ -4,7 +4,7 @@ extends Node3D
 signal boss_tracking_changed(on: bool)
 ## RTS camera (GDD §10): damped orbit, pan and zoom around a ground target.
 ## Mouse wheel / pinch zoom, WASD / arrows / two-finger trackpad pan,
-## middle-drag or Option-drag orbit, Q/E rotate. Presets: full board (R),
+## middle-drag or Option/Alt-drag orbit, Q/E rotate. Presets: full board (R),
 ## portal, gate; C cycles them, B follows the boss.
 
 const PRESETS := {
@@ -93,14 +93,28 @@ func screen_to_ground(screen_pos: Vector2) -> Variant:
 	return Plane(Vector3.UP, Coords.PLATEAU_TOP).intersects_ray(origin, dir)
 
 
+## Zoom factor for one wheel event. Godot sends a press and a release per
+## wheel step, so a mouse notch applies `step` twice. On Windows and Linux,
+## touchpads scroll through the wheel too, in many small steps, so off macOS
+## only the press zooms, by the step's size (`factor`, 1 per mouse notch).
+static func _wheel_zoom(
+	mb: InputEventMouseButton, step: float, mac := OS.has_feature("macos")
+) -> float:
+	if mac:
+		return step
+	if not mb.pressed:
+		return 1.0
+	return pow(step * step, mb.factor if mb.factor > 0.0 else 1.0)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		match mb.button_index:
 			MOUSE_BUTTON_WHEEL_UP:
-				_distance *= 0.9
+				_distance *= _wheel_zoom(mb, 0.9)
 			MOUSE_BUTTON_WHEEL_DOWN:
-				_distance *= 1.1
+				_distance *= _wheel_zoom(mb, 1.1)
 			MOUSE_BUTTON_MIDDLE:
 				_orbiting = mb.pressed
 			MOUSE_BUTTON_LEFT:

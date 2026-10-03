@@ -2,10 +2,12 @@
 """Build the download site from site/ and the newest GitHub Release.
 
 Fills site/index.html from the newest published release: its .dmg and the
-build-info.json that tools/verify_dmg.sh wrote. The tower roster and the
+build-info.json that tools/verify_dmg.sh wrote, plus the Windows .zip and the
+Linux .tar.gz with their build-info-windows.json and build-info-linux.json when
+the release has them (releases up to v0.2.0 are Mac only). The tower roster and the
 tower and wave counts come from the game's own data (src/data/tower_defs.gd,
 src/data/wave_defs.gd, src/ui/tower_info.gd), so the page follows rebalances. A private repo's release files
-need a login to download, so for a private repo the .dmg is copied into the
+need a login to download, so for a private repo the downloads are copied into the
 site and served from there; a public repo links to the release file. With no
 release (or no token), the page says the first build is on its way.
 
@@ -50,6 +52,12 @@ ATTACK_ICONS = {
     "aura": "M9 17.5V5.5l10-2v12M9 17.5a2.75 2.75 0 1 1-5.5 0 2.75 2.75 0 0 1 5.5 0z"
     "M19 15.5a2.75 2.75 0 1 1-5.5 0 2.75 2.75 0 0 1 5.5 0z",
 }
+# PC builds next to the .dmg: template value prefix, template flag (also the
+# build-info-<flag>.json name), archive name ending, and name on the page.
+PC_BUILDS = [
+    ("win", "windows", "-windows-x86_64.zip", "Windows"),
+    ("linux", "linux", "-linux-x86_64.tar.gz", "Linux"),
+]
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -122,8 +130,22 @@ def project_defaults() -> dict:
     }
 
 
+def mb(size_bytes: int) -> str:
+    return f"{round(size_bytes / 1048576)} MB"
+
+
+def fetch_build(assets: dict, name: str, tok: str, out: Path) -> dict:
+    """A build-info JSON from the release, kept in the site, or {}."""
+    if name not in assets:
+        return {}
+    path = out / name
+    download_asset(assets[name], tok, path)
+    return json.loads(path.read_text())
+
+
 def fetch_release(repo: str, tok: str, out: Path):
-    """Newest non-draft release with a .dmg, as template values, or None."""
+    """Newest non-draft release with a .dmg, as template values, or None.
+    Its Windows and Linux builds come along when it has them."""
     info = api(f"/repos/{repo}", tok)
     private = info.get("private", True)
     releases = api(f"/repos/{repo}/releases?per_page=20", tok)
@@ -134,17 +156,28 @@ def fetch_release(repo: str, tok: str, out: Path):
         dmg = next((a for n, a in assets.items() if n.endswith(".dmg")), None)
         if not dmg:
             continue
-        build = {}
-        if "build-info.json" in assets:
-            path = out / "build-info.json"
-            download_asset(assets["build-info.json"], tok, path)
-            build = json.loads(path.read_text())
-        if private:
+        build = fetch_build(assets, "build-info.json", tok, out)
+
+        def link(asset):
+            if not private:
+                return asset["browser_download_url"]
             (out / "download").mkdir(parents=True, exist_ok=True)
-            download_asset(dmg, tok, out / "download" / dmg["name"])
-            href = f"download/{dmg['name']}"
-        else:
-            href = dmg["browser_download_url"]
+            download_asset(asset, tok, out / "download" / asset["name"])
+            return f"download/{asset['name']}"
+
+        href = link(dmg)
+        pc = {}
+        for key, flag, ending, _ in PC_BUILDS:
+            asset = next((a for n, a in assets.items() if n.endswith(ending)), None)
+            if not asset:
+                continue
+            pc_build = fetch_build(assets, f"build-info-{flag}.json", tok, out)
+            pc[key] = {
+                "name": asset["name"],
+                "href": link(asset),
+                "size_bytes": asset["size"],
+                "sha256": pc_build.get("sha256", ""),
+            }
         published = datetime.datetime.fromisoformat(rel["published_at"].replace("Z", "+00:00"))
         return {
             "version": build.get("version") or rel["tag_name"].lstrip("v"),
@@ -160,6 +193,7 @@ def fetch_release(repo: str, tok: str, out: Path):
             "release_date": published,
             "tag": rel["tag_name"],
             "public": not private,
+            "pc": pc,
         }
     return None
 
@@ -437,7 +471,7 @@ def build(out: Path, release, url: str) -> dict:
         "version": rel.get("version", defaults["version"]),
         "dmg_name": dmg,
         "dmg_href": rel.get("dmg_href", ""),
-        "size_mb": f"{round(rel['size_bytes'] / 1048576)} MB" if release else "",
+        "size_mb": mb(rel["size_bytes"]) if release else "",
         "sha256": rel.get("sha256", ""),
         "disk_mb": disk_mb,
         "min_macos": min_macos,
@@ -451,6 +485,15 @@ def build(out: Path, release, url: str) -> dict:
         "map_count": len(data["map_order"]),
         "map_names": and_list([data["maps"][m]["name"] for m in data["map_order"]]),
     }
+    pc = rel.get("pc", {})
+    values["platforms"] = and_list(["Mac"] + [label for key, _, _, label in PC_BUILDS if key in pc])
+    for key, build in pc.items():
+        values.update({
+            f"{key}_name": build["name"],
+            f"{key}_href": build["href"],
+            f"{key}_size_mb": mb(build["size_bytes"]),
+            f"{key}_sha256": build["sha256"],
+        })
     flags = {
         "release": bool(release),
         "no_release": not release,
@@ -459,7 +502,12 @@ def build(out: Path, release, url: str) -> dict:
         "unsigned": not rel.get("notarized", False),
         "public": rel.get("public", False),
         "site_url": bool(url),
+        "pc": bool(pc),
+        "mac_only": not pc,
     }
+    for key, flag, _, _ in PC_BUILDS:
+        flags[flag] = key in pc
+        flags[f"{flag}_sha256"] = bool(pc.get(key, {}).get("sha256"))
     template = (src / "index.html").read_text()
     page = render(template, values, flags)
     if "<!--roster-->" not in page:
@@ -471,7 +519,7 @@ def build(out: Path, release, url: str) -> dict:
     shutil.copytree(src / "img", out / "img", dirs_exist_ok=True)
     for name in (".nojekyll", ".gdignore"):
         (out / name).touch()
-    latest = {k: v for k, v in values.items() if k not in ("site_url", "tower_count", "epic_count", "wave_count", "map_count", "map_names")}
+    latest = {k: v for k, v in values.items() if k not in ("site_url", "tower_count", "epic_count", "wave_count", "map_count", "map_names", "platforms")}
     latest["available"] = bool(release)
     latest["notarized"] = flags["notarized"]
     (out / "latest.json").write_text(json.dumps(latest, indent=2) + "\n")
@@ -501,6 +549,9 @@ def main() -> None:
     if release:
         where = "copied into the site" if not release["public"] else "linked from the release"
         print(f"build_site: {release['tag']} ({latest['dmg_name']}, {latest['size_mb']}), .dmg {where}")
+        for key, _, _, label in PC_BUILDS:
+            if key in release["pc"]:
+                print(f"build_site: {label} build {latest[key + '_name']}, {latest[key + '_size_mb']}")
     else:
         print("build_site: no release yet; the page says the first build is on its way")
     print(f"build_site: wrote {out}")

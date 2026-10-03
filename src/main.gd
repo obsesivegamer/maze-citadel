@@ -65,6 +65,20 @@ func _ready() -> void:
 	)
 
 
+## Windows and Linux windows have no fullscreen button like macOS's title
+## bar: F11 or Alt+Enter toggles fullscreen there.
+func _unhandled_key_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if OS.has_feature("macos") or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_F11 or (key.keycode == KEY_ENTER and key.alt_pressed):
+		var full := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+		DisplayServer.window_set_mode(
+			DisplayServer.WINDOW_MODE_MAXIMIZED if full else DisplayServer.WINDOW_MODE_FULLSCREEN
+		)
+		get_viewport().set_input_as_handled()
+
+
 func _boot_spike() -> void:
 	var world := RenderSpike.new()
 	add_child(world)

@@ -250,7 +250,7 @@ The full 40-row table is in `src/data/wave_defs.gd`. Elements rotate so each one
 | `R` | Hero view (reset to the default 3/4 camera) |
 | `C` / `B` | Cycle camera presets (full board, portal close-up, gate defense) / toggle boss tracking |
 | `H` | Field Guide (§11.1) |
-| Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag orbit, `Q`/`E` rotate, trackpad two-finger pan and pinch zoom. All damped. |
+| Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag (Alt-drag on PC) orbit, `Q`/`E` rotate, trackpad two-finger pan and pinch zoom on Mac. Windows and Linux touchpads zoom with a two-finger swipe, scaled to the swipe's size. All damped. On Windows and Linux, `F11` or `Alt`+`Enter` toggles fullscreen. |
 
 The range ring shows only for the hovered or selected tower (and for the ghost while placing).
 
@@ -307,8 +307,10 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 | Ambient crowd (villagers, sheep, birds) | 100% | 70% | 35% |
 | Foliage density | 100% | 80% | 50% |
 
+On Windows and Linux there is no MetalFX, so FSR 2 replaces MetalFX temporal and FSR 1 replaces MetalFX spatial. Cinematic and Balanced also render at least 720 px of the window's height (about 0.7 in a maximized window on a 1080p monitor, 0.67 fullscreen), because 0.5 was tuned on a Retina panel that already gets about 890 px. The scale is refit when the window changes size. Performance keeps 0.5. PCs whose GPU has neither Vulkan nor Direct3D 12 fall back to Godot's OpenGL renderer, with bilinear upscaling and no fog or SSAO.
+
 All presets: soft-shadow filter "low" with plain PCF (no PCSS blocker search), linear glow upscale, and terrain shaders that skip unused texture reads; from the RTS camera these look the same as the costlier versions (docs/perf.md, butter pass).
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/`): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.

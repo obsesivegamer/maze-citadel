@@ -223,3 +223,17 @@ After a switch, a hot Mac stalls for ~0.6 s at a time (frames of 50–140 ms) ev
 ### Next
 1. Hot late waves still average ~57 fps on Balanced. The biggest lever left that keeps the look: render the 3D view at the panel's own resolution. The default "looks like 1470 × 956" mode draws 2940 × 1782 and macOS shrinks it to the 2560-wide panel, so MetalFX and post-processing work on ~32% more pixels than the screen shows. Needs the 3D in a SubViewport (picking, overlays and captures map coordinates), so it's its own change.
 2. The Performance preset holds 60 when hot for players who want that now.
+
+## Windows check (2026-10-03)
+
+The first Windows build (PR #20's CI artifact) on a real PC: AMD Radeon RX 6950 XT (16 GB) with a Ryzen 7 7700X, Windows 11 25H2, a 3440 × 1440 60 Hz ultrawide at 150% scaling. Godot picked the discrete card and Vulkan in every run ("Vulkan 1.4.315 - Forward+ - Using Device #0: AMD - AMD Radeon RX 6950 XT"), and the logs had no warnings or errors. Stills of the full board, portal and gate render the same as on the Mac. This card is far faster than the M3, so these numbers show the build works, not how weaker PCs fare.
+
+| Run (maximized, 3440 × 1406) | Scale, upscaler | Avg fps | 1% low | Frame | CPU | Worst |
+|---|---|---|---|---|---|---|
+| Balanced, wave 35, vsync off | 0.51, FSR 2 | 170 | 74 | 5.9 ms | 1.2 ms | 17 ms |
+| Cinematic, wave 35, vsync off (window unfocused) | 0.70, FSR 2 | 103 | 50 | 9.7 ms | 1.4 ms | 32 ms |
+| Performance, wave 35, vsync off | 0.50, FSR 1 | 178 | 118 | 5.6 ms | 1.1 ms | 81 ms (warm-up after the warp) |
+| Balanced, wave 5, vsync off | 0.51, FSR 2 | 445 | 360 | 2.3 ms | 0.6 ms | 5 ms |
+| Balanced, wave 35, vsync on | 0.51, FSR 2 | 60.0 | 60.0 | 16.7 ms | 1.5 ms | 25 ms, 0.06% missed |
+
+Launch: 22.8 s to the board on the first run (shader compile behind the loading screen), 6.5 s after that. Both launches had one ~59 ms frame in wave 1, warm as well as cold, so it isn't shader compilation; the Mac's worst wave-1 frame is 32 ms. Worth a look on this PC with the hitch probe. The 720 px floor barely applies here: a maximized window is 1406 px tall, so Balanced renders at 0.51.
