@@ -95,7 +95,7 @@ It's the same game on all three systems, with the same saves. The game keeps its
 | `F` | Cycle the speed: ×1, ×2, ×3 |
 | `H` | Open the Field Guide |
 | `Esc` | Deselect or cancel |
-| `W` `A` `S` `D`, arrow keys or two-finger drag | Move the camera |
+| `W` `A` `S` `D`, arrow keys, or two-finger drag on a Mac trackpad | Move the camera |
 | Mouse wheel, pinch, or two-finger swipe on a PC touchpad | Zoom |
 | `Q` / `E`, middle-drag or `Option`-drag (`Alt`-drag on PC) | Rotate the camera |
 | `R` | Reset the camera |

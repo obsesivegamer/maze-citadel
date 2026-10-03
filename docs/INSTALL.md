@@ -8,7 +8,7 @@ This guide has two parts. [Part 1](#part-1-install-and-play) is for playing the 
 
 Maze Citadel runs on Mac, Windows and Linux. On a Mac it's a single app that comes in a disk image: you drag it to Applications, allow it once in System Settings, and play. On Windows and Linux it's a single program in a zip or tar.gz archive: you unpack it anywhere and run it. There is no installer, no account, no launcher and nothing extra to download, and the game never goes online.
 
-The Mac version runs on Macs with Apple silicon and macOS 13 Ventura or later, not on Intel Macs. The Windows version runs on 64-bit Windows 10 and 11, and the Linux version on 64-bit x86 distributions. Both need a graphics card with Vulkan support. It's the same game on all three, with the same saves.
+The Mac version runs on Macs with Apple silicon and macOS 13 Ventura or later, not on Intel Macs. The Windows version runs on 64-bit Windows 10 and 11, and the Linux version on 64-bit x86 distributions. Windows needs a graphics card with Vulkan or Direct3D 12 support, and Linux one with Vulkan support. It's the same game on all three, with the same saves.
 
 The Windows and Linux builds are new. They're less tested than the Mac build, and their frame rate hasn't been measured yet. Releases up to 0.2.0 are Mac only.
 
@@ -173,7 +173,9 @@ Everything the game writes goes into its data folder, the one in the table above
 
 **"Windows protected your PC" with only a Don't run button.** Click **More info** first. The **Run anyway** button appears below the app's name.
 
-**The game doesn't start on Windows or Linux.** Update your graphics drivers, from your graphics card maker on Windows or from your distribution on Linux. The game needs a graphics card with Vulkan support, or on Windows one with Direct3D 12. On Linux, starting the game from a terminal shows its messages, which say what went wrong.
+**The game doesn't start on Windows or Linux.** Update your graphics drivers, from your graphics card maker on Windows or from your distribution on Linux. The game needs a graphics card with Vulkan support, or on Windows one with Direct3D 12. On Linux, starting the game from a terminal shows its messages, which say what went wrong. Graphics cards with neither still run the game through Godot's simpler OpenGL renderer, at full resolution and without fog or ambient shading.
+
+**"Smart App Control blocked an app that may be unsafe."** Windows 11's stricter Smart App Control mode is on, and it blocks unsigned programs with no **Run anyway** option. The Windows build can't run while that mode is on; a code-signed build would fix this.
 
 **"Permission denied" on Linux.** The archive marks `MazeCitadel.x86_64` as a program, but some extract tools drop that mark. Restore it with `chmod +x MazeCitadel.x86_64`.
 
@@ -214,8 +216,8 @@ The game has three quality presets. They only change how the game looks, never t
 
 | Preset | What it does |
 |---|---|
-| **Cinematic** | Renders the 3D scene at 70% resolution and upscales it with MetalFX, with the best shadows, fog and ambient shading |
-| **Balanced** (default) | Renders at 50% resolution with MetalFX upscaling and lighter shadows, fog and shading. This is the preset tuned to hold 60 fps on the M3 MacBook Air. |
+| **Cinematic** | Renders the 3D scene at 70% resolution and upscales it with MetalFX (AMD FSR 2 on Windows and Linux), with the best shadows, fog and ambient shading |
+| **Balanced** (default) | Renders at 50% resolution with MetalFX upscaling and lighter shadows, fog and shading. This is the preset tuned to hold 60 fps on the M3 MacBook Air. On Windows and Linux it uses FSR 2 and keeps at least 720 pixels of height, so a 1080p screen renders at about 67%. |
 | **Performance** | Renders at 50% resolution with a simpler upscaler, low shadows, no fog or ambient shading, and fewer particles, villagers and plants |
 
 The exact settings are in [GDD.md](GDD.md#14-quality-presets), and the measurements behind them are in [perf.md](perf.md).
@@ -316,7 +318,7 @@ This is the one command to run before committing. It imports the project, checks
 
 ### 5. Build the app
 
-Building needs the macOS export templates for Godot 4.7.2. The simple way is from the editor: **Editor → Manage Export Templates → Download and Install**. That keeps templates for every platform, which is over 1 GB. The release workflow keeps only the macOS one, and you can do the same from the command line:
+Building needs Godot 4.7.2's export templates: the macOS one for the app, and the Windows and Linux ones for the PC builds. The simple way is from the editor: **Editor → Manage Export Templates → Download and Install**. That keeps templates for every platform, which is over 1 GB. The release workflow keeps only the templates each build needs, and you can do the same from the command line:
 
 ```sh
 base="https://github.com/godotengine/godot/releases/download/4.7.2-stable"

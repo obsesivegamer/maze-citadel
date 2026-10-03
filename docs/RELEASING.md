@@ -57,7 +57,7 @@ The website deploys when the site or the game data it shows changes on `main`, a
 
 **If Pages is off**, as it would be on a fork, the workflow still builds the site and skips the deploy. To turn Pages on, go to the repository's **Settings → Pages → Build and deployment → Source: GitHub Actions**, then run the Download site workflow once. The address is `https://<owner>.github.io/<repository>/` unless you add a custom domain on the same settings page.
 
-**If the repository is private**, Pages needs a paid GitHub plan (Pro or above). The website itself is public either way. Release files of a private repository need a GitHub login to download, so the build copies the `.dmg` into the site and serves it from there. On a public repository, which this one is, the download button links to the release file instead.
+**If the repository is private**, Pages needs a paid GitHub plan (Pro or above). The website itself is public either way. Release files of a private repository need a GitHub login to download, so the build copies the downloads into the site and serves them from there. On a public repository, which this one is, the download button links to the release file instead.
 
 ## Signing and notarization (optional)
 

@@ -742,7 +742,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   if (!choices && !tabs.length) return;
   var ua = navigator.userAgent || "";
   var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ua).toLowerCase();
-  var os = /win/.test(p) ? "windows" : /linux|x11/.test(p) && !/android|arm|aarch/i.test(p + ua) ? "linux" : "mac";
+  var os = /win/.test(p) ? "windows" : /linux|x11/.test(p) && !/android|arm|aarch/i.test(p + ua + (navigator.platform || "")) ? "linux" : "mac";
   var mine = choices && choices.querySelector('[data-os="' + os + '"]');
   if (mine && os !== "mac") {
     choices.querySelector('[data-os="mac"]').classList.add("alt");
