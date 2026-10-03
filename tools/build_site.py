@@ -308,18 +308,17 @@ def roster_html(data: dict) -> str:
         if epic:
             price = f"+{t['fuse_cost']}"
             costs = [("Fuse", price)]
+            kicker = f"{family} Epic · {element_name}"
         else:
             price = str(t["cost"][0])
             costs = [("Level 1", price)] + [(f"Level {i + 2}", f"+{c}") for i, c in enumerate(t["cost"][1:])]
+            kicker = f"{family} · {element_name}"
         rng = t["range"] if isinstance(t["range"], list) else [t["range"]]
         reach = num(rng[0]) if rng[0] == rng[-1] else f"{num(rng[0])} to {num(rng[-1])}"
-        # The element chip wears the element's color; the rest are plain.
         chips = [
-            ("", f"{family} Epic" if epic else family),
-            (' class="chip-el"' if element else "", element_name),
-            ("", f"{data['attacks'][attack]} attack" if attack else "Aura"),
-            ("", "Buffs towers in range" if t["kind"] == "aura" else ("Hits air and ground" if t.get("air") else "Ground only")),
-            ("", f"Range {reach}"),
+            f"{data['attacks'][attack]} attack" if attack else "Aura",
+            "Buffs towers in range" if t["kind"] == "aura" else ("Hits air and ground" if t.get("air") else "Ground only"),
+            f"Range {reach}",
         ]
         blurb = data["blurbs"].get(tid, "")
         if epic:
@@ -341,17 +340,17 @@ def roster_html(data: dict) -> str:
         )
         panels.append(
             f'<article class="panel" id="tower-{esc(tid)}" style="--el: {color}">'
-            f'<div class="panel-main"><h3>{esc(t["name"])}</h3>'
-            f'<p class="panel-blurb">{esc(blurb.strip())}</p>'
-            f'<ul class="chips">{"".join(f"<li{cls}>{esc(c)}</li>" for cls, c in chips)}</ul></div>'
+            f'<div class="panel-main"><p class="panel-kicker">{esc(kicker)}</p>'
+            f'<h3>{esc(t["name"])}</h3><p class="panel-blurb">{esc(blurb.strip())}</p>'
+            f'<ul class="chips">{"".join(f"<li>{esc(c)}</li>" for c in chips)}</ul></div>'
             f'<ol class="levels" aria-label="Cost and effect per level">{levels}</ol></article>'
         )
-    # Epics start their own row, under a line that says how to get one.
+    # Build towers fill the first row (--cols); Epics start their own row.
     towers = len(data["order"])
     if len(cards) > towers:
-        cards.insert(towers, '<p class="roster-sep">Epics, each fused from two level-3 towers of one family</p>')
+        cards.insert(towers, '<p class="roster-sep">Epics</p>')
     return (
-        '<div class="roster" role="group" aria-label="Towers">\n'
+        f'<div class="roster" role="group" aria-label="Towers" style="--cols: {towers}">\n'
         + "\n".join(cards)
         + '\n</div>\n<div class="panels" aria-live="polite">\n'
         + "\n".join(panels)
@@ -403,12 +402,12 @@ def credits_html(style: str) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Credits · Maze Citadel</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Fira+Sans:wght@400;500;700&display=swap">
 {style}
 <style>
 .credits {{ padding-block: 48px 72px; display: grid; gap: 14px; max-width: 52rem; }}
-.credits h1 {{ font: 400 var(--step-2)/1.1 var(--font); }}
-.credits h2 {{ margin-top: 24px; font-size: var(--step-1); }}
+.credits h1 {{ font: 800 var(--step-2)/1.1 var(--display); color: var(--gold-bright); }}
+.credits h2 {{ margin-top: 24px; }}
 .credits ul {{ display: grid; gap: 8px; padding-left: 1.2em; color: var(--text-dim); font-size: var(--step--1); }}
 .credits p {{ color: var(--text-dim); }}
 .credits a {{ overflow-wrap: anywhere; }}
