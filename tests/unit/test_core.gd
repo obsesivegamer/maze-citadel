@@ -24,8 +24,10 @@ func test_quality_fits_driver_and_screen() -> void:
 	var b := Quality.settings(Quality.Preset.BALANCED)
 	var p := Quality.settings(Quality.Preset.PERFORMANCE)
 	var c := Quality.settings(Quality.Preset.CINEMATIC)
-	# A Retina Mac (1912 px tall) keeps the tuned preset exactly.
-	check_eq(Quality.for_display(b, "metal", 1912), b, "Mac unchanged")
+	# Every Mac keeps the tuned preset exactly, Retina or not.
+	for s in [b, p, c]:
+		for h in [0, 1080, 1280, 1440, 1912]:
+			check_eq(Quality.for_display(s, "metal", h), s, "Mac unchanged at %d px" % h)
 	var pc := Quality.for_display(b, "vulkan", 1080)
 	check_eq(pc.upscaler, "fsr2", "FSR 2 replaces MetalFX temporal")
 	check_near(pc.render_scale, 720.0 / 1080.0, 1e-4, "1080p keeps 720 px of height")
@@ -41,8 +43,9 @@ func test_quality_fits_driver_and_screen() -> void:
 	)
 	check_near(Quality.for_display(b, "vulkan", 600).render_scale, 1.0, 1e-4, "never above native")
 	check_near(Quality.for_display(b, "", 0).render_scale, 0.5, 1e-4, "headless leaves the scale")
-	var gl := Quality.for_display(b, "opengl3", 1080)
-	check_eq([gl.upscaler, gl.render_scale], ["bilinear", 1.0], "OpenGL fallback renders full size")
+	for driver in ["opengl3", "opengl3_angle", "opengl3_es"]:
+		var gl := Quality.for_display(b, driver, 1080)
+		check_eq([gl.upscaler, gl.render_scale], ["bilinear", 1.0], "%s renders full size" % driver)
 	check_eq(b.upscaler, "metalfx_temporal", "the preset itself is not modified")
 
 

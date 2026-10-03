@@ -18,6 +18,10 @@ const UPSCALERS := {
 ## upscalers elsewhere, but with a warning and a viewport that still says MetalFX.
 const NON_METAL_UPSCALERS := {"metalfx_temporal": "fsr2", "metalfx_spatial": "fsr"}
 
+## Re-fits the render scale when the window changes size (maximize, fullscreen,
+## a move to another monitor). Off Metal only; replaced on every apply.
+static var _refit := Callable()
+
 
 static func from_name(preset_name: String) -> Preset:
 	var i := NAMES.find(preset_name.to_lower())
@@ -100,14 +104,15 @@ static func apply(
 ) -> Dictionary:
 	var s := settings(preset)
 	s.merge(overrides, true)
-	var screen := DisplayServer.window_get_current_screen()
-	s = for_display(
-		s,
-		RenderingServer.get_current_rendering_driver_name(),
-		DisplayServer.screen_get_size(screen).y
-	)
+	# An explicit scale (benchmarks, --render_scale) wins over the floor.
+	if overrides.has("render_scale") and not overrides.has("min_render_height"):
+		s.min_render_height = 0
+	var driver := RenderingServer.get_current_rendering_driver_name()
+	var preset_settings := s
+	s = for_display(preset_settings, driver, DisplayServer.window_get_size().y)
 	viewport.scaling_3d_mode = UPSCALERS[s.upscaler]
 	viewport.scaling_3d_scale = s.render_scale
+	_watch_window(viewport, preset_settings, driver)
 	env.sdfgi_enabled = s.sdfgi
 	env.ssil_enabled = s.ssil
 	env.ssao_enabled = s.ssao
@@ -125,20 +130,36 @@ static func apply(
 	return s
 
 
-## Fits a preset to the GPU driver and screen: FSR in place of MetalFX off
-## Metal, and a render scale that keeps at least min_render_height pixels of
-## 3D height (a no-op on Retina Macs). Height 0 (headless) leaves the scale.
-## GPUs with neither Vulkan nor Direct3D 12 get Godot's OpenGL fallback, which
-## can't upscale, so it renders at full size.
-static func for_display(s: Dictionary, driver: String, screen_height: int) -> Dictionary:
+## Fits a preset to the GPU driver and window off Apple's Metal (Windows,
+## Linux): FSR in place of MetalFX, and a render scale that keeps at least
+## min_render_height pixels of 3D height, since the presets were tuned on a
+## Retina panel. On Metal the preset passes through unchanged. Height 0
+## (headless) leaves the scale. GPUs with neither Vulkan nor Direct3D 12 get
+## Godot's OpenGL fallback (opengl3, opengl3_angle, opengl3_es), which can't
+## upscale, so it renders at full size.
+static func for_display(s: Dictionary, driver: String, window_height: int) -> Dictionary:
 	var out := s.duplicate()
-	if driver == "opengl3":
+	if driver == "metal":
+		return out
+	if driver.begins_with("opengl3"):
 		out.upscaler = "bilinear"
 		out.render_scale = 1.0
 		return out
-	if driver != "metal":
-		out.upscaler = NON_METAL_UPSCALERS.get(s.upscaler, s.upscaler)
-	if screen_height > 0 and s.min_render_height > 0:
-		var floor_scale := minf(1.0, float(s.min_render_height) / screen_height)
+	out.upscaler = NON_METAL_UPSCALERS.get(s.upscaler, s.upscaler)
+	if window_height > 0 and s.min_render_height > 0:
+		var floor_scale := minf(1.0, float(s.min_render_height) / window_height)
 		out.render_scale = maxf(s.render_scale, floor_scale)
 	return out
+
+
+static func _watch_window(viewport: Viewport, s: Dictionary, driver: String) -> void:
+	if _refit.is_valid() and viewport.size_changed.is_connected(_refit):
+		viewport.size_changed.disconnect(_refit)
+	_refit = Callable()
+	if driver == "metal":
+		return
+	_refit = func() -> void:
+		var fit: float = for_display(s, driver, DisplayServer.window_get_size().y).render_scale
+		if not is_equal_approx(viewport.scaling_3d_scale, fit):
+			viewport.scaling_3d_scale = fit
+	viewport.size_changed.connect(_refit)
