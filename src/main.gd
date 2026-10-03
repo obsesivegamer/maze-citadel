@@ -95,6 +95,7 @@ func _attach_tools(set_view: Callable, settings: Dictionary, context := Callable
 static func _context(game: Game) -> Dictionary:
 	return {
 		"wave": game.sim.wave,
+		"sim_t": snappedf(game.sim.time, 0.01),
 		"phase": game.sim.phase,
 		"creeps": game.sim.creeps.size(),
 		"towers": game.sim.towers.size(),
