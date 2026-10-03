@@ -14,6 +14,9 @@ const UPSCALERS := {
 	"fsr": Viewport.SCALING_3D_MODE_FSR,
 	"bilinear": Viewport.SCALING_3D_MODE_BILINEAR,
 }
+## MetalFX exists only on Apple's Metal driver. Godot falls back to these same
+## upscalers elsewhere, but with a warning and a viewport that still says MetalFX.
+const NON_METAL_UPSCALERS := {"metalfx_temporal": "fsr2", "metalfx_spatial": "fsr"}
 
 
 static func from_name(preset_name: String) -> Preset:
@@ -28,6 +31,7 @@ static func settings(preset: Preset) -> Dictionary:
 		Preset.CINEMATIC:
 			return {
 				"render_scale": 0.7,
+				"min_render_height": 720,
 				"upscaler": "metalfx_temporal",
 				"sdfgi": false,
 				"ssil": false,
@@ -46,6 +50,7 @@ static func settings(preset: Preset) -> Dictionary:
 		Preset.PERFORMANCE:
 			return {
 				"render_scale": 0.5,
+				"min_render_height": 0,
 				"upscaler": "metalfx_spatial",
 				"sdfgi": false,
 				"ssil": false,
@@ -64,6 +69,9 @@ static func settings(preset: Preset) -> Dictionary:
 		_:
 			return {
 				"render_scale": 0.5,
+				# Scale 0.5 was tuned on a Retina panel (~890 px tall inside);
+				# a 1080p PC monitor would get 540 px, so keep at least 720.
+				"min_render_height": 720,
 				"upscaler": "metalfx_temporal",
 				"sdfgi": false,
 				"ssil": false,
@@ -92,6 +100,12 @@ static func apply(
 ) -> Dictionary:
 	var s := settings(preset)
 	s.merge(overrides, true)
+	var screen := DisplayServer.window_get_current_screen()
+	s = for_display(
+		s,
+		RenderingServer.get_current_rendering_driver_name(),
+		DisplayServer.screen_get_size(screen).y
+	)
 	viewport.scaling_3d_mode = UPSCALERS[s.upscaler]
 	viewport.scaling_3d_scale = s.render_scale
 	env.sdfgi_enabled = s.sdfgi
@@ -109,3 +123,22 @@ static func apply(
 	)
 	PerfRender.apply(viewport, env, sun, s)
 	return s
+
+
+## Fits a preset to the GPU driver and screen: FSR in place of MetalFX off
+## Metal, and a render scale that keeps at least min_render_height pixels of
+## 3D height (a no-op on Retina Macs). Height 0 (headless) leaves the scale.
+## GPUs with neither Vulkan nor Direct3D 12 get Godot's OpenGL fallback, which
+## can't upscale, so it renders at full size.
+static func for_display(s: Dictionary, driver: String, screen_height: int) -> Dictionary:
+	var out := s.duplicate()
+	if driver == "opengl3":
+		out.upscaler = "bilinear"
+		out.render_scale = 1.0
+		return out
+	if driver != "metal":
+		out.upscaler = NON_METAL_UPSCALERS.get(s.upscaler, s.upscaler)
+	if screen_height > 0 and s.min_render_height > 0:
+		var floor_scale := minf(1.0, float(s.min_render_height) / screen_height)
+		out.render_scale = maxf(s.render_scale, floor_scale)
+	return out

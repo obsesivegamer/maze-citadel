@@ -1,7 +1,8 @@
 class_name Save
 extends RefCounted
 ## Best results per map and mode, and player settings in user://save.cfg
-## (~/Library/Application Support/Maze Citadel/save.cfg).
+## (~/Library/Application Support/Maze Citadel/save.cfg on Mac; GDD §15 has the
+## Windows and Linux folders).
 
 const PATH := "user://save.cfg"
 
