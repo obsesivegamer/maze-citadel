@@ -12,6 +12,11 @@ extends RefCounted
 ## color, colors (Gradient over life; default fades alpha out), hue (variation)
 ## add (additive blend), tex, size (quad metres), mesh (instead of a quad),
 ## mat (material for `mesh`), energy (HDR brightness for additive quads)
+##
+## Quads of BIG_QUAD metres or more are the fill-heavy ones (smoke, clouds,
+## flashes, fire, mist); UnitPerf fx-budget scales their amount.
+
+const BIG_QUAD := 0.9
 
 static var _process := {}
 static var _draw := {}
@@ -32,12 +37,15 @@ static func make(spec: Dictionary) -> GPUParticles3D:
 	var r: float = spec.get("bounds", 6.0)
 	p.visibility_aabb = AABB(Vector3(-r, -r, -r), Vector3(2 * r, 2 * r, 2 * r))
 	p.set_meta("base_amount", p.amount)
+	var sc: Vector2 = spec.get("scale", Vector2(0.5, 1.0))
+	if float(spec.get("size", 1.0)) * sc.y >= BIG_QUAD and spec.get("mesh", null) == null:
+		p.set_meta("budget", UnitPerf.fx_budget())
 	return p
 
 
 ## Scales an emitter for the Quality preset's particle budget (GDD §14).
 static func apply_quality(p: GPUParticles3D, ratio: float) -> void:
-	p.amount_ratio = clampf(ratio, 0.05, 1.0)
+	p.amount_ratio = clampf(ratio * float(p.get_meta("budget", 1.0)), 0.05, 1.0)
 
 
 static func _process_material(spec: Dictionary) -> ParticleProcessMaterial:
