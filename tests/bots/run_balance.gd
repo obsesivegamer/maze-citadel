@@ -23,6 +23,11 @@ const BOSS_WAVES: Array[int] = [10, 20, 30, 40]
 func _initialize() -> void:
 	var seeds := int(Cli.get_str("seeds", "4"))
 	var only := Cli.get_str("only")
+	var map := StringName(Cli.get_str("map", MapDefs.DEFAULT))
+	if not MapDefs.has(map):
+		printerr("unknown map %s (maps: %s)" % [map, ", ".join(MapDefs.ORDER)])
+		quit(1)
+		return
 	print(
 		(
 			"| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | "
