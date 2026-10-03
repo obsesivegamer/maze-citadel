@@ -143,9 +143,10 @@ func _load_manifest() -> void:
 			_stream(file)
 			continue
 		_files.get_or_add(event, []).append(file)
-		if folder == "sfx":
-			_stream(file)
-		elif folder == "ambience":
+		# Music and beds too: loading a 3-5 MB Ogg on first play stalled the
+		# frame when wave 1 (battle theme) or a boss wave began.
+		_stream(file)
+		if folder == "ambience":
 			_bed_files[base] = file
 
 

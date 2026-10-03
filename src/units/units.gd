@@ -94,6 +94,23 @@ func _acquire(c: SimCreep, alpha: float) -> CreepView:
 	return v
 
 
+## Builds `per_type` idle views of every creep type into the pools, so the
+## first appearance of a type doesn't build its rig mid-wave.
+func prewarm(per_type := 1) -> void:
+	for type in CreepDefs.CREEPS:
+		var pool: Array = _pools.get(type, [])
+		_pools[type] = pool
+		for i in per_type:
+			var v := CreepView.new()
+			v.name = "%s_pool_%d" % [type, i]
+			add_child(v)
+			v.setup(type)
+			for p in v.emitters():
+				ParticleKit.apply_quality(p, _quality)
+			v.deactivate()
+			pool.append(v)
+
+
 func _release(id: int) -> void:
 	var v: CreepView = _creeps[id]
 	_creeps.erase(id)

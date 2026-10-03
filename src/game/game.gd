@@ -18,6 +18,8 @@ const NONE := Vector2i(-1, -1)
 const MAX_STEPS_PER_FRAME := 12
 ## Share of the loading bar given to the battle rehearsal.
 const REHEARSAL_SHARE := 0.35
+## Creep views per type built during loading (the rest build as they spawn).
+const PREWARM_PER_TYPE := 2
 
 ## Map and mode carried across the scene reload that switches map.
 static var _carry := {}
@@ -108,6 +110,7 @@ func _boot_async() -> void:
 	var late: Array = [
 		["Marking the path", _boot_part.bind(&"path_preview", PathPreview)],
 		["Mustering the units", _boot_part.bind(&"units", Units)],
+		["Assembling the horde", _prewarm_units],
 		["Readying the effects", _boot_part.bind(&"fx", Fx)],
 		["Arming the builder", _boot_part.bind(&"builder", BuildController)],
 		["Tuning the war drums", _boot_part.bind(&"audio", AudioDirector)],
@@ -134,6 +137,10 @@ func _boot_part(member: StringName, kind: GDScript) -> void:
 	add_child(node)
 	set(member, node)
 	node.setup(self)
+
+
+func _prewarm_units() -> void:
+	units.prewarm(PREWARM_PER_TYPE)
 
 
 func _apply_saved_quality() -> void:
