@@ -235,7 +235,7 @@ static func _wyrm(ci: Object, r: Rect2, tint: Color) -> void:
 
 
 ## Rays fanning out behind a tower icon, centred high on the glyph.
-static func _sunburst(ci: CanvasItem, r: Rect2, color: Color) -> void:
+static func _sunburst(ci: Object, r: Rect2, color: Color) -> void:
 	var c := Vector2(0.5, 0.36)
 	for i in 12:
 		var a := TAU * i / 12.0
@@ -244,7 +244,7 @@ static func _sunburst(ci: CanvasItem, r: Rect2, color: Color) -> void:
 	UiGlyphs.ring(ci, r, c, 0.26, color, 0.06)
 
 
-static func _necropolis(ci: CanvasItem, r: Rect2, tint: Color) -> void:
+static func _necropolis(ci: Object, r: Rect2, tint: Color) -> void:
 	_obelisk(ci, r, tint)
 	for x in [0.16, 0.84]:
 		UiGlyphs.poly(
