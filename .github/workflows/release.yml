@@ -1,10 +1,12 @@
-# Builds the Mac .dmg on a macOS runner, verifies it (tools/verify_dmg.sh) and
-# keeps it as a run artifact. A pushed version tag (v0.2.0, or v0.2.0-beta.1
-# for a pre-release) also publishes it as a GitHub Release and refreshes the
-# download site. Signing and notarization run only when their secrets exist;
-# otherwise the build is ad-hoc signed, same as tools/export.sh on a Mac.
+# Builds the Mac .dmg on a macOS runner and the Windows and Linux archives on a
+# Linux runner, verifies each on its own OS (tools/verify_dmg.sh,
+# tools/verify_pc.sh) and keeps them as run artifacts. A pushed version tag
+# (v0.2.0, or v0.2.0-beta.1 for a pre-release) also publishes all three as a
+# GitHub Release and refreshes the download site. Mac signing and notarization
+# run only when their secrets exist; otherwise the .dmg is ad-hoc signed, same
+# as tools/export.sh on a Mac. The Windows build is unsigned.
 # How to release and which secrets to add: docs/RELEASING.md.
-name: Mac release
+name: Release
 
 on:
   push:
@@ -12,14 +14,16 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - .github/workflows/release-mac.yml
+      - .github/workflows/release.yml
       - tools/export.sh
+      - tools/export_pc.sh
       - tools/verify_dmg.sh
+      - tools/verify_pc.sh
       - tools/notarize.sh
       - export_presets.cfg
 
 concurrency:
-  group: mac-release-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -221,10 +225,141 @@ jobs:
         if: always() && env.HAS_SIGNING == 'true'
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
 
+  # Godot exports Windows builds from any host, so one Linux job exports both
+  # PC builds; each is then verified on its own OS.
+  build-pc:
+    name: Build Windows and Linux, verify Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: List LFS objects
+        run: git lfs ls-files --long | cut -d' ' -f1 | sort > .lfs-ids
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          key: lfs-${{ hashFiles('.lfs-ids') }}
+          restore-keys: lfs-
+      - name: Pull LFS files
+        run: git lfs pull
+
+      - uses: actions/cache@v4
+        id: godot-cache
+        with:
+          path: |
+            ~/.local/bin/godot
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-linux-pc-export-${{ env.GODOT_VERSION }}
+      - name: Install Godot and the Windows and Linux export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          templates="Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "$base/SHA512-SUMS.txt"
+          curl -fsSLO "$base/$editor"
+          curl -fsSLO "$base/$templates"
+          grep -E " ($editor|$templates)\$" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "$editor"
+          mkdir -p ~/.local/bin
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/.local/bin/godot
+          dest="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          # Only the two templates used; the full archive is over 1 GB.
+          unzip -q -j -o "$templates" templates/windows_release_x86_64.exe \
+            templates/linux_release.x86_64 templates/version.txt -d "$dest"
+          rm -f "$editor" "$templates" SHA512-SUMS.txt
+      - name: Point tools at Godot
+        run: |
+          echo "GODOT=$HOME/.local/bin/godot" >> "$GITHUB_ENV"
+          "$HOME/.local/bin/godot" --version
+
+      - uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-linux-${{ hashFiles('**/*.import', 'project.godot') }}
+          restore-keys: godot-import-linux-
+      - name: Import assets
+        run: |
+          "$GODOT" --headless --path . --import 2>&1 | tail -5
+
+      - name: Export the Windows and Linux builds
+        run: tools/export_pc.sh
+
+      # The runner has no GPU. Mesa's software Vulkan driver (lavapipe) on a
+      # virtual display still compiles every shader and renders real frames,
+      # slowly, so the Linux build gets a window check here. Soft: a failure
+      # warns instead of blocking the release.
+      - name: Install a software Vulkan driver and a virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mesa-vulkan-drivers xvfb >/dev/null
+      - name: Verify the Linux build
+        env:
+          LAUNCH_CHECK: soft
+        run: xvfb-run -a -s "-screen 0 1280x800x24" tools/verify_pc.sh linux
+
+      - name: Summary
+        if: always()
+        run: tools/verify_pc.sh --summary dist/build-info-linux.json >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MazeCitadel-Linux
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            dist/*-linux-x86_64.tar.gz
+            dist/*-linux-x86_64.tar.gz.sha256
+            dist/build-info-linux.json
+            dist/launch-linux*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-unverified
+          retention-days: 1
+          path: dist/*-windows-x86_64.zip
+
+  verify-windows:
+    name: Verify Windows
+    needs: build-pc
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # The scripts and project.godot are read by bash; keep their LF endings.
+      - name: Keep LF line endings
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-unverified
+          path: dist
+      - name: Verify the Windows build
+        run: tools/verify_pc.sh windows
+
+      - name: Summary
+        if: always()
+        run: tools/verify_pc.sh --summary dist/build-info-windows.json >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MazeCitadel-Windows
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            dist/*-windows-x86_64.zip
+            dist/*-windows-x86_64.zip.sha256
+            dist/build-info-windows.json
+
   release:
     name: Publish GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [gate, build]
+    needs: [gate, build, build-pc, verify-windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -232,14 +367,17 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: MazeCitadel-macOS
+          pattern: MazeCitadel-*
+          merge-multiple: true
           path: dist
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=$(jq -r .version dist/build-info.json)
-          files=(dist/*.dmg dist/*.sha256 dist/build-info.json)
+          shopt -s nullglob
+          files=(dist/*.dmg dist/*.zip dist/*.tar.gz dist/*.sha256 dist/build-info*.json)
+          [[ ${#files[@]} == 9 ]] || { echo "::error::expected 9 release files, got: ${files[*]}"; exit 1; }
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
           else
