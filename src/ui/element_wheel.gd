@@ -8,6 +8,8 @@ extends Control
 signal focus_changed(element: StringName)
 
 const NODE_FRACTION := 0.085
+## Room each side of the ring for the names of the side elements.
+const SIDE_ROOM := 44.0
 const LABEL_GAP := 14.0
 const ARROW_WIDTH := 3.0
 const HEAD := 9.0
@@ -22,8 +24,9 @@ var focus: StringName = &"":
 var interactive := true
 
 
+## `px` is the wheel's height; it is SIDE_ROOM wider on each side.
 func _init(px := 280.0, hover := true) -> void:
-	custom_minimum_size = Vector2(px, px)
+	custom_minimum_size = Vector2(px + 2.0 * SIDE_ROOM, px)
 	interactive = hover
 	mouse_filter = Control.MOUSE_FILTER_STOP if hover else Control.MOUSE_FILTER_IGNORE
 	mouse_exited.connect(func() -> void: set_focus(&""))
@@ -37,11 +40,11 @@ func set_focus(value: StringName) -> void:
 
 
 func node_radius() -> float:
-	return minf(size.x, size.y) * NODE_FRACTION
+	return size.y * NODE_FRACTION
 
 
 func ring_radius() -> float:
-	return minf(size.x, size.y) / 2.0 - node_radius() - LABEL_GAP - 4.0
+	return size.y / 2.0 - node_radius() - LABEL_GAP - 4.0
 
 
 ## Centre of element `i` of Damage.WHEEL: Light on top, then clockwise.
@@ -138,14 +141,12 @@ func _node(i: int, lit: bool) -> void:
 	var label: String = TowerInfo.ELEMENT_NAMES[e]
 	var font := UiTheme.heading(700)
 	var w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, NAME_SIZE).x
-	var below := p.y >= size.y / 2.0 - 1.0
-	var y := p.y + nr + LABEL_GAP if below else p.y - nr - 5.0
-	draw_string(
-		font,
-		Vector2(p.x - w / 2.0, y),
-		label,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		NAME_SIZE,
-		Color(color, tint.a)
-	)
+	# Top and bottom names sit above and below their node, side names
+	# outside the ring, clear of the arrows.
+	var at := Vector2(p.x - w / 2.0, p.y - nr - 5.0)
+	if absf(p.x - size.x / 2.0) > 1.0:
+		var right := p.x > size.x / 2.0
+		at = Vector2(p.x + nr + 6.0 if right else p.x - nr - 6.0 - w, p.y + 4.0)
+	elif p.y > size.y / 2.0:
+		at.y = p.y + nr + LABEL_GAP
+	draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, NAME_SIZE, Color(color, tint.a))

@@ -6,10 +6,11 @@ extends Control
 ## attack vs armor chart, counsel for the next wave and how to read damage
 ## numbers. Opening it pauses the game; closing resumes if opening paused it.
 
-const PANEL_WIDTH := 900.0
-const WHEEL_PX := 280.0
-const INFO_WIDTH := 300.0
+const PANEL_WIDTH := 920.0
+const WHEEL_PX := 250.0
+const INFO_WIDTH := 330.0
 const CELL_WIDTH := 70.0
+const CHART_WIDTH := 500.0
 const COUNSEL_WIDTH := 500.0
 const DIM := Color(0, 0, 0, 0.45)
 ## Same colours as the floating numbers (Fx.COUNTER_COLORS, poison ticks).
@@ -88,7 +89,7 @@ func _build_wheel() -> Control:
 	col.add_child(UiKit.label("ELEMENT WHEEL", &"Caption"))
 	_wheel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	col.add_child(_wheel)
-	_wheel_info.custom_minimum_size.y = 40
+	_wheel_info.custom_minimum_size.y = 54
 	col.add_child(_wheel_info)
 	return col
 
@@ -119,7 +120,7 @@ func _build_chart() -> Control:
 		for c in TowerInfo.CLASS_NAMES:
 			grid.add_child(_cell(Damage.class_mult(a, c)))
 	col.add_child(grid)
-	var notes := UiKit.rich(UiTheme.SIZE_SMALL, 400.0)
+	var notes := UiKit.rich(UiTheme.SIZE_SMALL, CHART_WIDTH)
 	var footman: int = CreepDefs.CREEPS[&"footman"].armor
 	var tank: int = CreepDefs.CREEPS[&"steam_tank"].armor
 	notes.text = (

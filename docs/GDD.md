@@ -239,16 +239,32 @@ The full 40-row table lives in `data/waves` (M6). Elements rotate so each one ap
 | `N` | Start or call the next wave |
 | `R` | Hero view (reset to the default 3/4 camera) |
 | `C` / `B` | Cycle camera presets (full board, portal close-up, gate defense) / toggle boss tracking |
+| `H` | Field Guide (§11.1) |
 | Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag orbit, `Q`/`E` rotate, trackpad two-finger pan and pinch zoom. All damped. |
 
 The range ring shows only for the hovered or selected tower (and for the ghost while placing).
 
 ## 11. HUD
 
-- **Top bar:** gold · lives · wave n/40 with next-wave chip (icons, element, class, skull) · interest ring + next payout · speed · pause · mode · quality · camera presets.
+- **Top bar:** gold · lives · wave n/40 with next-wave chip (icons, element, class, skull) · interest ring + next payout · speed · pause · mode · quality · camera presets · Field Guide.
 - **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
+- **Hint strip:** the keys that matter right now, above the cards.
+
+### 11.1 Teaching the counters
+
+In the spirit of a Warcraft III map's quest log and timed hints. All advice is computed from the damage tables (§6) and the wave table, never written per wave.
+
+| Piece | What it does |
+|---|---|
+| Welcome card | First launch, before wave 1 (the countdown waits): the maze, the element wheel, the three armor rules, how to read the next-wave chip. Begin or Skip. |
+| Counsel card | Waves 1–10, top right, from the moment the previous wave starts: the next wave's lesson title, one line per element ("Verdant creeps: Flame towers deal 200%, Stone towers only 50%"), one per armor class, a note on any creep appearing for the first time, and up to two tower picks (the hardest hitter on each of the wave's groups) that glow on the card bar and can be clicked to build. |
+| Tips | Once each, on the counsel card: the first counter hit (gold "!"), resisted hit (grey-blue) and IMMUNE. |
+| Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
+| Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
+
+The tutorial turns itself off after wave 10's counsel or on Skip; Settings → Help → Tutorial turns it back on. Bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it.
 
 ## 12. World life and juice (checklist)
 

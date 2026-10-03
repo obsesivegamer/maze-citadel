@@ -15,10 +15,11 @@ enum Step { OFF, WELCOME, COUNSEL, GRADUATED }
 const CARD_WIDTH := 340.0
 const CARD_TOP := 60.0
 const CARD_RIGHT := 10.0
-const WELCOME_WIDTH := 640.0
+const WELCOME_WIDTH := 700.0
 const WHEEL_PX := 200.0
 const DIM := Color(0, 0, 0, 0.45)
-const MARK_PERIOD := 0.9
+const MARK_PERIOD := 1.1
+const MARK_COLOR := Color(0.55, 0.92, 0.45)
 ## Command-line flags of scripted runs (bots, captures, benchmarks, probes).
 const SCRIPTED_FLAGS: Array[String] = [
 	"no-tutorial", "autoplay", "shot", "bench", "first-frame-out", "warp-wave"
@@ -48,7 +49,9 @@ var _counsel: CounselView
 var _tip := UiKit.rich(UiTheme.SIZE_SMALL, CARD_WIDTH)
 var _graduation := UiKit.rich(UiTheme.SIZE_SMALL, CARD_WIDTH)
 var _end_button: Button
+var _hide_button: Button
 var _marks := Control.new()
+var _mark_style := UiTheme.box(Color(MARK_COLOR, 0.08), MARK_COLOR, 3, 7, Vector2.ZERO, 16)
 var _marked: Array[StringName] = []
 var _tips_shown := {}
 var _paused_here := false
@@ -79,6 +82,8 @@ func setup(game: Game, cards: Dictionary) -> void:
 	_marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_marks.draw.connect(_draw_marks)
+	_mark_style.shadow_color = Color(MARK_COLOR, 0.75)
+	_mark_style.shadow_offset = Vector2.ZERO
 	add_child(_marks)
 	_build_card()
 	_build_welcome()
@@ -168,7 +173,7 @@ func _build_welcome() -> void:
 	var row := UiKit.hbox(18)
 	var wheel := ElementWheel.new(WHEEL_PX, false)
 	row.add_child(wheel)
-	var rules := UiKit.rich(UiTheme.SIZE_BODY, WELCOME_WIDTH - WHEEL_PX - 60.0)
+	var rules := UiKit.rich(UiTheme.SIZE_BODY, WELCOME_WIDTH - wheel.custom_minimum_size.x - 50.0)
 	var good := UiTheme.hex(UiTheme.GOOD)
 	rules.text = (
 		(
@@ -217,10 +222,10 @@ func _build_card() -> void:
 	head.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_card_caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(_card_caption)
-	var hide_button := UiKit.text_button(_game, "Hide", &"Segment")
-	hide_button.tooltip_text = "Hide this card until the next wave starts"
-	hide_button.pressed.connect(_hide_card)
-	head.add_child(hide_button)
+	_hide_button = UiKit.text_button(_game, "Hide", &"Segment")
+	_hide_button.tooltip_text = "Hide this card until the next wave starts"
+	_hide_button.pressed.connect(_hide_card)
+	head.add_child(_hide_button)
 	box.add_child(head)
 	box.add_child(_card_title)
 	_counsel = CounselView.new(_game, CARD_WIDTH, true)
@@ -278,6 +283,7 @@ func _advance(started: int) -> void:
 	_counsel.show_wave(next, _game.sim.twist_for(next))
 	_graduation.visible = false
 	_end_button.visible = true
+	_hide_button.text = "Hide"
 	_card.visible = true
 	_card.reset_size()
 	_mark(_counsel.picks())
@@ -296,6 +302,7 @@ func _graduate() -> void:
 		+ " tooltip rates that tower against the next wave."
 	)
 	_end_button.visible = false
+	_hide_button.text = "Done"
 	_card.visible = true
 	_card.reset_size()
 	_mark(_empty())
@@ -352,24 +359,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## The marks pulse by fading the whole overlay, so they redraw only when the
+## set of cards changes.
 func _process(delta: float) -> void:
 	if _marked.is_empty():
 		return
 	_time += delta
-	_marks.queue_redraw()
+	_marks.modulate.a = 0.6 + 0.4 * sin(_time * TAU / MARK_PERIOD)
 
 
-## A pulsing gold frame and a chevron over each card the counsel names.
+## A green glowing frame round each card the counsel names (gold is taken by
+## the chosen card, blue by Epics ready to fuse).
 func _draw_marks() -> void:
-	var pulse := 0.55 + 0.45 * sin(_time * TAU / MARK_PERIOD)
-	var color := Color(UiTheme.GOLD_BRIGHT, pulse)
 	for id in _marked:
 		var card: Control = _cards.get(id)
 		if card == null or not card.is_visible_in_tree():
 			continue
 		var r := card.get_global_rect()
 		r.position -= _marks.get_global_rect().position
-		_marks.draw_rect(r.grow(2.0), color, false, 2.5, true)
-		var tip := Vector2(r.get_center().x, r.position.y - 3.0)
-		var pts := PackedVector2Array([tip, tip + Vector2(-8, -9), tip + Vector2(8, -9)])
-		_marks.draw_colored_polygon(pts, color)
+		_marks.draw_style_box(_mark_style, r.grow(3.0))

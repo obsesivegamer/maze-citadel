@@ -89,7 +89,6 @@ func _chip(p: Dictionary) -> Control:
 	var chip := UiKit.panel(&"Chip", false)
 	var row := UiKit.hbox(5)
 	row.add_child(UiIcon.new(id, CHIP_ICON_PX))
-	row.add_child(UiKit.label(TowerDefs.hotkey(id), &"Caption"))
 	row.add_child(UiKit.label(TowerInfo.short_name(id), &"", UiTheme.SIZE_SMALL))
 	var pct := UiKit.label(Counsel.pct(p.mult, false), &"", UiTheme.SIZE_SMALL)
 	pct.add_theme_font_override("font", UiTheme.bold())
