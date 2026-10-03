@@ -118,8 +118,13 @@ func _play(hold: float) -> void:
 	_tween.chain().tween_callback(hide)
 
 
-## A dark band that fades out toward the screen edges, with gold hairlines.
+## A dark band that fades out toward the screen edges, with gold hairlines,
+## as one draw call.
 func _draw() -> void:
+	UiMesh.cached([&"banner_band", size], _build_band.bind(size)).submit(self)
+
+
+static func _build_band(mesh: UiMesh, size: Vector2) -> void:
 	var w := size.x
 	var h := size.y
 	var clear := Color(0, 0, 0, 0)
@@ -132,14 +137,14 @@ func _draw() -> void:
 		var core := PackedVector2Array(
 			[Vector2(mid, 0), Vector2(inner, 0), Vector2(inner, h), Vector2(mid, h)]
 		)
-		draw_polygon(core, PackedColorArray([dark, dark, dark, dark]))
+		mesh.draw_polygon(core, PackedColorArray([dark, dark, dark, dark]))
 		var fade := PackedVector2Array(
 			[Vector2(inner, 0), Vector2(outer, 0), Vector2(outer, h), Vector2(inner, h)]
 		)
-		draw_polygon(fade, PackedColorArray([dark, clear, clear, dark]))
+		mesh.draw_polygon(fade, PackedColorArray([dark, clear, clear, dark]))
 		var line_colors := PackedColorArray([UiTheme.GOLD, UiTheme.GOLD, Color(UiTheme.GOLD, 0.0)])
 		for y in [1.0, h - 1.0]:
-			draw_polyline_colors(
+			mesh.draw_polyline_colors(
 				PackedVector2Array([Vector2(mid, y), Vector2(inner, y), Vector2(outer, y)]),
 				line_colors,
 				1.5,
