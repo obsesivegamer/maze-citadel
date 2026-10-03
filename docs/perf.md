@@ -103,4 +103,18 @@ Fix (works with or without baked shaders):
 2. `WarmupStage`: behind the loading screen, a throwaway sim with every tower at every level and every creep type fights for 75 frames, drawn by its own Units/Fx, so every combat shader compiles before play. Sound, HUD and the real board never see it; the opening countdown doesn't tick until boot ends.
 3. `--first-frame-out` now records the first frame, when the game is playable, and the worst frame plus hitch count (> 50 ms) in the 10 s after it starts wave 1.
 
-Still to measure on screen: the probe on the dev build and on an app exported with `EXPORT_WINDOWED=1` (which does bake shaders). CI exports headless, so release builds stay unbaked until CI can export with a GPU; the warm-up covers that case.
+Measured on screen (M3 Air, maximized, `--first-frame-out --autoplay`; "cold" = shader cache moved aside, i.e. a first launch):
+
+| Run | First frame | Playable | Worst frame in the 10 s after wave 1 | Hitches > 50 ms |
+|---|---|---|---|---|
+| Old one-frame boot, cold | **8.3 s** (spinning cursor until then) | 3.1 s* | 150 ms | 1 |
+| New loading screen, cold (first launch) | 1.1 s | 20.5 s | 114 ms | 1 |
+| New loading screen, warm (later launches) | 0.65 s | 4.2 s | 116 ms | 1 |
+
+\* setup finished before the first frame could be drawn; the window showed nothing until 8.3 s.
+
+Findings:
+1. The spinning cursor is gone: the loading screen shows within ~1 s and keeps updating.
+2. A first launch takes ~20 s on the loading screen because every shader compiles up front; later launches take ~4 s (Godot's shader cache in `~/Library/Application Support/Maze Citadel/shader_cache`). Next: time each boot step to see what dominates the cold 20 s.
+3. One ~115 ms hitch remains after wave 1 starts, new path or old; to investigate.
+4. **Shader baking crashes the app.** A windowed export does run the baker, but without full Xcode it logs "Metal shader baking limited to SPIR-V", and the exported app then aborts at launch ("Not enough bytes for uniform in shader container" → "Failed to parse shader container from binary" → FATAL index out of bounds). The baker is now disabled in `export_presets.cfg` and `tools/export.sh` always exports headless; the warm-up does the job instead. Revisit with full Xcode or a later Godot.

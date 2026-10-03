@@ -2,7 +2,7 @@
 # Screen slot D (~25 min, unattended): finishes M8. Start with the Mac cool
 # and plugged in; windows take focus, so hands off until it prints "done".
 #   1. launch time of the dev build (3×)
-#   2. export with the shader baker (windowed), launch time of the app (3×)
+#   2. export, launch time of the app (3×)
 #   3. rebalanced Cinematic in the wave-24 battle (3×) + a Balanced control
 #   4. 10-minute Balanced soak while the bot keeps playing (thermal check)
 set -euo pipefail
@@ -20,7 +20,7 @@ bench() { # preset, seconds, name
 for i in 1 2 3; do
   "$GODOT" --path . -m -- --first-frame-out="$PWD/$out/first-dev-$i.json" >/dev/null 2>&1
 done
-EXPORT_WINDOWED=1 tools/export.sh | tee "$out/export.log"
+tools/export.sh | tee "$out/export.log"
 app="dist/MazeCitadel.app/Contents/MacOS/Maze Citadel"
 for i in 1 2 3; do
   "$app" -m -- --first-frame-out="$PWD/$out/first-app-$i.json" >/dev/null 2>&1
