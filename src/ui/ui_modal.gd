@@ -18,7 +18,7 @@ var _paused_here := false
 
 ## Builds the dim and a panel at least `width` wide with `title` centred on
 ## top, and returns the column under the title for the content. Starts closed.
-func build(game: Game, title: String, width: float, separation := 10) -> VBoxContainer:
+func build_frame(game: Game, title: String, width: float, separation := 10) -> VBoxContainer:
 	_game = game
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP

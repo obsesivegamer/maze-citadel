@@ -159,7 +159,7 @@ func tip_text() -> String:
 
 func _build_welcome() -> void:
 	add_child(_welcome)
-	var box := _welcome.build(_game, "Welcome to the Citadel", WELCOME_WIDTH, 12)
+	var box := _welcome.build_frame(_game, "Welcome to the Citadel", WELCOME_WIDTH, 12)
 	var intro := UiKit.rich(UiTheme.SIZE_BODY, WELCOME_WIDTH - 30.0)
 	intro.text = (
 		"Wall the plateau with towers to stretch the creeps' road from the red portal to the"
