@@ -37,6 +37,10 @@ const OGRE_RING := Color(1.0, 0.32, 0.08, 0.6)
 const OGRE_RING_SPIN := 0.6
 const HEAL_PULSE := 0.6
 const CAST_RATE := 1.3
+## Blob shadow (UnitPerf creep-shadow=blob): darkness, radius per metre of height.
+const BLOB := Color(0.0, 0.0, 0.0, 0.5)
+const BLOB_RADIUS := 0.3
+const BLOB_LIFT := 0.06
 
 static var _bar_meshes := {}
 static var _bar_mats := {}
@@ -71,6 +75,10 @@ var _vines := MeshInstance3D.new()
 var _ring: MeshInstance3D
 var _steam: GPUParticles3D
 var _shroud: GPUParticles3D
+var _blob: MeshInstance3D
+var _emission_status := false
+var _anim_rate := 1
+var _anim_acc := 0.0
 
 
 func setup(creep_type: StringName) -> void:
@@ -109,7 +117,28 @@ func setup(creep_type: StringName) -> void:
 			_shroud.position.y = _rig.height * 0.5
 			_shroud.emitting = false
 			add_child(_shroud)
+	_setup_perf()
 	visible = false
+
+
+## UnitPerf creep-status, creep-shadow and creep-anim-rate.
+func _setup_perf() -> void:
+	_emission_status = UnitPerf.creep_status() == "emission"
+	if UnitPerf.creep_shadow() == "blob":
+		_blob = MeshInstance3D.new()
+		_blob.mesh = UnitMeshes.disc()
+		_blob.material_override = UnitStyle.translucent(BLOB, UnitStyle.soft_dot())
+		_blob.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var r := _rig.height * BLOB_RADIUS
+		_blob.scale = Vector3(r, 1, r)
+		add_child(_blob)
+	_anim_rate = UnitPerf.creep_anim_rate()
+	if _anim_rate > 1:
+		for ap in [_rig.ap, _rig.rider_ap]:
+			if ap != null:
+				(ap as AnimationPlayer).callback_mode_process = (
+					AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+				)
 
 
 func emitters() -> Array[GPUParticles3D]:
@@ -152,6 +181,16 @@ func activate(c: SimCreep, alpha: float) -> void:
 		_rig.rider_ap.play(&"Idle")
 	_play_loop(0.0)
 	position = _world(c, alpha)
+	if _emission_status:
+		_apply_materials()
+	if _blob:
+		_blob.transparency = 0.0
+		_place_blob()
+	if _anim_rate > 1:
+		_anim_acc = 0.0
+		_rig.ap.advance(0.0)
+		if _rig.rider_ap:
+			_rig.rider_ap.advance(0.0)
 
 
 func deactivate() -> void:
@@ -194,6 +233,10 @@ func update(c: SimCreep, alpha: float, dt: float, speed: float, cam_right: Vecto
 	_update_vines(c, dt)
 	_update_bar(c, cam_right)
 	_update_extras(c, dt)
+	if _blob:
+		_place_blob()
+	if _anim_rate > 1:
+		_advance_anim()
 
 
 func on_hit(counter: StringName) -> void:
@@ -265,6 +308,12 @@ func update_dead(dt: float, speed: float) -> bool:
 		_rig.root.position.y = -SINK_DEPTH * k * k
 		for mi in _rig.meshes:
 			mi.transparency = k
+		if _blob:
+			_blob.transparency = k
+	if _blob:
+		_place_blob()
+	if _anim_rate > 1:
+		_advance_anim()
 	return _death_t >= DEATH_HOLD + SINK_TIME
 
 
@@ -316,6 +365,9 @@ func _set_status(kind: StringName) -> void:
 	if kind == _status:
 		return
 	_status = kind
+	if _emission_status:
+		_apply_materials()
+		return
 	var mat := UnitStyle.status_overlay(kind)
 	for mi in _rig.meshes:
 		mi.material_overlay = mat
@@ -325,7 +377,13 @@ func _set_plain(on: bool) -> void:
 	if on == _plain:
 		return
 	_plain = on
-	var sets: Array = _rig.plain if on else _rig.outlined
+	_apply_materials()
+
+
+func _apply_materials() -> void:
+	var sets: Array = _rig.plain if _plain else _rig.outlined
+	if _emission_status and not _plain and _status != &"" and _status != &"-":
+		sets = CreepModels.status_set(_rig, _status)
 	for i in _rig.meshes.size():
 		var mats: Array = sets[i]
 		for s in mats.size():
@@ -359,6 +417,23 @@ func _update_bar(c: SimCreep, cam_right: Vector3) -> void:
 		_bar_bucket = bucket
 		var col: Color = BOSS_BAR_COLOR if bucket == 3 else BAR_COLORS[bucket]
 		_bar_fill.material_override = _bar_mat(col, 11)
+
+
+## Keeps the blob on the plateau under fliers and falling bodies.
+func _place_blob() -> void:
+	_blob.position.y = Coords.PLATEAU_TOP + BLOB_LIFT - position.y
+
+
+## Manual animation callback: one advance every `_anim_rate` frames,
+## staggered by id so creeps don't all update on the same frame.
+func _advance_anim() -> void:
+	_anim_acc += get_process_delta_time()
+	if (Engine.get_process_frames() + id) % _anim_rate != 0:
+		return
+	_rig.ap.advance(_anim_acc)
+	if _rig.rider_ap:
+		_rig.rider_ap.advance(_anim_acc)
+	_anim_acc = 0.0
 
 
 func _update_extras(c: SimCreep, dt: float) -> void:
