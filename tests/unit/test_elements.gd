@@ -14,6 +14,8 @@ const NEEDS := {
 }
 const FREE: Array[StringName] = [&"archer", &"cannon", &"bard"]
 const R := Placement.Result
+## A far corner for the partner of a fusion.
+const SPARE := Vector2i(19, 26)
 
 
 func _eletd() -> GameSim:
@@ -187,7 +189,7 @@ func test_first_element_pick_is_free_later_ones_summon() -> void:
 	check_eq(g.armor_class, &"boss", "boss armor")
 	check(g.pos.distance_to(sim.grid.spawn_point) < 0.01, "at the portal")
 	var lone_ogre := 60.0 * pow(1.105, 9) * 12.0 * EletdRules.hp(10)
-	check_near(g.max_hp, lone_ogre * 0.5, 1e-2, "half a lone wave-10 Ogre")
+	check_near(g.max_hp, lone_ogre * 0.35, 1e-2, "0.35 of a lone wave-10 Ogre")
 	sim.kill(g)
 	ev = sim.drain_events()
 	check_eq(sim.elements.level(&"dark"), 1, "its death grants the level")
@@ -198,7 +200,7 @@ func test_first_element_pick_is_free_later_ones_summon() -> void:
 
 func test_guardian_hp_climbs_with_the_level_it_guards() -> void:
 	for lvl in range(1, 4):
-		var share: float = [0.5, 0.8, 1.2][lvl - 1]
+		var share: float = [0.35, 0.8, 1.2][lvl - 1]
 		var want := 60.0 * pow(1.105, 19) * 12.0 * EletdRules.hp(20) * share
 		check_near(EletdRules.guardian_hp(lvl, 20, &"normal"), want, 1e-2, "level %d" % lvl)
 
@@ -215,14 +217,14 @@ func test_guardian_is_a_share_of_the_current_ogre_in_infinite_too() -> void:
 			sim.wave = w
 			var ogre := sim.spawn_creep(&"ogre", &"", w, sim.grid.spawn_point).max_hp
 			for lvl in range(1, 4):
-				var share: float = [0.5, 0.8, 1.2][lvl - 1]
+				var share: float = [0.35, 0.8, 1.2][lvl - 1]
 				var got := EletdRules.guardian_hp(lvl, w, difficulty)
 				check_near(got / ogre, share, 1e-4, "%s wave %d level %d" % [difficulty, w, lvl])
 		sim.elements.pick(sim, &"aqua")
 		sim.elements.granted += 1
 		sim.elements.pick(sim, &"dark")
 		var lone := sim.spawn_creep(&"ogre", &"", 60, sim.grid.spawn_point).max_hp
-		check_near(_guardian(sim).max_hp / lone, 0.5, 1e-4, "%s: summoned on 60" % difficulty)
+		check_near(_guardian(sim).max_hp / lone, 0.35, 1e-4, "%s: summoned on 60" % difficulty)
 
 
 func test_guardian_leak_costs_three_and_it_walks_again() -> void:
@@ -321,6 +323,115 @@ func test_starters_deal_composite_damage() -> void:
 	var dark := classic.spawn_creep(&"grunt", &"dark", 1, Vector2(20, 20))
 	dark.armor = 0.0
 	check_near(classic.hit(dark, 10.0, archer, 0.0), 30.0, 1e-4, "classic Archer is Light")
+
+
+## Under eletd upgraded Archers hit softer and elemental towers but the Plague
+## Cauldron hit harder (EletdRules.ARCHER_POWER, ELEMENTAL_POWER); classic
+## keeps the table's damage.
+func test_tower_power_scales_hits_poison_and_clouds() -> void:
+	var want := {
+		[&"archer", 1]: 1.0,
+		[&"archer", 2]: 0.85,
+		[&"archer", 3]: 0.8,
+		[&"cannon", 3]: 1.0,
+		[&"ballista", 1]: 1.4,
+		[&"demolisher", 3]: 1.4,
+		[&"frost", 2]: 1.4,
+		[&"roots", 1]: 1.4,
+		[&"runesmith", 1]: 1.4,
+		[&"sunfire_ballista", 1]: 1.0,
+	}
+	for key: Array in want:
+		var t := SimTower.new()
+		t.id = key[0]
+		t.level = key[1]
+		var hits: Array[float] = []
+		for rules: StringName in [&"classic", &"eletd"]:
+			var sim := GameSim.new()
+			sim.rules = rules
+			# Light creeps: neutral to classic's Light Archer and Flame Cannon too.
+			var c := sim.spawn_creep(&"grunt", &"light", 1, Vector2(20, 20))
+			c.armor = 0.0
+			c.max_hp = 1e6
+			c.hp = c.max_hp
+			hits.append(sim.hit(c, 10.0, t, 0.0))
+		check_near(hits[1] / hits[0], want[key], 1e-4, "%s L%d" % key)
+	for rules: StringName in [&"classic", &"eletd"]:
+		var sim := GameSim.new()
+		sim.rules = rules
+		sim.countdown = -1.0
+		sim.gold = 1000
+		sim.elements.apply_picks([&"dark"])
+		var c := sim.spawn_creep(&"grunt", &"flame", 1, Grid.center(Vector2i(12, 11)))
+		var plague := SimTower.new()
+		plague.id = &"plague"
+		sim.add_poison(c, plague, 1, 0.0)
+		check_near(c.poison[0].x, 6.0, 1e-4, "plague keeps its poison, %s" % rules)
+		sim.build(Vector2i(12, 10), &"shadow")
+		sim.step()
+		var cloud: float = sim.zones[0].dps if not sim.zones.is_empty() else -1.0
+		check_near(cloud, 18.0 * (1.4 if rules == &"eletd" else 1.0), 1e-4, "%s cloud" % rules)
+
+
+func test_tower_cards_show_eletd_damage() -> void:
+	TowerInfo.composite = true
+	var eletd := TowerInfo.next_level_preview(&"archer", 1)
+	var ballista := TowerInfo.next_level_preview(&"ballista", 1)
+	TowerInfo.composite = false
+	check("Dmg 9 → 12.75" in eletd, eletd)
+	check("Dmg 77 → 140" in ballista, ballista)
+	check("Dmg 9 → 15" in TowerInfo.next_level_preview(&"archer", 1), "classic")
+
+
+## A shot does the damage of the tower that fired it, as that tower was when
+## it fired: an arrow loosed at level 1 lands as a level-1 arrow after an
+## upgrade, and a Demolisher's shell in flight when the tower fuses into a
+## Doom Cannon lands, and leaves its crater, as a Demolisher's. Each landing
+## is measured against the same shot landing with nothing in between.
+func test_shots_land_as_the_tower_that_fired_them() -> void:
+	var upgrade := func(sim: GameSim, tile: Vector2i) -> void: sim.upgrade(tile)
+	var fuse := func(sim: GameSim, tile: Vector2i) -> void: sim.fuse(tile, SPARE)
+	for case: Array in [[&"archer", 1, upgrade, 2], [&"demolisher", 3, fuse, 1]]:
+		var plain := _landing(case[0], case[1], Callable())
+		var across := _landing(case[0], case[1], case[2])
+		check(plain.damage > 0.0, "%s shot landed" % case[0])
+		check_eq(across.tower.level, case[3], "%s changed in flight" % case[0])
+		check_near(across.damage, plain.damage, 1e-3, "%s shot across the change" % case[0])
+		check_near(across.crater, plain.crater, 1e-4, "%s crater" % case[0])
+	var fused := _landing(&"demolisher", 3, fuse)
+	check_eq(fused.tower.id, &"doom_cannon", "fused in flight")
+	check_near(fused.crater, 30.0 * 1.4, 1e-4, "a level-3 Demolisher's crater")
+
+
+## Under eletd, builds `id` at `level` beside a parked creep (with a level-3
+## Cannon on SPARE to fuse with), steps until its first shot is in flight,
+## calls `between` (sim, tile) if given, and steps until the shot lands.
+## Returns the HP that last step took, the dps of any crater and the tower.
+func _landing(id: StringName, level: int, between: Callable) -> Dictionary:
+	var sim := _eletd()
+	sim.gold = 100000
+	sim.elements.apply_picks([&"flame", &"flame", &"flame"])
+	var tile := Vector2i(10, 10)
+	for at: Vector2i in [tile, SPARE]:
+		sim.build(at, id if at == tile else &"cannon")
+		while sim.tower_at(at).level < level:
+			sim.upgrade(at)
+	var c := sim.spawn_creep(&"grunt", &"light", 20, Grid.center(tile + Vector2i(0, 1)))
+	c.speed = 0.0
+	c.max_hp = 1e7
+	c.hp = c.max_hp
+	while sim.projectiles.is_empty():
+		sim.step()
+	var shot: SimProjectile = sim.projectiles[0]
+	if between.is_valid():
+		between.call(sim, tile)
+	sim.tower_at(tile).cooldown = 1e9
+	var hp := c.hp
+	while shot.alive:
+		hp = c.hp
+		sim.step()
+	var crater: float = sim.zones[0].dps if not sim.zones.is_empty() else 0.0
+	return {"damage": hp - c.hp, "crater": crater, "tower": sim.tower_at(tile)}
 
 
 func test_cli_picks_apply_at_once_without_guardians() -> void:

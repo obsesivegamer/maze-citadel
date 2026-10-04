@@ -99,12 +99,14 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
 	var picks: Array[String] = []
 	var guardians := {"summoned": 0, "leaked": {}, "lives": 0}
+	var damage := DamageBook.new()
 	while sim.time < MAX_GAME_SECONDS:
 		var wave_before := sim.wave
 		bot.step()
 		if sim.wave != wave_before:
 			banked[sim.wave] = sim.gold
 		for e in sim.drain_events():
+			damage.read(sim, e)
 			if e.type == &"pick_spent":
 				picks.append("%s@%d" % [e.choice, sim.wave])
 			elif e.type == &"guardian_spawned":
@@ -174,6 +176,9 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	if sim.elements.enabled:
 		printerr("    elements: %s" % _elements(sim))
 		printerr("    picks: %s" % ", ".join(picks))
+		printerr(
+			"    elemental damage %d%% (%s)" % [roundi(100 * damage.elemental()), damage.top()]
+		)
 		printerr(
 			(
 				"    guardians: %d summoned, %d leaked, %d lives"
@@ -255,6 +260,59 @@ func _elements(sim: GameSim) -> String:
 		if sim.elements.taken(choice) > 0:
 			parts.append("%s %d" % [choice, sim.elements.taken(choice)])
 	return ", ".join(parts)
+
+
+## Damage dealt over a game per tower type, from the towers' own counters
+## (SimTower.damage_dealt), sold and fused-away towers included. A fused
+## tower's damage before the fusion stays with the tower it was.
+class DamageBook:
+	extends RefCounted
+	## Per tower built: [tower, its id now, its counter when that id began].
+	var _towers: Array = []
+	var _by_id := {}
+
+	func read(sim: GameSim, e: Dictionary) -> void:
+		if e.type == &"built" and sim.tower_at(e.tile) != null:
+			_towers.append([sim.tower_at(e.tile), e.id, 0.0])
+		elif e.type == &"fused":
+			for entry: Array in _towers:
+				if entry[0] == sim.tower_at(e.tile):
+					_credit(entry)
+					entry[1] = e.id
+
+	func _credit(entry: Array) -> void:
+		var t: SimTower = entry[0]
+		_by_id[entry[1]] = _by_id.get(entry[1], 0.0) + t.damage_dealt - entry[2]
+		entry[2] = t.damage_dealt
+
+	func _settle() -> void:
+		for entry: Array in _towers:
+			_credit(entry)
+
+	## The share of all damage dealt by towers that need an element, and Epics.
+	func elemental() -> float:
+		_settle()
+		var total := 0.0
+		var elemental := 0.0
+		for id: StringName in _by_id:
+			total += _by_id[id]
+			if SimElements.element_of(id) != &"" or id in TowerDefs.EPICS:
+				elemental += _by_id[id]
+		return elemental / total if total > 0.0 else 0.0
+
+	## Each tower type's share of the damage, largest first.
+	func top() -> String:
+		_settle()
+		var total := 0.0
+		for id: StringName in _by_id:
+			total += _by_id[id]
+		var ids := _by_id.keys()
+		ids.sort_custom(func(a: StringName, b: StringName) -> bool: return _by_id[a] > _by_id[b])
+		var parts: Array[String] = []
+		for id: StringName in ids:
+			if _by_id[id] > 0.0:
+				parts.append("%s %d%%" % [id, roundi(100 * _by_id[id] / total)])
+		return ", ".join(parts)
 
 
 func _mode(difficulty: StringName) -> String:

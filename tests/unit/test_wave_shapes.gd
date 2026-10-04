@@ -260,7 +260,7 @@ func test_bulky_waves() -> void:
 		for e in WaveDefs.spawn_list(w, &"eletd"):
 			var per: Array = plain[e[0]]
 			var hp: float = CreepDefs.max_hp(e[0], w) * WaveDefs.hp_share(e)
-			check_near(hp, per[0] * 2.5, 1e-3, "wave %d %s HP" % [w, e[0]])
+			check_near(hp, per[0] * 2.0, 1e-3, "wave %d %s HP" % [w, e[0]])
 			check(e[3] in [2 * floori(per[1]), 2 * ceili(per[1])], "wave %d bounty %d" % [w, e[3]])
 
 

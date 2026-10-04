@@ -99,6 +99,20 @@ func attack_element(id: StringName) -> StringName:
 	return TowerDefs.TOWERS[id].get("element", &"")
 
 
+## How hard a tower of `id` at `tower_level` hits under these rules, as a
+## share of its table damage (EletdRules.tower_power); 1 under classic.
+func power(id: StringName, tower_level: int) -> float:
+	return EletdRules.tower_power(id, tower_level) if enabled else 1.0
+
+
+## A direct hit's damage on creep `c` from a tower of `id` at `tower_level`
+## (GameSim.hit): for a shot, the tower as it was when it fired.
+func hit_amount(base: float, id: StringName, tower_level: int, c: SimCreep, aura: float) -> float:
+	var a := base * power(id, tower_level)
+	var attack: StringName = TowerDefs.stat(id, "attack", tower_level)
+	return Damage.amount(a, attack, attack_element(id), c, aura, c.effective_armor())
+
+
 func interest_rate() -> float:
 	return GameSim.INTEREST_RATE + interest_picks * EletdRules.INTEREST_PICK_RATE
 

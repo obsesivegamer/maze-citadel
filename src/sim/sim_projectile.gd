@@ -5,6 +5,9 @@ extends RefCounted
 
 var kind: StringName
 var tower: SimTower
+## The tower's id and level when it fired: a shot in flight keeps them through
+## an upgrade or a fusion, and lands as the tower it left.
+var id: StringName
 var level := 1
 var aura := 0.0
 var shot := 0

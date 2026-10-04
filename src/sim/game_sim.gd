@@ -593,16 +593,16 @@ func _cleanup() -> void:
 # --- Damage -----------------------------------------------------------------
 
 
-## A direct hit. Returns the damage dealt.
-func hit(c: SimCreep, base: float, t: SimTower, aura: float) -> float:
+## A direct hit from tower `t` as a tower of `id` at `level`: a shot's are the
+## tower's when it fired (SimProjectile.id). Returns the damage dealt.
+func hit(c: SimCreep, base: float, t: SimTower, aura: float, id := t.id, level := t.level) -> float:
 	if not c.targetable() or base <= 0.0:
 		return 0.0
 	if c.immune_time > 0.0:
 		events.append({"type": &"hit", "id": c.id, "amount": 0.0, "counter": &"immune"})
 		return 0.0
-	var attack: StringName = t.stat("attack")
-	var element := elements.attack_element(t.id)
-	var amount := Damage.amount(base, attack, element, c, aura, c.effective_armor())
+	var element := elements.attack_element(id)
+	var amount := elements.hit_amount(base, id, level, c, aura)
 	c.hp -= amount
 	t.damage_dealt += amount
 	var counter := Damage.counter(element, c.element)
@@ -681,33 +681,31 @@ func apply_root(c: SimCreep, duration: float) -> void:
 		c.root_time = maxf(c.root_time, duration)
 
 
-## One poison stack from tower `t` (at `level`, with `aura`): its dps after
-## the element wheel and the Bard aura, for its poison_time. A creep holds at
-## most poison_stacks stacks; the oldest drops.
-func add_poison(c: SimCreep, t: SimTower, level: int, aura: float) -> void:
+## One poison stack from tower `t` as a tower of `id` at `level`, with `aura`:
+## its dps after the element wheel and the Bard aura, for its poison_time. A
+## creep holds at most poison_stacks stacks; the oldest drops.
+func add_poison(c: SimCreep, t: SimTower, level: int, aura: float, id := t.id) -> void:
 	if not affectable(c):
 		return
-	var dps: float = TowerDefs.stat(t.id, "poison_dps", level)
-	dps *= Damage.element_mult(TowerDefs.stat(t.id, "element"), c.element)
-	dps *= 1.0 + aura
-	c.poison.append(Vector2(dps, TowerDefs.stat(t.id, "poison_time", level)))
+	var dps: float = TowerDefs.stat(id, "poison_dps", level)
+	dps *= Damage.element_mult(TowerDefs.stat(id, "element"), c.element)
+	dps *= (1.0 + aura) * elements.power(id, level)
+	var spread: float = TowerDefs.stat(id, "contagion_radius", level, 0.0)
+	c.poison.append(Vector3(dps, TowerDefs.stat(id, "poison_time", level), spread))
 	c.poison_src.append(t)
-	if c.poison.size() > TowerDefs.stat(t.id, "poison_stacks", level):
+	if c.poison.size() > TowerDefs.stat(id, "poison_stacks", level):
 		c.poison.remove_at(0)
 		c.poison_src.remove_at(0)
 
 
 ## Plague Necropolis contagion: a creep falling with one of its stacks passes
-## a fresh stack to every other creep within contagion_radius.
+## a fresh stack to every other creep within the stack's contagion radius.
 func _spread_plague(c: SimCreep) -> void:
-	var src: SimTower = null
-	for t in c.poison_src:
-		if t != null and t.stat("contagion_radius", 0.0) > 0.0:
-			src = t
-			break
-	if src == null:
+	var i := c.poison.find_custom(func(s: Vector3) -> bool: return s.z > 0.0)
+	if i == -1:
 		return
-	var r: float = src.stat("contagion_radius")
+	var src := c.poison_src[i]
+	var r := c.poison[i].z
 	var n := 0
 	for other in creeps:
 		if other != c and affectable(other) and other.pos.distance_to(c.pos) <= r:
@@ -790,6 +788,7 @@ func _launch(t: SimTower, kind: StringName, c: SimCreep) -> void:
 	var p := SimProjectile.new()
 	p.kind = kind
 	p.tower = t
+	p.id = t.id
 	p.level = t.level
 	p.aura = t.aura
 	p.shot = t.shots + 1
@@ -845,28 +844,28 @@ func _step_homing(p: SimProjectile) -> void:
 
 
 func _on_direct_hit(p: SimProjectile, c: SimCreep) -> void:
-	var t := p.tower
+	var id := p.id
 	var lvl := p.level
-	hit(c, TowerDefs.stat(t.id, "damage", lvl), t, p.aura)
-	match t.id:
+	hit(c, TowerDefs.stat(id, "damage", lvl), p.tower, p.aura, id, lvl)
+	match id:
 		&"frost":
-			var slow: float = TowerDefs.stat(t.id, "slow", lvl)
-			var slow_time: float = TowerDefs.stat(t.id, "slow_time", lvl)
-			var splash: float = TowerDefs.stat(t.id, "slow_splash", lvl)
-			var ring_every: int = TowerDefs.stat(t.id, "ring_every", lvl)
+			var slow: float = TowerDefs.stat(id, "slow", lvl)
+			var slow_time: float = TowerDefs.stat(id, "slow_time", lvl)
+			var splash: float = TowerDefs.stat(id, "slow_splash", lvl)
+			var ring_every: int = TowerDefs.stat(id, "ring_every", lvl)
 			var radius := splash
 			if ring_every > 0 and p.shot % ring_every == 0:
-				radius = TowerDefs.stat(t.id, "ring_radius", lvl)
+				radius = TowerDefs.stat(id, "ring_radius", lvl)
 				events.append({"type": &"frost_ring", "pos": c.pos, "radius": radius})
 			for other in creeps:
 				if other == c or (radius > 0.0 and other.pos.distance_to(c.pos) <= radius):
 					if other.targetable():
 						apply_slow(other, slow, slow_time)
 		&"plague", &"plague_necropolis":
-			add_poison(c, t, lvl, p.aura)
+			add_poison(c, p.tower, lvl, p.aura, id)
 		&"runesmith":
 			if affectable(c):
-				c.shred = minf(c.shred + TowerDefs.stat(t.id, "shred", lvl), SHRED_MAX)
+				c.shred = minf(c.shred + TowerDefs.stat(id, "shred", lvl), SHRED_MAX)
 				c.shred_time = SHRED_TIME
 
 
@@ -877,25 +876,18 @@ func _step_shell(p: SimProjectile) -> void:
 	if p.time_left > 0.0:
 		return
 	p.alive = false
-	var t := p.tower
-	var radius: float = TowerDefs.stat(t.id, "splash", p.level)
-	var base: float = TowerDefs.stat(t.id, "damage", p.level)
+	var radius: float = TowerDefs.stat(p.id, "splash", p.level)
+	var base: float = TowerDefs.stat(p.id, "damage", p.level)
 	for c: SimCreep in creeps.duplicate():
 		if c.flying:
 			continue
 		var d := c.pos.distance_to(p.target_point)
 		if d <= radius:
-			hit(c, base * (1.0 - 0.5 * d / radius), t, p.aura)
-	events.append({"type": &"shell_landed", "pos": p.target_point, "radius": radius, "tower": t.id})
-	var crater_dps: float = TowerDefs.stat(t.id, "crater_dps", p.level, 0.0)
-	if crater_dps > 0.0:
-		var z := SimZone.new()
-		z.kind = &"crater"
-		z.tower = t
+			hit(c, base * (1.0 - 0.5 * d / radius), p.tower, p.aura, p.id, p.level)
+	events.append({"type": &"shell_landed", "pos": p.target_point, "radius": radius, "tower": p.id})
+	if TowerDefs.stat(p.id, "crater_dps", p.level, 0.0) > 0.0:
+		var z := SimZone.of(&"crater", p.tower, p.id, p.level, elements.power(p.id, p.level))
 		z.pos = p.target_point
-		z.radius = TowerDefs.stat(t.id, "crater_radius", p.level)
-		z.dps = crater_dps
-		z.time_left = TowerDefs.stat(t.id, "crater_time", p.level)
 		z.aura = p.aura
 		zones.append(z)
 
@@ -905,9 +897,9 @@ func _step_bolt(p: SimProjectile) -> void:
 	p.pos += p.direction * step
 	p.travelled += step
 	# No pierce limit means the bolt hits everything it passes.
-	var pierce: int = TowerDefs.stat(p.tower.id, "pierce", p.level, 1_000_000)
-	var base: float = TowerDefs.stat(p.tower.id, "damage", p.level)
-	var radius: float = TowerDefs.stat(p.tower.id, "hit_radius", p.level, BOLT_HIT_RADIUS)
+	var pierce: int = TowerDefs.stat(p.id, "pierce", p.level, 1_000_000)
+	var base: float = TowerDefs.stat(p.id, "damage", p.level)
+	var radius: float = TowerDefs.stat(p.id, "hit_radius", p.level, BOLT_HIT_RADIUS)
 	for c in creeps:
 		if p.hit_ids.size() >= pierce:
 			break
@@ -915,7 +907,7 @@ func _step_bolt(p: SimProjectile) -> void:
 			continue
 		if c.pos.distance_to(p.pos) <= radius:
 			p.hit_ids.append(c.id)
-			hit(c, base, p.tower, p.aura)
+			hit(c, base, p.tower, p.aura, p.id, p.level)
 	if p.travelled >= p.max_distance or p.hit_ids.size() >= pierce:
 		p.alive = false
 
@@ -944,13 +936,8 @@ func _cloud(t: SimTower) -> bool:
 	if found.is_empty():
 		return false
 	var c := found[0]
-	var z := SimZone.new()
-	z.kind = &"cloud"
-	z.tower = t
+	var z := SimZone.of(&"cloud", t, t.id, t.level, elements.power(t.id, t.level))
 	z.pos = c.pos + c.heading * c.effective_speed() * 0.5
-	z.radius = t.stat("cloud_radius")
-	z.dps = t.stat("cloud_dps")
-	z.time_left = t.stat("cloud_time")
 	z.aura = t.aura
 	zones.append(z)
 	t.clouds += 1
@@ -985,8 +972,8 @@ func _update_zones() -> void:
 	var keep: Array[SimZone] = []
 	for z in zones:
 		z.time_left -= DT
-		var attack: StringName = z.tower.stat("attack")
-		var element: StringName = z.tower.stat("element")
+		var attack: StringName = TowerDefs.stat(z.id, "attack")
+		var element: StringName = TowerDefs.stat(z.id, "element")
 		for c in creeps:
 			if c.flying or not c.targetable() or c.pos.distance_to(z.pos) > z.radius:
 				continue
@@ -994,6 +981,7 @@ func _update_zones() -> void:
 			_apply_dot(c, a, z.tower)
 		if z.time_left > 0.0:
 			keep.append(z)
-		elif z.kind == &"cloud":
+		# A fusion zeroes the count; clouds from before it don't count down.
+		elif z.kind == &"cloud" and z.id == z.tower.id:
 			z.tower.clouds = maxi(z.tower.clouds - 1, 0)
 	zones = keep

@@ -77,6 +77,8 @@ const STAT_ROWS := [
 	["aura_damage", "Aura damage", "Aura", "pct+"],
 	["aura_haste", "Aura speed", "Haste", "pct+"],
 ]
+## The stat rows EletdRules.tower_power scales.
+const POWER_STATS: Array[String] = ["damage", "poison_dps", "cloud_dps", "crater_dps"]
 const SEP := " · "
 
 ## True under rules where towers reach only the tiles around them
@@ -102,11 +104,14 @@ static func blurb(id: StringName) -> String:
 	return text.replace(" Can't hit closer than 4 m.", "").replace(" Level 3 fires two arrows.", "")
 
 
-## A stat as these rules play it: under eletd an Archer fires one arrow.
+## A stat as these rules play it: under eletd an Archer fires one arrow, and
+## some towers hit harder or softer (EletdRules.tower_power).
 static func _stat(id: StringName, key: String, level: int) -> float:
 	var v: float = TowerDefs.stat(id, key, level)
 	if adjacent_reach and id == &"archer" and key == "multishot":
 		return minf(v, EletdRules.ARCHER_MULTISHOT)
+	if composite and key in POWER_STATS:
+		return v * EletdRules.tower_power(id, level)
 	return v
 
 

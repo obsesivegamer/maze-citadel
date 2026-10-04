@@ -28,8 +28,10 @@ var progress := INF
 var slow := 0.0
 var slow_time := 0.0
 var root_time := 0.0
-## Poison stacks: x = damage per second after multipliers, y = seconds left.
-var poison: Array[Vector2] = []
+## Poison stacks: x = damage per second after multipliers, y = seconds left,
+## z = the contagion radius it spreads over when the creep dies (0: none),
+## fixed when it lands so a stack spreads only if its tower did then.
+var poison: Array[Vector3] = []
 ## The tower behind each poison stack, for damage and kill credit.
 var poison_src: Array[SimTower] = []
 var shred := 0.0

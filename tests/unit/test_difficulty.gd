@@ -118,11 +118,11 @@ func test_eletd_difficulties_climb_in_creep_hp() -> void:
 				hp[[level, type]] = sims[level].spawn_creep(type, &"flame", w, Vector2.ZERO).max_hp
 		for type: StringName in [&"grunt", &"footman"]:
 			var normal: float = hp[[&"normal", type]]
-			check_near(hp[[&"easy", type]], normal * 0.75, 1e-3, "Easy is 0.75, w%d" % w)
+			check_near(hp[[&"easy", type]], normal * 0.7, 1e-3, "Easy is 0.7, w%d" % w)
 			var f := (w - 1) / 39.0
 			var hard := lerpf(EletdRules.HARD_FROM, EletdRules.HARD_TO, f)
 			check_near(hp[[&"hard", type]], normal * hard, 1e-3, "Hard ramp, w%d" % w)
-			var very := lerpf(EletdRules.VERY_HARD_FROM, EletdRules.VERY_HARD_TO, f)
+			var very := lerpf(EletdRules.VERY_HARD_FROM, EletdRules.VERY_HARD_TO, f * f)
 			check_near(hp[[&"very_hard", type]], normal * very, 1e-3, "Very Hard ramp, w%d" % w)
 			check(hp[[&"very_hard", type]] > hp[[&"hard", type]], "Very Hard > Hard, w%d" % w)
 			check(hp[[&"easy", type]] < normal, "Easy < Normal, w%d" % w)

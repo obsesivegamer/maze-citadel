@@ -153,7 +153,7 @@ func test_second_wind_heals_once_and_poison_halves_it() -> void:
 		var sim := _sim(found[0])
 		var c := sim.spawn_creep(&"grunt", &"flame", found[1], Grid.center(Vector2i(10, 10)))
 		if poisoned:
-			c.poison.append(Vector2(0.0, 10.0))
+			c.poison.append(Vector3(0.0, 10.0, 0.0))
 			c.poison_src.append(null)
 		var t := _dummy_tower()
 		var dmg := (

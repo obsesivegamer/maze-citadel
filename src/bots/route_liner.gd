@@ -515,7 +515,7 @@ func _tower_dps(id: StringName, lvl: int, foe: Dictionary) -> float:
 		base = base * KIND_BONUS.get(id, 1.0) + crater * 1.5
 	if id == &"runesmith" and foe.class in SHRED_CLASSES:
 		base *= 1.4
-	return base * mult
+	return base * mult * sim.elements.power(id, lvl)
 
 
 # --- Valuing the board ----------------------------------------------------
