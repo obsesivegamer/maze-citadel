@@ -87,14 +87,23 @@ func test_rampart_wave_walks_from_portal_to_gate() -> void:
 
 
 func test_bot_plan_fits_every_map() -> void:
-	for id in MapDefs.ORDER:
-		var sim := GameSim.new(id)
-		var bot := Bot.new(sim, &"archers")
-		check(bot.plan.size() > 90, "%s: a full serpentine (%d tiles)" % [id, bot.plan.size()])
-		sim.gold = 1_000_000
-		for t in bot.plan:
-			check_eq(sim.build(t, &"archer"), R.OK, "%s: bot tile %s" % [id, t])
-		check(sim.field.route_length() > 4.0 * Grid.DEPTH, "%s: the maze is long" % id)
+	for rules in GameSim.RULES:
+		for id in MapDefs.ORDER:
+			var sim := GameSim.new(id)
+			sim.rules = rules
+			var bot := Bot.new(sim, &"archers")
+			var at := "%s/%s" % [id, rules]
+			check(bot.plan.size() > 90, "%s: a full serpentine (%d tiles)" % [at, bot.plan.size()])
+			var walls: Dictionary = Bot.WALLS_ELETD if rules == &"eletd" else Bot.WALLS
+			var rows: Array = walls[id].map(func(w: Array) -> int: return w[0])
+			for t in bot.plan:
+				if not t.y in rows:
+					failures.append("%s: plan row %d is not in this rule set's walls" % [at, t.y])
+					break
+			sim.gold = 1_000_000
+			for t in bot.plan:
+				check_eq(sim.build(t, &"archer"), R.OK, "%s: bot tile %s" % [at, t])
+			check(sim.field.route_length() > 4.0 * Grid.DEPTH, "%s: the maze is long" % at)
 
 
 func test_records_are_kept_per_map() -> void:

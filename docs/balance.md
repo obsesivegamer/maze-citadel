@@ -65,6 +65,36 @@ What it shows:
 - The novice wins every game with 14.5 lives. It never reads the next wave and builds one tower every 4 seconds, and it loses lives only to the wave-10 and wave-40 bosses.
 - The smart bot holds almost no gold: 0 to 69 unspent at each wave's start on seed 0, so interest pays it next to nothing.
 
+## Element TD rules: adjacent reach (2026-10-04)
+
+The first `eletd` rule: a tower attacks only creeps inside the 3×3 block of tiles around it. The reason is the portal. With ranges of 4 to 8 tiles and a maze that folds the route back on itself, an Archer saw about 14 tiles of route at once, and most waves died on the first stretch.
+
+Tried alone, the rule ends the game on wave 2. A tower now sees each creep for about 2 seconds, nothing dies on wave 1, no bounty comes in, and the leaked creeps walk again. More gold doesn't rescue it (1,000 starting gold loses by wave 26). So under these rules creep HP is 15% of classic, the value at which the smart bot kept about half its lives in the trial runs. The bot also builds a different maze: corridors one tile wide, so every wall tower borders two lanes.
+
+What stays as it was: splash, craters, clouds and contagion keep their radii, the Bard's aura keeps its range, and Ballista bolts and the Sunfire lance fly as far as before. The Demolisher loses its minimum range, which would leave it nothing to shoot.
+
+| Map | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Citadel | smart | normal | 4/4 | 11.0, 5–19 | 3.2 | 34% | 19% | 39% / 31% / 46% / 39% | – |
+| Citadel | smart | hard | 3/4 | 1.0, 0–2 | 4.8 | 53% | 23% | 42% / 35% / 59% / 61% | w7 |
+| Citadel | archers | normal | 4/4 | 14.5, 14–15 | 2.0 | 35% | 16% | 39% / 27% / 64% / 25% | – |
+| Citadel | no_air | normal | 0/4 | 0.0, 0–0 | 2.2 | 100% | 100% | – / – / – / – | w2, w3, w2, w2 |
+| Citadel | novice | normal | 0/4 | 0.0, 0–0 | 2.0 | 100% | 100% | – / – / – / – | w2, w2, w2, w2 |
+| Rampart | smart | normal | 4/4 | 19.0, 17–20 | 2.0 | 30% | 21% | 37% / 37% / 62% / 51% | – |
+| Rampart | smart | hard | 4/4 | 18.0, 15–20 | 3.8 | 38% | 25% | 38% / 45% / 87% / 82% | – |
+| Rampart | archers | normal | 4/4 | 14.2, 14–15 | 2.0 | 35% | 15% | 42% / 33% / 56% / 37% | – |
+| Rampart | no_air | normal | 0/4 | 0.0, 0–0 | 3.2 | 72% | 100% | – / – / – / – | w5, w5, w5, w5 |
+| Rampart | novice | normal | 1/4 | 3.8, 0–15 | 4.2 | 57% | 20% | 45% / 46% / 46% / 57% | w7, w7, w7 |
+
+Lives lost per wave on the Citadel, all 4 seeds: smart/normal {2: 1, 3: 15, 6: 3, 7: 17} · smart/hard {2: 1, 3: 28, 4: 10, 6: 6, 7: 31} · archers {3: 22} · novice {1: 11, 2: 69}
+
+What it shows:
+
+- The portal kills are gone. Creeps walk 30% to 34% of the route on the first five waves, against 7% in the classic game.
+- Every life is lost on waves 1 to 7. Wave 3 (Shield Footmen) and wave 7 (Steam Tanks) take nearly all of them, and from wave 8 on nothing leaks in any winning game: half the non-boss waves die inside the first fifth of the route. One flat HP share is too high for the opening and too low for the rest.
+- The archers-only bot now wins, and the novice dies on wave 2. Both are the wrong way round and are the next things to tune.
+- The Rampart is much easier than the Citadel under these rules (19 lives on Normal, 18 on Hard).
+
 ## Latest run (2026-10-02)
 
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |

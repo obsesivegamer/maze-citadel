@@ -78,6 +78,10 @@ const STAT_ROWS := [
 ]
 const SEP := " · "
 
+## True under rules where towers reach only the tiles around them
+## (GameSim.adjacent_reach): attackers then show a reach, not a range in metres.
+static var adjacent_reach := false
+
 
 static func full_name(id: StringName) -> String:
 	return TowerDefs.TOWERS[id].name
@@ -85,6 +89,16 @@ static func full_name(id: StringName) -> String:
 
 static func short_name(id: StringName) -> String:
 	return SHORT_NAMES.get(id, full_name(id))
+
+
+static func blurb(id: StringName) -> String:
+	var text: String = BLURBS.get(id, "")
+	return text.replace(" Can't hit closer than 4 m.", "") if adjacent_reach else text
+
+
+## Whether this tower's range stat is replaced by the adjacent-tiles reach.
+static func _reach_only(id: StringName) -> bool:
+	return adjacent_reach and TowerDefs.TOWERS[id].has("attack")
 
 
 static func is_epic(id: StringName) -> bool:
@@ -189,6 +203,12 @@ static func stat_rows(id: StringName) -> Array:
 	for row in STAT_ROWS:
 		if not def.has(row[0]):
 			continue
+		if row[0] == "range" and _reach_only(id):
+			var tiles := PackedStringArray()
+			tiles.resize(levels)
+			tiles.fill("1 tile")
+			rows.append(["Reach", tiles])
+			continue
 		var values := PackedStringArray()
 		var any := false
 		for level in range(1, levels + 1):
@@ -206,6 +226,8 @@ static func next_level_preview(id: StringName, level: int) -> String:
 		return "Max level"
 	var parts := PackedStringArray()
 	for row in STAT_ROWS:
+		if row[0] == "range" and _reach_only(id):
+			continue
 		var a: float = TowerDefs.stat(id, row[0], level)
 		var b: float = TowerDefs.stat(id, row[0], level + 1)
 		if a != b:

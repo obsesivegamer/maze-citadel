@@ -2,11 +2,15 @@ class_name PathPreview
 extends Node3D
 ## Glowing dots along the current portal-to-gate route, drifting toward the
 ## gate (GDD §2). Redrawn on every path change; hidden while a wave runs if
-## the player prefers (always shown for now).
+## the player prefers (always shown for now). Under rules where towers reach
+## only the tiles around them, pale dots also mark the straight line flyers
+## take, since only towers beside it can hit them.
 
 const SPACING := 1.6
 const SPEED := 2.4
 const MAX_DOTS := 600
+const FLIGHT_SPACING := 2.0
+const FLIGHT_COLOR := Color(0.6, 0.85, 1.0)
 
 var _game: Game
 var _mm := MultiMesh.new()
@@ -39,6 +43,35 @@ func setup(game: Game) -> void:
 	add_child(mmi)
 	game.sim_event.connect(_on_sim_event)
 	refresh()
+	if game.sim.adjacent_reach():
+		_add_flight_line()
+
+
+func _add_flight_line() -> void:
+	var dot := SphereMesh.new()
+	dot.radius = 0.16
+	dot.height = 0.32
+	dot.radial_segments = 8
+	dot.rings = 4
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = FLIGHT_COLOR
+	dot.material = mat
+	var from := _game.sim.grid.spawn_point
+	var to := _game.sim.grid.gate_point
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = dot
+	mm.instance_count = int(from.distance_to(to) / FLIGHT_SPACING) + 1
+	for i in mm.instance_count:
+		var p := from.move_toward(to, i * FLIGHT_SPACING)
+		mm.set_instance_transform(
+			i, Transform3D(Basis(), Coords.to_world(p, Coords.PLATEAU_TOP + 0.3))
+		)
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)
 
 
 func _on_sim_event(e: Dictionary) -> void:

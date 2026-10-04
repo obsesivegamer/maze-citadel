@@ -71,3 +71,20 @@ static func _has_anim(ap: AnimationPlayer, anim: StringName) -> bool:
 		if ap.get_animation_library(lib).has_animation(anim):
 			return true
 	return false
+
+
+## Under adjacent-reach rules attackers show "Reach 1 tile" where classic shows
+## a range in metres; the Bard's aura keeps its range.
+func test_adjacent_reach_wording() -> void:
+	TowerInfo.adjacent_reach = true
+	var archer := TowerInfo.stat_rows(&"archer").map(func(r: Array) -> String: return r[0])
+	var bard := TowerInfo.stat_rows(&"bard").map(func(r: Array) -> String: return r[0])
+	var preview := TowerInfo.next_level_preview(&"archer", 1)
+	var demolisher := TowerInfo.blurb(&"demolisher")
+	TowerInfo.adjacent_reach = false
+	check("Reach" in archer and not "Range" in archer, "archer shows a reach")
+	check("Range" in bard, "bard keeps its aura range")
+	check(not "Range" in preview, "upgrade preview leaves range out (%s)" % preview)
+	check(not "closer" in demolisher, "no minimum range in the blurb")
+	check("closer" in TowerInfo.blurb(&"demolisher"), "classic blurb unchanged")
+	check("Range" in TowerInfo.stat_rows(&"archer").map(func(r: Array) -> String: return r[0]), "")

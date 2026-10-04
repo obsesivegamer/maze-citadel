@@ -89,7 +89,9 @@ func _on_sim_event(e: Dictionary) -> void:
 			_impacts.burst(&"contagion", Coords.to_world(e.pos, Coords.PLATEAU_TOP + 0.6), e.radius)
 		&"breath":
 			var aim := Vector3(e.aim.x, 0, e.aim.y)
-			_impacts.burst(&"breath", _tile(e.tile, 3.5) + aim * 1.5, 2.0, aim)
+			# Half the plume when the breath only reaches the tiles around the tower.
+			var s := 0.5 if _game.sim.adjacent_reach() else 1.0
+			_impacts.burst(&"breath", _tile(e.tile, 3.5) + aim * 1.5 * s, 2.0 * s, aim)
 		&"built":
 			_impacts.burst(&"dust", _tile(e.tile, 0.2))
 		&"upgraded":

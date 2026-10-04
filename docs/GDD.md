@@ -90,6 +90,16 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 
 Mode is picked from a chip in the top bar during the opening build phase and locks when wave 1 spawns.
 
+### 5.0 Rule sets
+
+Everything in this document describes the classic rules, which are the game as released. A second rule set, `eletd`, is being tuned to make the game harder and closer to Element TD. It is off unless the game is started with `--rules=eletd`, and its records are kept apart from the classic ones. [balance.md](balance.md) follows its tuning.
+
+| Rule | Classic | `eletd` |
+|---|---|---|
+| Tower reach | The range in metres from §7 | The 3×3 block of tiles around the tower, for every attack. Splash, clouds, craters and the Bard's aura keep their sizes. The Demolisher has no minimum range. |
+| Creep HP | §8 | 15% of classic |
+| Shown on the board | Range ring | A square around the reach, and pale dots along the straight line flyers take |
+
 ### 5.1 Twists (random wave abilities)
 
 In the spirit of Element TD's random creep abilities. The schedule comes from a seed (`--twists --seed=N` replays one), so it can't be rerolled by calling waves early. The next-wave chip shows the coming twist a full wave ahead, and the wave banner repeats it.

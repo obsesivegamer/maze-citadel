@@ -1,0 +1,408 @@
+{
+  "adapter": "Apple M3 (Apple9)",
+  "avg_cpu_ms": 1.21,
+  "avg_fps": 48.0,
+  "avg_frame_ms": 20.84,
+  "cpu_ms_per_frame": {
+    "builder": 0.01,
+    "camera": 0.01,
+    "crowd": 0.12,
+    "fx": 0.04,
+    "hud": 0.02,
+    "path": 0.08,
+    "sim": 1.03,
+    "total": 1.97,
+    "units": 0.66
+  },
+  "driver": "metal",
+  "flags": {},
+  "focused": true,
+  "focused_pct": 0.0,
+  "frames": 721,
+  "godot": "4.7.2-stable (official)",
+  "hdr_max_nits": -1.0,
+  "hdr_supported": true,
+  "label": "balanced",
+  "low_1pct_fps": 47.1,
+  "max_draw_calls": 1769.0,
+  "max_primitives": 1547164.0,
+  "missed_frames": 104,
+  "missed_pct": 14.42,
+  "pacing": false,
+  "project_overrides": {},
+  "refresh_hz": 60.0,
+  "render_scale": 0.699999988079071,
+  "rendering_method": "forward_plus",
+  "scaling_mode": 4,
+  "seconds": 15.0,
+  "seconds_waiting_for_focus": 0.0,
+  "settings": {
+    "crowd": 0.7,
+    "fog": true,
+    "fog_depth": 48,
+    "fog_size": 64,
+    "foliage": 0.8,
+    "particles": 0.7,
+    "render_scale": 0.7,
+    "sdfgi": false,
+    "shadow_size": 2048,
+    "shadow_splits": 2,
+    "ssao": true,
+    "ssao_quality": 2,
+    "ssil": false,
+    "ssr": false,
+    "upscaler": "metalfx_temporal"
+  },
+  "spikes": [
+    {
+      "creeps": 20,
+      "ms": 21.3,
+      "phase": 1,
+      "sim": 2.1,
+      "t": 10.44,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.86,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 10.88,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.3,
+      "t": 10.84,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 10.9,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.5,
+      "t": 10.95,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.6,
+      "t": 10.61,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.63,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.8,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 10.78,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.5,
+      "t": 10.54,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 10.82,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 10.75,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.73,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.3,
+      "t": 10.58,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.56,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.92,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.2,
+      "t": 10.71,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 10.65,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.69,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 10.67,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 10.97,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 13.43,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.2,
+      "phase": 1,
+      "t": 13.76,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.1,
+      "phase": 1,
+      "t": 14.06,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.1,
+      "phase": 1,
+      "sim": 1.5,
+      "t": 13.74,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.1,
+      "phase": 1,
+      "t": 13.24,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.1,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 10.1,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.1,
+      "phase": 1,
+      "t": 11.26,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.1,
+      "phase": 1,
+      "sim": 1.6,
+      "t": 11.07,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.1,
+      "phase": 1,
+      "t": 10.0,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 18,
+      "ms": 21.1,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 14.37,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 19,
+      "ms": 21.0,
+      "phase": 1,
+      "t": 12.2,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 11.24,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 11.01,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.5,
+      "t": 10.42,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.3,
+      "t": 10.35,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "t": 10.29,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.4,
+      "t": 10.27,
+      "towers": 114,
+      "wave": 35
+    },
+    {
+      "creeps": 20,
+      "ms": 21.0,
+      "phase": 1,
+      "sim": 1.1,
+      "t": 10.25,
+      "towers": 114,
+      "wave": 35
+    }
+  ],
+  "timeline_fps": [],
+  "video_mem_mb": 1104.0,
+  "vsync_mode": 0,
+  "window_px": "(2940, 1782)",
+  "worst_frame_ms": 21.3,
+  "other_gpu_pct": 0.0
+}
