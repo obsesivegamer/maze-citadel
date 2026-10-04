@@ -88,7 +88,8 @@ func _build_left() -> void:
 	row.add_child(_gold_box)
 	_lives_box.add_child(UiIcon.new(&"heart", ICON_PX))
 	_lives_box.add_child(_lives)
-	_lives_box.tooltip_text = "Lives. A leak costs 1 (bosses 2) and the creep runs again."
+	var costly := "bosses and Bulky creeps" if _game.sim.rules == &"eletd" else "bosses"
+	_lives_box.tooltip_text = "Lives. A leak costs 1 (%s 2) and the creep runs again." % costly
 	_lives_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_lives_box)
 	_interest.add_child(_ring)
@@ -335,7 +336,7 @@ func _refresh_next(sim: GameSim) -> void:
 	dirty = _changed(&"has_next", has_next) or dirty
 	dirty = _changed(&"secs", secs) or dirty
 	if dirty:
-		_next.show_wave(next if has_next else 0, twist)
+		_next.show_wave(next if has_next else 0, twist, sim.rules)
 		_call.disabled = not has_next
 		if not has_next:
 			_next_caption.text = "FINAL WAVE" if not _game.is_over() else ""
@@ -343,11 +344,15 @@ func _refresh_next(sim: GameSim) -> void:
 			_next_caption.text = "NEXT · WAVE %d · IN %ds" % [next, secs]
 		else:
 			_next_caption.text = "NEXT · WAVE %d · N TO CALL EARLY" % next
-		var tip := "Wave %d: %s" % [next, TowerInfo.wave_summary(next)] if has_next else ""
+		var tip := (
+			"Wave %d: %s" % [next, TowerInfo.wave_summary(next, sim.rules)] if has_next else ""
+		)
 		if twist != &"":
 			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		if has_next and WaveDefs.bulky(next, sim.rules):
+			tip += "\nBulky: %s" % TowerInfo.bulky_text()
 		if has_next:
-			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next)
+			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next, sim.rules)
 		_next.get_parent().tooltip_text = tip
 	var after := next + 1
 	var has_after := (
@@ -357,7 +362,7 @@ func _refresh_next(sim: GameSim) -> void:
 	_after_caption.visible = has_after
 	_after.visible = has_after
 	if _changed(&"after", [after if has_after else 0, after_twist]):
-		_after.show_wave(after if has_after else 0, after_twist)
+		_after.show_wave(after if has_after else 0, after_twist, sim.rules)
 		_after_caption.text = "THEN · WAVE %d" % after
 
 

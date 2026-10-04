@@ -19,6 +19,7 @@ const BLOOD := Color(0.92, 0.2, 0.2)
 const SKY := Color(0.62, 0.87, 1.0)
 const FEL := Color(0.55, 1.0, 0.35)
 const TWIST := Color(1.0, 0.5, 0.82)
+const BULKY := Color(1.0, 0.66, 0.3)
 const LEATHER := Color(0.55, 0.16, 0.12)
 ## AA edge drawn around filled polygons (Godot polygons have no antialiasing).
 const EDGE := 0.8
@@ -45,10 +46,11 @@ const SYMBOLS: Array[StringName] = [
 	&"boss_track",
 	&"aura",
 	&"twist",
+	&"bulky",
 	&"book",
 ]
 const ELEMENT_IDS: Array[StringName] = [
-	&"el_light", &"el_dark", &"el_aqua", &"el_flame", &"el_verdant", &"el_stone"
+	&"el_light", &"el_dark", &"el_aqua", &"el_flame", &"el_verdant", &"el_stone", &"el_composite"
 ]
 const CLASS_IDS: Array[StringName] = [&"cls_light", &"cls_armored", &"cls_air", &"cls_boss"]
 const ATTACK_IDS: Array[StringName] = [
@@ -126,6 +128,9 @@ static func draw(ci: Object, id: StringName, r: Rect2, tint := Color.WHITE) -> v
 			arc(ci, r, Vector2(0.5, 0.5), 0.38, -PI * 0.5, PI * 1.15, TWIST * tint, 0.09)
 			arc(ci, r, Vector2(0.5, 0.5), 0.21, PI * 0.5, PI * 2.1, TWIST * tint, 0.08)
 			dot(ci, r, Vector2(0.5, 0.5), 0.07, TWIST * tint)
+		&"bulky":
+			dot(ci, r, Vector2(0.6, 0.55), 0.33, BULKY * tint)
+			dot(ci, r, Vector2(0.17, 0.76), 0.13, BULKY * tint)
 		&"book":
 			_book(ci, r, tint)
 		&"upgrade":
@@ -168,6 +173,8 @@ static func draw(ci: Object, id: StringName, r: Rect2, tint := Color.WHITE) -> v
 			_leaf(ci, r, UiTheme.ELEMENT_COLORS[&"verdant"] * tint)
 		&"el_stone":
 			_rock(ci, r, UiTheme.ELEMENT_COLORS[&"stone"] * tint)
+		&"el_composite":
+			_plate(ci, r, UiTheme.ELEMENT_COLORS[&"composite"] * tint)
 		&"cls_light":
 			ring(ci, r, Vector2(0.5, 0.5), 0.34, UiTheme.CLASS_COLORS[&"light"] * tint, 0.1)
 			dot(ci, r, Vector2(0.5, 0.5), 0.11, UiTheme.CLASS_COLORS[&"light"] * tint)
@@ -462,6 +469,16 @@ static func _rock(ci: Object, r: Rect2, color: Color) -> void:
 	poly(ci, r, [0.48, 0.08, 0.82, 0.3, 0.5, 0.46, 0.14, 0.36], color.lightened(0.25))
 	line(ci, r, Vector2(0.5, 0.46), Vector2(0.56, 0.92), color.darkened(0.4), 0.035)
 	line(ci, r, Vector2(0.5, 0.46), Vector2(0.86, 0.68), color.darkened(0.4), 0.035)
+
+
+## Composite armor: a hexagonal plate of three bonded layers.
+static func _plate(ci: Object, r: Rect2, color: Color) -> void:
+	for layer in [[0.46, color.darkened(0.4)], [0.33, color], [0.18, color.lightened(0.35)]]:
+		var pts := PackedVector2Array()
+		for i in 6:
+			var a := TAU * i / 6.0 - PI * 0.5
+			pts.append(pt(r, Vector2(0.5, 0.5) + Vector2(cos(a), sin(a)) * layer[0]))
+		poly_pts(ci, pts, layer[1])
 
 
 static func _crown(ci: Object, r: Rect2, color: Color) -> void:

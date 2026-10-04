@@ -11,6 +11,7 @@ const ELEMENT_NAMES := {
 	&"flame": "Flame",
 	&"verdant": "Verdant",
 	&"stone": "Stone",
+	&"composite": "Composite",
 }
 const CLASS_NAMES := {&"light": "Light", &"armored": "Armored", &"air": "Air", &"boss": "Boss"}
 const ATTACK_NAMES := {
@@ -350,10 +351,10 @@ static func fuse_partners(sim: GameSim, tile: Vector2i) -> Array[Vector2i]:
 
 
 ## [creep type, count] in spawn order, one entry per type.
-static func wave_groups(wave: int) -> Array:
+static func wave_groups(wave: int, rules: StringName = &"classic") -> Array:
 	var order: Array[StringName] = []
 	var counts := {}
-	for entry in WaveDefs.spawn_list(wave):
+	for entry in WaveDefs.spawn_list(wave, rules):
 		if not counts.has(entry[0]):
 			order.append(entry[0])
 			counts[entry[0]] = 0
@@ -374,11 +375,19 @@ static func wave_classes(wave: int) -> Array[StringName]:
 
 
 ## "10 Grunts, 3 Priestesses" style summary for tooltips.
-static func wave_summary(wave: int) -> String:
+static func wave_summary(wave: int, rules: StringName = &"classic") -> String:
 	var parts := PackedStringArray()
-	for g in wave_groups(wave):
+	for g in wave_groups(wave, rules):
 		parts.append("%d %s" % [g[1], CreepDefs.CREEPS[g[0]].name])
 	return ", ".join(parts)
+
+
+## What a Bulky wave (eletd) changes, under 12 words like a twist's text.
+static func bulky_text() -> String:
+	return (
+		"Half the creeps, %s× HP, %d× bounty. Leaks cost %d lives."
+		% [fmt_num(EletdRules.BULKY_HP), EletdRules.BULKY_BOUNTY, EletdRules.BULKY_LIVES]
+	)
 
 
 ## Context-sensitive [key, action] hints for the strip above the cards.

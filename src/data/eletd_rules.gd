@@ -45,6 +45,26 @@ const SCORE_MULT := {&"easy": 0.7, &"normal": 1.0, &"hard": 1.3, &"very_hard": 1
 ## full share outlasts any maze, walks round four or five times and takes 7 to
 ## 13 lives; at this share it mostly dies on its first pass.
 const BOSS_HP := {10: 1.7, 40: 0.33}
+## Element TD sends long streams, so coverage along the lane is what counts:
+## every group but a boss has WAVE_SIZE times the creeps (rounded up), with
+## HP and bounty shared out so the wave's totals stay the same (EletdWaves).
+const WAVE_SIZE := 1.5
+## Seconds between creeps entering, and between fast ones.
+const SPAWN_INTERVAL := 0.6
+const FAST_SPAWN_INTERVAL := 0.35
+## Composite armor takes COMPOSITE_DAMAGE from every element: no counter
+## pays double on these waves, and none pays half.
+const COMPOSITE_WAVES: Array[int] = [14, 27, 34]
+const COMPOSITE_DAMAGE := 0.9
+## Bulky waves: BULKY_COUNT of the creeps, each with BULKY_HP times the HP and
+## BULKY_BOUNTY times the bounty. A leak costs BULKY_LIVES, as a boss's does.
+## BULKY_SCALE is only how much larger they are drawn.
+const BULKY_WAVES: Array[int] = [12, 18, 25, 37]
+const BULKY_COUNT := 0.5
+const BULKY_HP := 2.5
+const BULKY_BOUNTY := 2
+const BULKY_LIVES := 2
+const BULKY_SCALE := 1.3
 
 
 ## The difficulties rule set `rules` offers, easiest first.

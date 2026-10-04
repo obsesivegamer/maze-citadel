@@ -35,5 +35,11 @@ static func bounty(wave: int) -> int:
 	return roundi(6.0 + 16.0 * (clampi(wave, 1, 40) - 1) / 39.0)
 
 
+## A bounty for one creep of `type`: bosses pay ten creeps' worth, the
+## Dreadlord twenty-five.
+static func creep_bounty(type: StringName, wave: int) -> int:
+	return bounty(wave) * (25 if type == &"dreadlord" else (10 if is_boss(type) else 1))
+
+
 static func is_boss(type: StringName) -> bool:
 	return CREEPS[type].class == &"boss"

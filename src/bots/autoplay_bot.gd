@@ -235,7 +235,7 @@ func _counter_pick(slot: int) -> StringName:
 	# Once the current wave is all on the field, the towers it meets are
 	# mostly built; plan for the one after.
 	var w := clampi(sim.wave + (0 if sim.spawning() else 1), 1, 40)
-	var entries := WaveDefs.spawn_list(w)
+	var entries := WaveDefs.spawn_list(w, sim.rules)
 	var element: StringName = entries[0][1]
 	var classes := {}
 	for e in entries:
@@ -249,7 +249,8 @@ func _counter_pick(slot: int) -> StringName:
 	var options: Array
 	match slot % 4:
 		0:
-			options = ELEMENT_COUNTER[element]
+			# Composite armor (eletd) has no element counter: answer its armor.
+			options = ELEMENT_COUNTER.get(element, CLASS_COUNTER[main_class])
 		1:
 			options = CLASS_COUNTER[main_class]
 		2:
@@ -263,9 +264,9 @@ func _counter_pick(slot: int) -> StringName:
 	# almost nothing that answers it buys the answer first, saving up if need be.
 	# Under eletd the top bar also shows the wave after next, so a player sees
 	# two waves ahead even while the current one is still coming in.
-	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40))
+	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40), sim.rules)
 	if sim.adjacent_reach() and sim.spawning():
-		seen += WaveDefs.spawn_list(mini(w + 2, 40))
+		seen += WaveDefs.spawn_list(mini(w + 2, 40), sim.rules)
 	var threats := {}
 	for e in seen:
 		threats[CreepDefs.CREEPS[e[0]].class] = true

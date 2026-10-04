@@ -260,6 +260,12 @@ Lives lost per wave, both seeds: hard {10: 4, 20: 4, 23: 2, 29: 3, 30: 12, 33: 4
 
 Easy never leaks, and Very Hard is lost late in both games, on the armored waves 35 and 38 and the Dreadlord. Both are where a later retune starts.
 
+## Element TD rules: wave shapes (2026-10-04)
+
+Element TD sends long, tight streams, so how much of the lane a maze covers matters more than any one tower. Under `eletd` every group except a boss now has one and a half times the creeps, 0.6 s apart instead of 0.9 (fast creeps 0.35 s instead of 0.5). Each creep carries the matching share of the HP and the bounty, so a wave's total HP and gold are unchanged. Waves 14, 27 and 34 are now composite (every element deals 90%), and waves 12, 18, 25 and 37 are Bulky (half the creeps, each with 2.5 times the HP and twice the bounty, 2 lives a leak). None of this was tuned here.
+
+It barely moves the smart bot on Normal. Over the same two Citadel seeds it went from 11.0 lives (10 and 12) to 12.0 (12 in both), with 9.0 close calls a game against 7.0 before. It still loses lives only to the wave-10, 20 and 30 bosses: {10: 4, 20: 4, 30: 8}. The composite and Bulky waves cost it nothing, even though a Bulky wave carries about a quarter more HP than the wave it replaces. They are left for the retune.
+
 ## Latest run (2026-10-02)
 
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |

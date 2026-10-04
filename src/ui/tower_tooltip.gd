@@ -105,7 +105,7 @@ func _vs_next_for(id: StringName, sim: GameSim) -> void:
 	if next <= sim.last_wave() and TowerDefs.TOWERS[id].has("attack"):
 		text = (
 			"[color=#%s]Next wave %d:[/color] %s"
-			% [UiTheme.hex(UiTheme.GOLD), next, Counsel.tower_vs_wave(id, next)]
+			% [UiTheme.hex(UiTheme.GOLD), next, Counsel.tower_vs_wave(id, next, sim.rules)]
 		)
 	if text != _vs_next.text:
 		_vs_next.text = text

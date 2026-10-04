@@ -295,8 +295,8 @@ func start_next_wave() -> void:
 	if phase == Phase.DEFEAT or phase == Phase.VICTORY or wave >= last_wave():
 		return
 	wave += 1
-	for entry in WaveDefs.spawn_list(wave):
-		_spawn_queue.append([entry[0], entry[1], wave])
+	for entry in WaveDefs.spawn_list(wave, rules):
+		_spawn_queue.append([entry[0], entry[1], wave] + entry.slice(2))
 	phase = Phase.WAVE
 	countdown = -1.0
 	events.append({"type": &"wave_started", "wave": wave})
@@ -346,9 +346,9 @@ func _spawn() -> void:
 		return
 	var entry: Array = _spawn_queue.pop_front()
 	var c := spawn_creep(entry[0], entry[1], entry[2], grid.spawn_point)
-	# Spacing follows the creep type, not a Swift creep's boosted speed.
-	var fast: bool = CreepDefs.CREEPS[c.type].speed >= 4.5
-	_spawn_timer = FAST_SPAWN_INTERVAL if fast else SPAWN_INTERVAL
+	if entry.size() > 3:
+		c.reshape(entry[3], entry[4], entry[5])
+	_spawn_timer = WaveDefs.spawn_interval(c.type, rules)
 	if c.twist == &"stampede":
 		_spawn_timer *= WaveTwists.STAMPEDE_SPAWN
 
@@ -384,8 +384,7 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.element = element
 	c.flying = def.get("flying", false)
 	c.boss = CreepDefs.is_boss(type)
-	var boss_mult := 25 if type == &"dreadlord" else (10 if c.boss else 1)
-	c.bounty = CreepDefs.bounty(w) * boss_mult
+	c.bounty = CreepDefs.creep_bounty(type, w)
 	if not c.boss:
 		_apply_twist(c, twist_for(w))
 	match type:
@@ -539,7 +538,7 @@ func _progress(c: SimCreep) -> float:
 
 
 func _leak(c: SimCreep) -> void:
-	var cost := 2 if c.boss else 1
+	var cost := c.leak_cost()
 	lives = maxi(lives - cost, 0)
 	c.leaked = true
 	c.pos = grid.spawn_point

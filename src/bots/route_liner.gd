@@ -179,26 +179,28 @@ func _read_waves(w0: int, seen: int) -> void:
 		var w := w0 + k
 		if w > WaveDefs.count():
 			break
-		var list := WaveDefs.spawn_list(w)
+		var list := WaveDefs.spawn_list(w, sim.rules)
 		var heals := list.any(func(e: Array) -> bool: return e[0] == &"priestess")
 		var groups := {}
+		var shares := {}
 		for e in list:
 			var key: String = "%s/%s" % [e[0], e[1]]
 			groups[key] = groups.get(key, 0) + 1
+			shares[key] = WaveDefs.hp_share(e)
 		for key: String in groups:
 			var parts := key.split("/")
 			var type := StringName(parts[0])
 			var def: Dictionary = CreepDefs.CREEPS[type]
-			var hp := CreepDefs.max_hp(type, w, _hp_mult(type, w))
+			var hp: float = CreepDefs.max_hp(type, w, _hp_mult(type, w)) * shares[key]
 			if type == &"steam_tank" or type == &"ghoul":
 				hp *= 4.0 / 3.0
 			if heals:
 				hp *= 1.1
 			var n: int = groups[key]
 			var stake := BOSS_STAKE if CreepDefs.is_boss(type) else 1.0
-			var spacing := (
-				GameSim.FAST_SPAWN_INTERVAL if def.speed >= 4.5 else GameSim.SPAWN_INTERVAL
-			)
+			if WaveDefs.bulky(w, sim.rules):
+				stake = EletdRules.BULKY_LIVES
+			var spacing := WaveDefs.spawn_interval(type, sim.rules)
 			(
 				_foes
 				. append(
@@ -237,7 +239,7 @@ func _add_yardsticks(w0: int) -> void:
 		"hp": hp,
 		"speed": 3.0,
 		"air": false,
-		"cap": GameSim.SPAWN_INTERVAL * STREAM_SHARE,
+		"cap": WaveDefs.spawn_interval(&"grunt", sim.rules) * STREAM_SHARE,
 		"class": &"light",
 		"element": &"",
 		"armor": 2.0,

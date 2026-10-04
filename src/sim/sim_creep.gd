@@ -17,6 +17,8 @@ var element: StringName
 var flying := false
 var boss := false
 var bounty := 0
+## A Bulky wave's creep (eletd): it costs a boss's lives on a leak.
+var bulky := false
 ## Set on the first leak: the creep loops back to the portal and pays nothing.
 var leaked := false
 var alive := true
@@ -45,6 +47,22 @@ var aura_armor := 0.0
 var aura_haste := 0.0
 var dot_accum := 0.0
 var dot_timer := 0.0
+
+
+## Element TD's wave shapes (EletdWaves): the share of its table HP this
+## creep has, its bounty and whether it is Bulky.
+func reshape(hp_share: float, p_bounty: int, p_bulky: bool) -> void:
+	max_hp *= hp_share
+	hp = max_hp
+	bounty = p_bounty
+	bulky = p_bulky
+
+
+## Lives a leak costs.
+func leak_cost() -> int:
+	if bulky:
+		return EletdRules.BULKY_LIVES
+	return 2 if boss else 1
 
 
 func targetable() -> bool:

@@ -41,6 +41,7 @@ const ELEMENT_COLORS := {
 	&"flame": Color(1.0, 0.52, 0.22),
 	&"verdant": Color(0.5, 0.88, 0.35),
 	&"stone": Color(0.78, 0.68, 0.54),
+	&"composite": Color(0.72, 0.76, 0.82),
 }
 const CLASS_COLORS := {
 	&"light": Color(0.88, 0.8, 0.62),

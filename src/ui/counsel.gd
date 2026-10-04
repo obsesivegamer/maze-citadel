@@ -73,10 +73,10 @@ static func multiplier(
 
 ## One entry per creep type and element, in spawn order: type, element,
 ## armor_class, flying, count and share (the group's part of the wave's HP).
-static func groups(wave: int) -> Array[Dictionary]:
+static func groups(wave: int, rules: StringName = &"classic") -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var total := 0.0
-	for entry in WaveDefs.spawn_list(wave):
+	for entry in WaveDefs.spawn_list(wave, rules):
 		var g := {}
 		for o in out:
 			if o.type == entry[0] and o.element == entry[1]:
@@ -92,7 +92,7 @@ static func groups(wave: int) -> Array[Dictionary]:
 				"hp": 0.0,
 			}
 			out.append(g)
-		var hp := CreepDefs.max_hp(entry[0], wave)
+		var hp := CreepDefs.max_hp(entry[0], wave) * WaveDefs.hp_share(entry)
 		g.count += 1
 		g.hp += hp
 		total += hp
@@ -102,9 +102,9 @@ static func groups(wave: int) -> Array[Dictionary]:
 
 
 ## Tower `id`'s multiplier on wave `wave`, averaged over the wave's HP.
-static func wave_multiplier(id: StringName, wave: int) -> float:
+static func wave_multiplier(id: StringName, wave: int, rules: StringName = &"classic") -> float:
 	var m := 0.0
-	for g in groups(wave):
+	for g in groups(wave, rules):
 		m += g.share * multiplier(id, g.armor_class, g.element, g.flying)
 	return m
 
@@ -114,8 +114,8 @@ static func wave_multiplier(id: StringName, wave: int) -> float:
 ## the biggest group while they beat full damage. `mult` is the pick's
 ## multiplier on its group and `vs` that group's creep (see _pick). Cheaper
 ## first on a tie.
-static func picks(wave: int, count := 2) -> Array[Dictionary]:
-	var by_share := groups(wave)
+static func picks(wave: int, rules: StringName = &"classic", count := 2) -> Array[Dictionary]:
+	var by_share := groups(wave, rules)
 	by_share.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.share > b.share)
 	var out: Array[Dictionary] = []
 	var taken: Array[StringName] = []
@@ -132,9 +132,9 @@ static func picks(wave: int, count := 2) -> Array[Dictionary]:
 	return out
 
 
-static func best_towers(wave: int, count := 2) -> Array[StringName]:
+static func best_towers(wave: int, rules: StringName = &"classic", count := 2) -> Array[StringName]:
 	var out: Array[StringName] = []
-	for p in picks(wave, count):
+	for p in picks(wave, rules, count):
 		out.append(p.id)
 	return out
 
@@ -171,9 +171,14 @@ static func _ranked(g: Dictionary) -> Array[StringName]:
 
 ## One line per element in the wave, e.g. "Verdant creeps: Flame towers deal
 ## 200%, Stone towers only 50%."
-static func element_lines(wave: int) -> Array[String]:
+static func element_lines(wave: int, rules: StringName = &"classic") -> Array[String]:
 	var out: Array[String] = []
-	for e in WaveDefs.elements(wave):
+	for e in WaveDefs.elements(wave, rules):
+		if e == &"composite":
+			out.append(
+				"%s: every element does %s." % [_element(e), _pct(EletdRules.COMPOSITE_DAMAGE)]
+			)
+			continue
 		(
 			out
 			. append(
@@ -286,14 +291,15 @@ static func lesson(wave: int) -> String:
 
 ## How tower `id` fares against each group of `wave`, e.g. "350% vs Shield
 ## Footman" or "can't hit Harpy"; empty for towers that don't attack.
-static func tower_vs_wave(id: StringName, wave: int) -> String:
+static func tower_vs_wave(id: StringName, wave: int, rules: StringName = &"classic") -> String:
 	if not TowerDefs.TOWERS[id].has("attack"):
 		return ""
 	var parts := PackedStringArray()
-	for g in groups(wave):
+	var all := groups(wave, rules)
+	for g in all:
 		var m := multiplier(id, g.armor_class, g.element, g.flying)
 		var name: String = CreepDefs.CREEPS[g.type].name
-		if g.element != WaveDefs.row(wave).element:
+		if g.element != all[0].element:
 			name = "%s %s" % [TowerInfo.ELEMENT_NAMES[g.element], name]
 		var text := ("can't hit %s" % name) if m == 0.0 else ("%s vs %s" % [_pct(m), name])
 		parts.append(_tint(text, m))
@@ -302,9 +308,9 @@ static func tower_vs_wave(id: StringName, wave: int) -> String:
 
 ## The top bar's one-line counter for the next-wave chip tooltip, e.g.
 ## "Counter: Cannon Tower 350%, Demolisher 350%".
-static func summary(wave: int) -> String:
+static func summary(wave: int, rules: StringName = &"classic") -> String:
 	var parts := PackedStringArray()
-	for p in picks(wave):
+	for p in picks(wave, rules):
 		var vs: String = (" vs " + p.vs) if p.vs != "" else ""
 		parts.append("%s %s%s" % [TowerInfo.full_name(p.id), _pct(p.mult, false), vs])
 	return "Counter: " + ", ".join(parts)
