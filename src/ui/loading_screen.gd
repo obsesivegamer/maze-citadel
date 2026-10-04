@@ -20,6 +20,12 @@ const TIPS := [
 	"Two level-3 Elven or Horde towers fuse into an Epic: select one and press G.",
 	"Shift-click keeps placing the same tower; right-click cancels or sells.",
 ]
+## Shown as well under the Element TD rules, which play differently.
+const ELETD_TIPS := [
+	"A tower reaches only the eight tiles around it: build the maze along the road.",
+	"Most towers need their element. Press E to spend an element pick.",
+	"Every element pick after the first summons a Guardian. Kill it to learn the element.",
+]
 
 var _root := ColorRect.new()
 var _title := Label.new()
@@ -28,11 +34,14 @@ var _tip := Label.new()
 var _bar := Control.new()
 var _progress := 0.0
 var _shown := 0.0
+var _tips: Array = TIPS
 var _tip_index := 0
 var _tip_timer := TIP_SECONDS
 
 
-func _init() -> void:
+func _init(rules: StringName = &"classic") -> void:
+	if rules == &"eletd":
+		_tips = TIPS + ELETD_TIPS
 	layer = LAYER
 	_root.color = Color(0.045, 0.04, 0.035)
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -64,8 +73,8 @@ func _init() -> void:
 	_tip.custom_minimum_size.x = 640
 	_tip.add_theme_color_override("font_color", UiTheme.TEXT_DIM)
 	box.add_child(_tip)
-	_tip_index = randi() % TIPS.size()
-	_tip.text = TIPS[_tip_index]
+	_tip_index = randi() % _tips.size()
+	_tip.text = _tips[_tip_index]
 
 
 func set_progress(fraction: float, status: String) -> void:
@@ -88,8 +97,8 @@ func _process(delta: float) -> void:
 	_tip_timer -= delta
 	if _tip_timer <= 0.0:
 		_tip_timer = TIP_SECONDS
-		_tip_index = (_tip_index + 1) % TIPS.size()
-		_tip.text = TIPS[_tip_index]
+		_tip_index = (_tip_index + 1) % _tips.size()
+		_tip.text = _tips[_tip_index]
 
 
 func _draw_bar() -> void:

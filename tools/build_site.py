@@ -6,7 +6,9 @@ build-info.json that tools/verify_dmg.sh wrote, plus the Windows .zip and the
 Linux .tar.gz with their build-info-windows.json and build-info-linux.json when
 the release has them (releases up to v0.2.0 are Mac only). The tower roster and the
 tower and wave counts come from the game's own data (src/data/tower_defs.gd,
-src/data/wave_defs.gd, src/ui/tower_info.gd), so the page follows rebalances. A private repo's release files
+src/data/wave_defs.gd, src/data/eletd_rules.gd, src/ui/tower_info.gd), so the page
+follows rebalances. The roster shows the towers as the default Element TD rules
+play them: a reach of the tiles around the tower, the element each one needs. A private repo's release files
 need a login to download, so for a private repo the downloads are copied into the
 site and served from there; a public repo links to the release file. With no
 release (or no token), the page says the first build is on its way.
@@ -236,11 +238,29 @@ def gd_const(path: Path, name: str):
         sys.exit(f"build_site: can't read {name} in {path.relative_to(ROOT)}: {e}")
 
 
+def default_rules() -> dict:
+    """What the game's default rules (Element TD) change on a tower card:
+    the starters that deal composite damage, the Archer's arrows per shot,
+    and the blurb sentences TowerInfo.blurb drops."""
+    eletd = ROOT / "src" / "data" / "eletd_rules.gd"
+    info = (ROOT / "src" / "ui" / "tower_info.gd").read_text()
+    multishot = re.search(r"^const ARCHER_MULTISHOT := (\d+)", eletd.read_text(), re.M)
+    blurb = re.search(r"^static func blurb\(.*?(?=^\S)", info, re.M | re.S)
+    if not multishot or not blurb:
+        sys.exit("build_site: can't read the Element TD rules for the tower cards")
+    return {
+        "composite": gd_const(eletd, "COMPOSITE_TOWERS"),
+        "archer_multishot": int(multishot.group(1)),
+        "drop": re.findall(r'\.replace\("([^"]+)", ""\)', blurb.group(0)),
+    }
+
+
 def game_data() -> dict:
     defs = ROOT / "src" / "data" / "tower_defs.gd"
     info = ROOT / "src" / "ui" / "tower_info.gd"
     maps = ROOT / "src" / "data" / "map_defs.gd"
     return {
+        "rules": default_rules(),
         "towers": gd_const(defs, "TOWERS"),
         "order": gd_const(defs, "BUILD_ORDER"),
         "epics": gd_const(defs, "EPICS"),
@@ -327,15 +347,22 @@ def roster_html(data: dict) -> str:
     """Tower cards and one detail panel per tower; the page script shows one
     panel at a time, and without scripts every panel is listed."""
     esc = html.escape
+    rules = data["rules"]
     ids = list(data["order"]) + list(data["epics"])
     cards, panels = [], []
     for n, tid in enumerate(ids):
-        t = data["towers"][tid]
+        t = dict(data["towers"][tid])
         epic = tid in data["epics"]
         key = "G" if epic else str((n + 1) % 10)
-        element = t.get("element")
+        # As the default rules play it: no minimum range, the Archer's arrows
+        # capped, the starters composite and free of any element.
+        t.pop("min_range", None)
+        if tid == "archer":
+            t["multishot"] = [min(v, rules["archer_multishot"]) for v in t["multishot"]]
+        composite = tid in rules["composite"]
+        element = None if composite else t.get("element")
         color = ELEMENT_COLORS.get(element, NO_ELEMENT_COLOR)
-        element_name = data["elements"].get(element, "No element")
+        element_name = "Composite" if composite else data["elements"].get(element, "No element")
         family = data["families"].get(t["family"], t["family"].title())
         attack = t.get("attack")
         icon = ATTACK_ICONS.get(attack or "aura", ATTACK_ICONS["aura"])
@@ -352,9 +379,14 @@ def roster_html(data: dict) -> str:
         chips = [
             f"{data['attacks'][attack]} attack" if attack else "Aura",
             "Buffs towers in range" if t["kind"] == "aura" else ("Hits air and ground" if t.get("air") else "Ground only"),
-            f"Range {reach}",
+            # Attackers reach the tiles around them; the Bard's aura keeps its range.
+            "Reach 1 tile" if attack else f"Range {reach}",
         ]
+        if element and not epic:
+            chips.append(f"Needs {element_name}")
         blurb = data["blurbs"].get(tid, "")
+        for sentence in rules["drop"]:
+            blurb = blurb.replace(sentence, "")
         if epic:
             blurb += f" Fuse two level-3 {family} towers to build it."
         short = data["short"].get(tid, t["name"])

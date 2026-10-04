@@ -126,13 +126,15 @@ if (( ! dry )); then
 fi
 
 # The bench command for one run, one argument per line.
+# Runs and captures pin the Citadel Plateau and classic rules, as docs/perf.md
+# measured them, whatever the player last picked.
 bench_cmd() { # json engine scene game
   local eng=() usr=() sc=()
   if [[ -n "$2" ]]; then read -r -a eng <<< "$2"; fi
   if [[ -n "$4" ]]; then read -r -a usr <<< "$4"; fi
   if [[ "$3" == battle ]]; then sc=("${battle[@]}"); fi
   printf '%s\n' "$GODOT" ${eng[@]+"${eng[@]}"} --path . "${window[@]}" --disable-vsync -- \
-    --bench="$secs" --bench-out="$1" --quality="$preset" --map=citadel ${sc[@]+"${sc[@]}"} \
+    --bench="$secs" --bench-out="$1" --quality="$preset" --map=citadel --rules=classic ${sc[@]+"${sc[@]}"} \
     ${usr[@]+"${usr[@]}"}
 }
 
@@ -144,12 +146,12 @@ capture() { # name
   if [[ -n "$game" ]]; then read -r -a usr <<< "$game"; fi
   if (( dry )); then
     echo "capture $1:${overrides:+ override.cfg $overrides;} GODOT_ARGS=\"$engine\"" \
-      "tools/capture.sh $out/captures/$1 $views $preset ${battle[*]} $game"
+      "tools/capture.sh $out/captures/$1 $views $preset ${battle[*]} --rules=classic $game"
     return 0
   fi
   if [[ -n "$overrides" ]]; then write_override "$overrides"; fi
   GODOT_ARGS="$engine" tools/capture.sh "$out/captures/$1" "$views" "$preset" \
-    "${battle[@]}" ${usr[@]+"${usr[@]}"} < /dev/null || echo "capture failed: $1"
+    "${battle[@]}" --rules=classic ${usr[@]+"${usr[@]}"} < /dev/null || echo "capture failed: $1"
   clear_override
 }
 

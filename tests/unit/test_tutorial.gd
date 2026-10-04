@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 ## The tutorial's flow and the Field Guide, driven on a Game that is never
 ## added to the tree (no world, no rendering) with sim events emitted by hand.
+## Games are pinned to a rule set so the player's saved choice can't leak in.
 
 
 func test_scripted_runs_skip_the_tutorial() -> void:
@@ -14,7 +15,7 @@ func test_scripted_runs_skip_the_tutorial() -> void:
 
 
 func test_walks_waves_one_to_ten() -> void:
-	var game := Game.new()
+	var game := _classic()
 	var tut := _tutorial(game)
 	tut.start()
 	check(tut.welcome_visible(), "welcome first")
@@ -37,7 +38,7 @@ func test_walks_waves_one_to_ten() -> void:
 
 
 func test_tips_show_once() -> void:
-	var game := Game.new()
+	var game := _classic()
 	var tut := _tutorial(game)
 	Tutorial._welcomed = true
 	tut.start()
@@ -55,7 +56,7 @@ func test_tips_show_once() -> void:
 
 
 func test_skip_and_settings() -> void:
-	var game := Game.new()
+	var game := _classic()
 	var tut := _tutorial(game)
 	tut.start()
 	tut.finish()
@@ -69,14 +70,14 @@ func test_skip_and_settings() -> void:
 	check_eq(tut.step, Tutorial.Step.OFF)
 	_free(tut, game)
 	# From Settings before wave 1 on a fresh launch: no welcome under the panel.
-	game = Game.new()
+	game = _classic()
 	tut = _tutorial(game)
 	tut.on_setting("tutorial", true)
 	check(not tut.welcome_visible() and not game.paused, "straight to the counsel card")
 	check_eq(tut.counsel_wave(), 1)
 	_free(tut, game)
 	# After the tutorial waves: only the closing card.
-	game = Game.new()
+	game = _classic()
 	game.sim.wave = Counsel.TUTORIAL_WAVES + 2
 	tut = _tutorial(game)
 	tut.on_setting("tutorial", true)
@@ -109,7 +110,7 @@ func test_modals_keep_keys_from_the_game() -> void:
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:
-	var game := Game.new()
+	var game := _classic()
 	var guide := FieldGuide.new()
 	guide.setup(game)
 	guide.open()
@@ -138,7 +139,7 @@ func test_field_guide_pauses_and_shows_the_next_wave() -> void:
 
 
 func test_guide_over_the_welcome() -> void:
-	var game := Game.new()
+	var game := _classic()
 	var tut := _tutorial(game)
 	var guide := FieldGuide.new()
 	guide.setup(game)
@@ -152,7 +153,7 @@ func test_guide_over_the_welcome() -> void:
 	guide.free()
 	_free(tut, game)
 	# A game the player paused stays paused through both.
-	game = Game.new()
+	game = _classic()
 	game.toggle_pause()
 	tut = _tutorial(game)
 	guide = FieldGuide.new()
@@ -172,6 +173,49 @@ func test_wheel_focus() -> void:
 	check_eq(wheel.element_at(wheel.node_center(3)), &"flame", "Flame at the bottom")
 	check_eq(wheel.element_at(wheel.size / 2.0), &"", "nothing in the middle")
 	wheel.free()
+
+
+## The default rules teach what classic never needed: the short reach, and
+## that locked towers wait on an element pick (E). Every lesson only marks
+## towers the player can build, and an element picked mid-lesson can add one.
+func test_element_td_tutorial() -> void:
+	var game := _game(&"eletd")
+	var tut := _tutorial(game)
+	var text := _texts(tut._welcome)
+	check(text.contains("eight tiles around it"), "the welcome teaches the reach")
+	check(text.contains("Locked towers need their element"), "and that locked towers need one")
+	check(text.contains("Press %s" % ElementPicks.KEY), "and the pick key")
+	tut.start()
+	tut.begin()
+	var open := game.sim.elements.unlocked_towers()
+	for w in range(1, Counsel.TUTORIAL_WAVES):
+		for id in tut.marked():
+			check(id in open, "lesson %d marks %s, which can be built" % [w, id])
+		game.sim_event.emit({"type": &"wave_started", "wave": w})
+	game.sim_event.emit({"type": &"wave_started", "wave": Counsel.TUTORIAL_WAVES})
+	check_eq(tut.step, Tutorial.Step.GRADUATED, "the last lesson ends it, as in classic")
+	_free(tut, game)
+	var classic := _classic()
+	var classic_tut := _tutorial(classic)
+	check(not _texts(classic_tut._welcome).contains("eight tiles"), "classic keeps its welcome")
+	_free(classic_tut, classic)
+
+
+func _texts(node: Node) -> String:
+	var out := ""
+	for c in node.find_children("*", "RichTextLabel", true, false):
+		out += (c as RichTextLabel).text + "\n"
+	return out
+
+
+## A Game under `rules` whatever the player's saved choice (Game._init).
+func _game(rules: StringName) -> Game:
+	Game._carry = {"rules": rules}
+	return Game.new()
+
+
+func _classic() -> Game:
+	return _game(&"classic")
 
 
 func _key(code: Key) -> InputEventKey:

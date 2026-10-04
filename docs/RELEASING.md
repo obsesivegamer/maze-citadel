@@ -31,7 +31,7 @@ tools/verify_pc.sh linux      # on Linux; tools/verify_pc.sh windows on Windows
 
 | Stage | Where | Checks |
 |---|---|---|
-| Gate | Linux | `tools/check.sh`: import, asset licenses, lint, format, unit tests, headless smoke run |
+| Gate | Linux | `tools/check.sh`: import, asset licenses, lint, format, unit tests, headless smoke runs of both maps under both rule sets |
 | Export | macOS 15 | `tools/export.sh` with Godot 4.7.2 and its macOS template, checksummed against Godot's `SHA512-SUMS.txt` |
 | Image | macOS 15 | `hdiutil verify`, compressed UDZO format, mounts read-only, `Maze Citadel.app` and the Applications shortcut at the root |
 | Bundle | macOS 15 | bundle id, app version equals `project.godot`, arm64-only binary, minimum macOS |

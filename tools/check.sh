@@ -28,8 +28,11 @@ echo "== unit tests"
   | grep -qE "^[0-9]+ passed, 0 failed$"
 
 echo "== smoke (headless game, autoplay)"
+# Both rule sets on both maps. The loading-screen boot runs once per rule set
+# (their HUDs differ), which keeps the gate as fast as with three runs.
 tools/smoke.sh
-tools/smoke.sh 2700 --map=rampart
-tools/smoke.sh 2700 --rules=eletd
+SMOKE_ASYNC=0 tools/smoke.sh 2700 --map=rampart
+tools/smoke.sh 2700 --rules=classic
+SMOKE_ASYNC=0 tools/smoke.sh 2700 --rules=classic --map=rampart
 
 echo "check: OK"

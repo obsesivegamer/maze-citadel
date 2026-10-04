@@ -7,8 +7,9 @@ extends SceneTree
 ##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
 ## --twists plays Twists mode; bot seed n uses twist schedule n + 1.
-## --rules=eletd plays that rule set (default: classic); --only then also
-## takes its other difficulties, e.g. smart:easy or smart:very_hard.
+## It plays the game's default rules, Element TD (Game.DEFAULT_RULES), where
+## --only also takes smart:easy or smart:very_hard. --rules=classic plays the
+## classic rules, which every classic table in docs/balance.md was measured on.
 ## --per-wave also prints the unspent gold at each wave's start.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
@@ -35,7 +36,7 @@ func _initialize() -> void:
 		printerr("unknown map %s (maps: %s)" % [map, ", ".join(MapDefs.ORDER)])
 		quit(1)
 		return
-	var rules := StringName(Cli.get_str("rules", "classic"))
+	var rules := StringName(Cli.get_str("rules", Game.DEFAULT_RULES))
 	if not rules in GameSim.RULES:
 		printerr("unknown rules %s (rules: %s)" % [rules, ", ".join(GameSim.RULES)])
 		quit(1)
@@ -82,7 +83,7 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	sim.difficulty = difficulty
 	sim.twists = twists
 	sim.twist_seed = bot_seed + 1
-	sim.rules = StringName(Cli.get_str("rules", "classic"))
+	sim.rules = StringName(Cli.get_str("rules", Game.DEFAULT_RULES))
 	sim.elements.apply_picks(SimElements.parse_picks(Cli.get_str("picks")))
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}

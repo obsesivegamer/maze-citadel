@@ -318,6 +318,11 @@ static func mode_name(difficulty: StringName, infinite: bool, twists := false) -
 	)
 
 
+## The rule set's name on the top bar's switch and the end screen.
+static func rules_name(rules: StringName) -> String:
+	return "Element TD" if rules == &"eletd" else "Classic"
+
+
 static func difficulty_name(difficulty: StringName) -> String:
 	return String(difficulty).capitalize()
 

@@ -27,9 +27,8 @@ func _eletd() -> GameSim:
 
 
 func _eletd_game() -> Game:
-	var game := Game.new()
-	game.sim.rules = &"eletd"
-	return game
+	Game._carry = {"rules": &"eletd"}
+	return Game.new()
 
 
 ## Plays waves up to `to`, killing every creep (Guardians too) as it enters.
@@ -91,6 +90,7 @@ func test_locked_card_cannot_be_chosen() -> void:
 	game.choose_build(&"frost")
 	check_eq(game.build_choice, &"frost", "and the Frost Spire once Aqua is picked")
 	game.free()
+	Game._carry = {"rules": &"classic"}
 	var classic := Game.new()
 	classic.choose_build(&"frost")
 	check_eq(classic.build_choice, &"frost", "classic: nothing is locked")

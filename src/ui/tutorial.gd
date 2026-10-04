@@ -166,6 +166,11 @@ func _build_welcome() -> void:
 		+ " blue gate. The road can never be sealed.\n[b]Every wave has an element and an armor"
 		+ " class[/b], and towers that counter both hit far harder."
 	)
+	if _game.sim.adjacent_reach():
+		intro.text += (
+			"\n[b]A tower reaches only the eight tiles around it[/b], so build the maze along the"
+			+ " road: every tile the creeps walk beside a tower is time under fire."
+		)
 	box.add_child(intro)
 	var row := UiKit.hbox(18)
 	var wheel := ElementWheel.new(WHEEL_PX, false)
@@ -194,8 +199,9 @@ func _build_welcome() -> void:
 	if _game.sim.elements.enabled:
 		outro.text += (
 			(
-				"\nMost towers need their element first: press %s to pick one. The card names only"
-				+ " towers you can build."
+				"\n[b]Locked towers need their element first.[/b] Press %s to spend an element"
+				+ " pick: you start with one and earn more as the waves go by. The card names"
+				+ " only towers you can build."
 			)
 			% ElementPicks.KEY
 		)

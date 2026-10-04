@@ -8,7 +8,7 @@ extends Node3D
 ##   --<setting>=<value>                        override one preset setting
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
 ##   --twists [--seed=<n>]                      Twists mode, optionally a fixed schedule
-##   --rules=classic|eletd                      rule set (default: classic)
+##   --rules=eletd|classic                      rule set (default: the last pick, else eletd)
 ##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
 ##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off

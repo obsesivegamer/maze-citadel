@@ -21,7 +21,11 @@ const REHEARSAL_SHARE := 0.35
 ## Creep views per type built during loading (the rest build as they spawn).
 const PREWARM_PER_TYPE := 2
 
-## Map and mode carried across the scene reload that switches map.
+## The rule set a player gets unless they pick another (GameSim.RULES). A bare
+## GameSim keeps classic, so tests and tools that build one are unchanged.
+const DEFAULT_RULES: StringName = &"eletd"
+
+## Map, rules and mode carried across the scene reload that switches map or rules.
 static var _carry := {}
 
 var sim: GameSim
@@ -61,7 +65,8 @@ var _acc := 0.0
 var _loading: LoadingScreen
 
 
-## The map comes from a map switch in progress, else --map, else the last pick.
+## The map comes from a map switch in progress, else --map, else the last
+## pick; the rules the same way (choose_rules).
 func _init() -> void:
 	var map := StringName(_carry.get("map", Cli.get_str("map", Save.setting("map", ""))))
 	if not MapDefs.has(map):
@@ -70,21 +75,30 @@ func _init() -> void:
 	sim.infinite = _carry.get("infinite", false)
 	sim.twists = _carry.get("twists", false)
 	sim.twist_seed = _carry.get("twist_seed", 0)
-	var rules := StringName(_carry.get("rules", Cli.get_str("rules", "classic")))
-	if rules in GameSim.RULES:
-		sim.rules = rules
+	sim.rules = choose_rules(_carry.get("rules"), Cli.get_str("rules"), Save.setting("rules", ""))
 	var level := StringName(_carry.get("difficulty", Cli.get_str("difficulty", "normal")))
-	if level in EletdRules.difficulties(sim.rules):
-		sim.difficulty = level
-	else:
+	sim.difficulty = offered_difficulty(level, sim.rules)
+	if sim.difficulty != level and not _carry.has("difficulty"):
 		push_warning(
 			"--difficulty=%s is not offered under %s rules; playing normal" % [level, sim.rules]
 		)
 	_apply_cli_picks()
 	_carry = {}
-	TowerInfo.adjacent_reach = sim.adjacent_reach()
-	TowerInfo.composite = sim.elements.enabled
-	Coords.map = map
+
+
+## A rules switch in progress, else --rules=, else the player's last choice,
+## else DEFAULT_RULES. A value that names no rule set is passed over.
+static func choose_rules(carried: Variant, flag: String, saved: String) -> StringName:
+	for r: Variant in [carried, flag, saved]:
+		if r != null and StringName(r) in GameSim.RULES:
+			return StringName(r)
+	return DEFAULT_RULES
+
+
+## `level` if rule set `rules` offers it, else Normal: Easy and Very Hard
+## carried into classic, which has neither, fall back to it.
+static func offered_difficulty(level: StringName, rules: StringName) -> StringName:
+	return level if level in EletdRules.difficulties(rules) else &"normal"
 
 
 ## --picks=aqua,dark,interest: element levels and Interest set up at the
@@ -100,7 +114,13 @@ func _apply_cli_picks() -> void:
 	sim.elements.apply_picks(picks)
 
 
+## The presentation's statics follow this match. They are set here, not in
+## _init, because the warm-up stage is a Game too: it is built after a map or
+## rules switch has spent its carry, and must not overwrite them.
 func _ready() -> void:
+	TowerInfo.adjacent_reach = sim.adjacent_reach()
+	TowerInfo.composite = sim.elements.enabled
+	Coords.map = sim.grid.map
 	InputSetup.register()
 	if async_boot:
 		_boot_async()
@@ -124,7 +144,7 @@ func _ready() -> void:
 ## rehearsal compiles the combat shaders. The camera comes first because
 ## nothing 3D is drawn, or compiled, without one.
 func _boot_async() -> void:
-	var screen := LoadingScreen.new()
+	var screen := LoadingScreen.new(sim.rules)
 	add_child(screen)
 	await _frames(2)
 	camera = _add(CameraRig.new())
@@ -359,16 +379,35 @@ func change_map(id: StringName) -> bool:
 	if sim.wave > 0 or id == sim.grid.map or not MapDefs.has(id):
 		return false
 	Save.set_setting("map", String(id))
-	_carry = {
-		"map": id,
+	_carry = _carry_with({"map": id})
+	restart()
+	return true
+
+
+## Rules change the way the map does: only before wave 1, by rebuilding the
+## board, and remembered for the next launch. The map and modes carry over,
+## and so does the difficulty where the new rules offer it (else Normal).
+func change_rules(rules: StringName) -> bool:
+	if sim.wave > 0 or rules == sim.rules or not rules in GameSim.RULES:
+		return false
+	Save.set_setting("rules", String(rules))
+	_carry = _carry_with({"rules": rules})
+	restart()
+	return true
+
+
+## This match's map, rules and mode with `changes`, for the next _init.
+func _carry_with(changes: Dictionary) -> Dictionary:
+	var carry := {
+		"map": sim.grid.map,
 		"difficulty": sim.difficulty,
 		"infinite": sim.infinite,
 		"twists": sim.twists,
 		"twist_seed": sim.twist_seed,
 		"rules": sim.rules,
 	}
-	restart()
-	return true
+	carry.merge(changes, true)
+	return carry
 
 
 func restart() -> void:

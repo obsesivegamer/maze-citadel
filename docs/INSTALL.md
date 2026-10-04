@@ -297,8 +297,8 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--map=rampart` | Start on Fallen Rampart. `--map=citadel` is the default board. |
 | `--quality=performance` | Start on a quality preset: `cinematic`, `balanced` or `performance` |
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
-| `--rules=eletd` | Play the Element TD rule set that is being tuned (the default is `classic`) |
-| `--difficulty=hard` | Start on a difficulty: `normal` or `hard`, and under `--rules=eletd` also `easy` or `very_hard` |
+| `--rules=classic` | Play the classic rules, the game as it was in 0.3. Without it the game plays the rules you last picked on the top bar, and on a first launch `eletd`, the Element TD rules |
+| `--difficulty=hard` | Start on a difficulty: `easy`, `normal`, `hard` or `very_hard`. The classic rules offer only `normal` and `hard` |
 | `--picks=aqua,dark,dark,interest` | Under `--rules=eletd`, start with these element levels and Interest picks already taken, with no Guardians to kill. They come on top of the picks the game hands out. Meant for tests, screenshots and experiments. |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
@@ -317,7 +317,7 @@ A game run from source uses the same save folder as the installed app.
 tools/check.sh
 ```
 
-This is the one command to run before committing. It imports the project, checks that every asset has a listed license, tests the benchmark scripts, lints and format-checks the code, runs the unit tests, and has the bot play both maps with no window. It finishes with `check: OK`.
+This is the one command to run before committing. It imports the project, checks that every asset has a listed license, tests the benchmark scripts, lints and format-checks the code, runs the unit tests, and has the bot play both maps under both rule sets with no window. It finishes with `check: OK`.
 
 ### 5. Build the app
 

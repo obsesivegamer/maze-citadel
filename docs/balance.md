@@ -8,17 +8,17 @@ This is the record of how Maze Citadel's numbers were tuned. Three bots play ful
 godot --headless --path . --script res://tests/bots/run_balance.gd
 ```
 
-A full run plays 4 seeds of every row and takes about 8 minutes on one core. Options go after a `--`:
+It plays the Element TD rules, the game's default. Every table on this page that isn't under an "Element TD rules" heading was measured on the classic rules, and `-- --rules=classic` reproduces it. A full run plays 4 seeds of every row. On the classic rules that takes about 8 minutes on one core; an Element TD game takes about a minute. Options go after a `--`:
 
 | Option | What it does |
 |---|---|
-| `--only=smart:hard` | Runs a single row, or several separated by commas. Under `--rules=eletd` the difficulty can also be `easy` or `very_hard` |
+| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic` |
 | `--seeds=N` | Sets how many games each row plays |
 | `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
 | `--map=rampart` | Plays on Fallen Rampart |
-| `--rules=eletd` | Plays the Element TD rule set instead of the classic one |
-| `--picks=aqua,dark,dark,interest` | Under `--rules=eletd`, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
+| `--rules=classic` | Plays the classic rule set instead of the Element TD one |
+| `--picks=aqua,dark,dark,interest` | Under the Element TD rules, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
 
 ## The bots
 
