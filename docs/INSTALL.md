@@ -10,7 +10,7 @@ Maze Citadel runs on Mac, Windows and Linux. On a Mac it's a single app that com
 
 The Mac version runs on Macs with Apple silicon and macOS 13 Ventura or later, not on Intel Macs. The Windows version runs on 64-bit Windows 10 and 11, and the Linux version on 64-bit x86 distributions. Windows needs a graphics card with Vulkan or Direct3D 12 support, and Linux one with Vulkan support. It's the same game on all three, with the same saves.
 
-The Windows and Linux builds are new. They're less tested than the Mac build, and their frame rate hasn't been measured yet. Releases up to 0.2.0 are Mac only.
+The Windows and Linux builds are new in 0.3.0 and less tested than the Mac build. The Windows build has been measured on one PC so far, and the Linux build's frame rate hasn't been measured yet. Releases up to 0.2.0 are Mac only.
 
 ## Part 1: Install and play
 
@@ -59,7 +59,7 @@ Once the app is in Applications, you can eject the disk image and delete the `.d
 | **Internet** | Only for the download. The game runs offline. |
 | **Extra software** | None. Everything is inside `MazeCitadel.exe`. |
 
-The Windows build is new and less tested than the Mac build, and its frame rate hasn't been measured yet. If it runs slowly, the Performance preset in Settings is the lightest.
+The Windows build is new and less tested than the Mac build. It has been measured on one PC so far, with a Radeon RX 6950 XT at 3440 × 1440, where the default Balanced preset runs well above 60 fps ([perf.md](perf.md#windows-check-2026-10-03)). Slower graphics cards haven't been measured. If it runs slowly, the Performance preset in Settings is the lightest.
 
 #### Step by step
 
