@@ -307,8 +307,10 @@ func _scatter(spec: Dictionary, density: Callable, keep_share := Callable()) -> 
 			if spec.view_range > 0.0 and _fade:
 				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 			elif spec.view_range > 0.0:
-				mmi.visibility_range_end = view_range + 20.0
-				mmi.visibility_range_end_margin = 0.0
+				# Hidden past range + 20 m, where the fade ended; shown again
+				# under range + 16 m, so camera shake can't strobe a chunk.
+				mmi.visibility_range_end = view_range + 18.0
+				mmi.visibility_range_end_margin = 2.0
 		if _lod_bias != 1.0:
 			mmi.lod_bias = _lod_bias
 		if small and _small_lod_bias > 0.0:
