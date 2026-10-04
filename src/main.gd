@@ -11,6 +11,7 @@ extends Node3D
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
+##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
 ##   --pacing                                    bench with vsync on; count missed frames
 ##   --bench-any-focus                           bench without keyboard focus (always-on-top window)
@@ -93,6 +94,8 @@ func _attach_tools(set_view: Callable, settings: Dictionary, context := Callable
 		shot.prefix = Cli.get_str("shot")
 		shot.views = Cli.get_str("views", "full").split(",")
 		shot.settle_frames = int(Cli.get_str("settle", "90"))
+		shot.frames = int(Cli.get_str("shot-frames", "1"))
+		shot.freeze = Cli.has("shot-freeze")
 		shot.set_view = set_view
 		add_child(shot)
 	elif Cli.has("bench"):
