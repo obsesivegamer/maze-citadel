@@ -128,6 +128,8 @@ var _timer := 0.0
 ## Seed 0 plays the plain plan; other seeds jitter timing, wall order and
 ## tower picks so balance runs sample several players, not one trajectory.
 var _rng: RandomNumberGenerator
+## The smart strategy under the eletd rules (RouteLiner); null otherwise.
+var _liner: RouteLiner
 
 
 func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
@@ -149,6 +151,9 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 			var tile := Vector2i(col, wall[0])
 			if not col in wall[1] and not grid.is_blocked(tile) and not grid.is_reserved(tile):
 				plan.append(tile)
+	if strategy == &"smart" and sim.adjacent_reach():
+		_liner = RouteLiner.new(sim, plan, walls[grid.map], _rng)
+		skip_reasons = _liner.skip_reasons
 
 
 func step() -> void:
@@ -161,6 +166,9 @@ func step() -> void:
 
 
 func _decide() -> void:
+	if _liner:
+		_liner.decide()
+		return
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
 	# A novice adds one tower per decision, so its maze grows late.
 	var builds_left := 1 if strategy == &"novice" else plan.size()

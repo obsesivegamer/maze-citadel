@@ -4,14 +4,19 @@ extends RefCounted
 ## rebalance. Classic numbers stay where they always were; docs/balance.md
 ## has the reasoning behind each value here.
 
-## Creep HP as a share of classic: HP_FROM on wave 1 rising to HP_TO on wave
-## 40 (and after). A tower that reaches only the tiles around it sees each
-## creep for about 2 s, so the bot loses on wave 2 at full HP.
+## Creep HP as a share of classic, on a straight line from HP_FROM on wave 1
+## to HP_TO on wave 40 (and after), so each wave is at least as tough as the
+## one before. A tower that reaches only the tiles around it sees each creep
+## for about 2 s, so the bot loses on wave 2 at full HP. HP_FROM is as high as
+## the opening stands: at 0.17 the novice bot can lose on wave 7. HP_TO is
+## about the steepest line the smart bot survives with lives to spare: at 0.63
+## it loses some games on waves 38 to 40, at 0.75 most of them.
 const HP_FROM := 0.15
-const HP_TO := 0.15
+const HP_TO := 0.6
 ## Armored HP share: up to ARMORED_HP_TO on wave 40 on a squared curve, so
-## waves 3 and 7 barely change and late armor needs siege.
-const ARMORED_HP_TO := 0.5
+## waves 3 and 7 barely change and late armor needs siege. At 0.7 the
+## armored waves 35 and 38 cost the smart bot up to 7 lives each.
+const ARMORED_HP_TO := 0.62
 ## Archer arrows per shot at every level: two at level 3 let a maze of
 ## archers alone win.
 const ARCHER_MULTISHOT := 1
@@ -21,6 +26,29 @@ const ARCHER_MULTISHOT := 1
 const START_GOLD := 400
 ## Pause between waves: time to read the next waves and rebuild.
 const BREATHER := 30.0
+## Hard creep HP multiplier, in place of classic's 1.1 to 1.4: HARD_FROM on
+## wave 1 rising to HARD_TO on wave 40. These creeps already climb to four
+## times their wave-1 share, and classic's ramp on top loses every game.
+const HARD_FROM := 1.03
+const HARD_TO := 1.12
+## Boss HP per wave, on top of the wave table's boss_hp. The wave-10 Ogre is
+## the opening's test: at 1.0 nothing leaks before wave 20. The Dreadlord at
+## full share outlasts any maze, walks round four or five times and takes 7 to
+## 13 lives; at this share it mostly dies on its first pass.
+const BOSS_HP := {10: 1.7, 40: 0.33}
+
+
+## The HP multiplier GameSim.spawn_creep gives a creep of `type` on wave `w`
+## under these rules, Hard included.
+static func hp_mult(type: StringName, w: int, hard: bool) -> float:
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	var m := lerpf(HARD_FROM, HARD_TO, f) if hard else 1.0
+	match CreepDefs.CREEPS[type].class:
+		&"armored":
+			return m * armored_hp(w)
+		&"boss":
+			m *= BOSS_HP.get(w, 1.0)
+	return m * hp(w)
 
 
 static func hp(w: int) -> float:

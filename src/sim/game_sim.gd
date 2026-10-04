@@ -361,10 +361,10 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.pos = at
 	c.prev_pos = at
 	var hp_mult := hard_hp(w) if hard else 1.0
+	if rules == &"eletd":
+		hp_mult = EletdRules.hp_mult(type, w, hard)
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
-	if rules == &"eletd":
-		hp_mult *= EletdRules.armored_hp(w) if def.class == &"armored" else EletdRules.hp(w)
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
 	c.hp = c.max_hp
 	c.speed = def.speed
