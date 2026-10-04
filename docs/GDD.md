@@ -306,8 +306,9 @@ Presets scale only presentation. They never change maze size, wave count, creep 
 | Particles | 100% | 70% | 40% |
 | Ambient crowd (villagers, sheep, birds) | 100% | 70% | 35% |
 | Foliage density | 100% | 80% | 50% |
+| Leaf flutter | On | On | Off (it shimmers under spatial upscaling) |
 
-On Windows and Linux there is no MetalFX, so FSR 2 replaces MetalFX temporal and FSR 1 replaces MetalFX spatial. Cinematic and Balanced also render at least 720 px of the window's height (about 0.7 in a maximized window on a 1080p monitor, 0.67 fullscreen), because 0.5 was tuned on a Retina panel that already gets about 890 px. The scale is refit when the window changes size. Performance keeps 0.5. PCs whose GPU has neither Vulkan nor Direct3D 12 fall back to Godot's OpenGL renderer, with bilinear upscaling and no fog or SSAO.
+On Windows and Linux there is no MetalFX, so FSR 2 replaces MetalFX temporal and FSR 1 replaces MetalFX spatial. Cinematic and Balanced also render at least 720 px of the window's height (about 0.7 in a maximized window on a 1080p monitor, 0.67 fullscreen), because 0.5 was tuned on a Retina panel that already gets about 890 px. The scale is refit when the window changes size. Performance keeps 0.5. Grass, flowers and bushes fade out at their view range on the Mac but pop out where the fade would end on PCs, because FSR 2 makes fading leaves flicker (issue #22). PCs whose GPU has neither Vulkan nor Direct3D 12 fall back to Godot's OpenGL renderer, with bilinear upscaling and no fog or SSAO.
 
 All presets: soft-shadow filter "low" with plain PCF (no PCSS blocker search), linear glow upscale, and terrain shaders that skip unused texture reads; from the RTS camera these look the same as the costlier versions (docs/perf.md, butter pass).
 

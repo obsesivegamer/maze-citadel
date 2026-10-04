@@ -51,6 +51,7 @@ static func settings(preset: Preset) -> Dictionary:
 				"particles": 1.0,
 				"crowd": 1.0,
 				"foliage": 1.0,
+				"leaf_flutter": 1.0,
 			}
 		Preset.PERFORMANCE:
 			return {
@@ -70,6 +71,9 @@ static func settings(preset: Preset) -> Dictionary:
 				"particles": 0.4,
 				"crowd": 0.35,
 				"foliage": 0.5,
+				# Spatial upscalers (MetalFX spatial, FSR 1) have no temporal
+				# smoothing, and shivering leaf cards shimmer (issue #22).
+				"leaf_flutter": 0.0,
 			}
 		_:
 			return {
@@ -93,6 +97,7 @@ static func settings(preset: Preset) -> Dictionary:
 				"particles": 0.7,
 				"crowd": 0.7,
 				"foliage": 0.8,
+				"leaf_flutter": 1.0,
 			}
 
 
@@ -122,6 +127,7 @@ static func apply(
 	RenderingServer.environment_set_ssao_quality(s.ssao_quality, true, 0.5, 2, 50.0, 300.0)
 	RenderingServer.environment_set_volumetric_fog_volume_size(s.fog_size, s.fog_depth)
 	RenderingServer.directional_shadow_atlas_set_size(s.shadow_size, true)
+	RenderingServer.global_shader_parameter_set(&"leaf_flutter", s.leaf_flutter)
 	sun.directional_shadow_mode = (
 		DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 		if s.shadow_splits == 4

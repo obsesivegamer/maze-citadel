@@ -14,7 +14,7 @@ func test_quality_presets_scale_down_monotonically() -> void:
 	var p := Quality.settings(Quality.Preset.PERFORMANCE)
 	check(c.render_scale >= b.render_scale and b.render_scale >= p.render_scale, "render scale")
 	check(c.shadow_size >= b.shadow_size and b.shadow_size >= p.shadow_size, "shadow size")
-	for key in ["particles", "crowd", "foliage"]:
+	for key in ["particles", "crowd", "foliage", "leaf_flutter"]:
 		check(c[key] >= b[key] and b[key] >= p[key], key)
 	for s in [c, b, p]:
 		check(Quality.UPSCALERS.has(s.upscaler), "known upscaler %s" % s.upscaler)
