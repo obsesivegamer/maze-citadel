@@ -45,7 +45,10 @@ const PATTERNS := {
 	],
 	&"archers": [&"archer"],
 	&"no_air": [&"cannon", &"cannon", &"roots", &"cannon", &"shadow"],
+	&"novice": [&"archer", &"archer", &"cannon", &"archer", &"frost"],
 }
+## Seconds between decisions, for strategies slower than DECIDE_EVERY.
+const DECIDE_SLOWLY := {&"novice": 4.0}
 const ELEMENT_COUNTER := {
 	&"dark": [&"ballista", &"archer"],
 	&"aqua": [&"shadow", &"plague"],
@@ -78,6 +81,7 @@ const UPGRADE_PRIORITY := {
 	],
 	&"archers": [&"archer"],
 	&"no_air": [&"cannon", &"roots", &"shadow"],
+	&"novice": [&"archer", &"cannon", &"frost"],
 }
 
 var sim: GameSim
@@ -116,14 +120,17 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 func step() -> void:
 	_timer -= GameSim.DT
 	if _timer <= 0.0:
-		_timer = DECIDE_EVERY * (_rng.randf_range(0.6, 1.4) if _rng else 1.0)
+		var every: float = DECIDE_SLOWLY.get(strategy, DECIDE_EVERY)
+		_timer = every * (_rng.randf_range(0.6, 1.4) if _rng else 1.0)
 		_decide()
 	sim.step()
 
 
 func _decide() -> void:
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
-	while _next_slot < plan.size():
+	# A novice adds one tower per decision, so its maze grows late.
+	var builds_left := 1 if strategy == &"novice" else plan.size()
+	while _next_slot < plan.size() and builds_left > 0:
 		if sim.tower_at(plan[_next_slot]) != null or plan[_next_slot] in _skipped:
 			_next_slot += 1
 			continue
@@ -134,6 +141,7 @@ func _decide() -> void:
 			break
 		if r == Placement.Result.OK:
 			sim.build(tile, id)
+			builds_left -= 1
 		elif r != Placement.Result.CREEP_ON_TILE:
 			_skipped.append(tile)
 			skip_reasons[r] = skip_reasons.get(r, 0) + 1

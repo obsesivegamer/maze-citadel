@@ -8,15 +8,16 @@ This is the record of how Maze Citadel's numbers were tuned. Three bots play ful
 godot --headless --path . --script res://tests/bots/run_balance.gd
 ```
 
-A full run plays 4 seeds of every row and takes about 15 minutes on one core. Options go after a `--`:
+A full run plays 4 seeds of every row and takes about 8 minutes on one core. Options go after a `--`:
 
 | Option | What it does |
 |---|---|
 | `--only=smart:hard` | Runs a single row |
 | `--seeds=N` | Sets how many games each row plays |
-| `--per-wave` | Prints how far each wave got |
+| `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
 | `--map=rampart` | Plays on Fallen Rampart |
+| `--rules=eletd` | Plays the Element TD rule set instead of the classic one |
 
 ## The bots
 
@@ -25,10 +26,13 @@ A full run plays 4 seeds of every row and takes about 15 minutes on one core. Op
 | smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics of all four families between waves, only with gold to rebuild the freed wall tile; ignores twists |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
+| novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
 
 Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its decision timing, which wall tile it fills next and which counter it prefers, so one lucky or unlucky trajectory doesn't decide a target. Columns:
 
 - **Close calls:** waves (per game) where some creep walked at least 80% of its route, leaks included. It shows pressure that lives alone hide.
+- **Walked w1–5:** how far creeps got on the first five waves, averaged. A low number means they died at the portal.
+- **Walked, non-boss median:** the middle value of how far each non-boss wave got.
 - **Boss walked:** how far the boss got on each boss wave, averaged; 100% means it leaked.
 
 ## Targets (PLAN M6 gate)
@@ -40,6 +44,26 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 | no-anti-air dies at the Harpy waves | Met: dies at wave 5 |
 | Hard is beatable but tight | Met: 4/4 wins with 5.5 lives (4–8) and 8.2 close calls per game, against 19.0 lives and 2 close calls on Normal |
 | Boss waves are the peak of their stretch, not a sure leak | Normal: met, every boss dies on its first pass in almost every game, the late ones near the gate. Hard: the wave-30 and wave-40 bosses still leak against the bot in most games, with far less HP left than before ([Late bosses](#late-bosses-2026-10-02)) |
+
+## Baseline before the Element TD rules (2026-10-04)
+
+The game plays too easily: creeps die within sight of the portal and the smart bot keeps 19 of 20 lives. A second rule set, `eletd`, is being tuned beside the classic one to fix that, and `--rules=eletd` plays it. This is the classic game measured with two new columns and a new bot, as the line the new rules are compared against. Until the first `eletd` rule lands, both rule sets play the same.
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | normal | 4/4 | 19.0, 18–20 | 2.0 | 7% | 25% | 54% / 60% / 98% / 88% | – |
+| smart | hard | 4/4 | 5.5, 4–8 | 8.2 | 10% | 29% | 100% / 75% / 100% / 100% | – |
+| archers | normal | 0/4 | 0.0, 0–0 | 7.0 | 9% | 18% | 100% / 54% / 100% / – | w38, w38, w38, w38 |
+| no_air | normal | 0/4 | 0.0, 0–0 | 4.0 | 83% | 100% | – / – / – / – | w5, w5, w5, w5 |
+| novice | normal | 4/4 | 14.5, 14–15 | 2.0 | 3% | 17% | 100% / 71% / 77% / 100% | – |
+
+Lives lost per wave, all 4 seeds: smart/normal {30: 4} · smart/hard {7: 4, 10: 8, 30: 14, 38: 17, 40: 15} · archers {7: 4, 10: 8, 26: 5, 28: 4, 30: 24, 33: 16, 38: 19} · no_air {1: 32, 2: 26, 4: 8, 5: 14} · novice {10: 8, 40: 14}
+
+What it shows:
+
+- On the first five waves creeps walk 7% of the route against the smart bot and 3% against the novice. Half of all non-boss waves are dead within a quarter of the route.
+- The novice wins every game with 14.5 lives. It never reads the next wave and builds one tower every 4 seconds, and it loses lives only to the wave-10 and wave-40 bosses.
+- The smart bot holds almost no gold: 0 to 69 unspent at each wave's start on seed 0, so interest pays it next to nothing.
 
 ## Latest run (2026-10-02)
 

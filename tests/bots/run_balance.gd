@@ -7,6 +7,8 @@ extends SceneTree
 ##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
 ## --twists plays Twists mode; bot seed n uses twist schedule n + 1.
+## --rules=eletd plays that rule set (default: classic).
+## --per-wave also prints the unspent gold at each wave's start.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -14,11 +16,14 @@ const RUNS := [
 	[&"smart", true],
 	[&"archers", false],
 	[&"no_air", false],
+	[&"novice", false],
 ]
 const MAX_GAME_SECONDS := 6000.0
 ## A wave is a close call when some creep walked this much of its route.
 const CLOSE_CALL := 0.8
 const BOSS_WAVES: Array[int] = [10, 20, 30, 40]
+## The waves that show whether creeps die at the portal.
+const OPENING_WAVES: Array[int] = [1, 2, 3, 4, 5]
 
 
 func _initialize() -> void:
@@ -29,13 +34,19 @@ func _initialize() -> void:
 		printerr("unknown map %s (maps: %s)" % [map, ", ".join(MapDefs.ORDER)])
 		quit(1)
 		return
+	var rules := StringName(Cli.get_str("rules", "classic"))
+	if not rules in GameSim.RULES:
+		printerr("unknown rules %s (rules: %s)" % [rules, ", ".join(GameSim.RULES)])
+		quit(1)
+		return
 	print(
 		(
 			"| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | "
+			+ "Walked w1–5 | Walked, non-boss median | "
 			+ "Boss walked w10 / w20 / w30 / w40 | Losses |"
 		)
 	)
-	print("|---|---|---|---|---|---|---|")
+	print("|---|---|---|---|---|---|---|---|---|")
 	for run in RUNS:
 		var label := "%s:%s" % [run[0], "hard" if run[1] else "normal"]
 		if only != "" and not label in only.split(","):
@@ -44,6 +55,7 @@ func _initialize() -> void:
 		for s in seeds:
 			results.append(_play(run[0], run[1], s, Cli.has("twists")))
 		print(_row(run, results))
+		printerr("  %s lives lost per wave, all seeds: %s" % [label, _leaks(results)])
 	quit()
 
 
@@ -56,14 +68,19 @@ func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dic
 	sim.hard = hard
 	sim.twists = twists
 	sim.twist_seed = bot_seed + 1
+	sim.rules = StringName(Cli.get_str("rules", "classic"))
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
 	var boss_walked := {}
 	var start := {}
+	var banked := {}
 	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
 	while sim.time < MAX_GAME_SECONDS:
+		var wave_before := sim.wave
 		bot.step()
+		if sim.wave != wave_before:
+			banked[sim.wave] = sim.gold
 		for e in sim.drain_events():
 			if e.type == &"leaked":
 				var c := sim.creep(e.id)
@@ -89,6 +106,8 @@ func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dic
 		keys.sort()
 		var cells := keys.map(func(w: int) -> String: return "%d:%d" % [w, roundi(100 * walked[w])])
 		printerr("    walked %: ", ", ".join(cells))
+		var gold := banked.keys().map(func(w: int) -> String: return "%d:%d" % [w, banked[w]])
+		printerr("    unspent gold: ", ", ".join(gold))
 	var close := 0
 	for w in walked:
 		if walked[w] >= CLOSE_CALL:
@@ -100,6 +119,7 @@ func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dic
 		"close": close,
 		"boss": boss_walked,
 		"lost_at": lost_at,
+		"walked": walked,
 	}
 	printerr(
 		(
@@ -143,8 +163,17 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 		for r in reached:
 			sum += r.boss[w]
 		boss.append("%d%%" % roundi(100.0 * sum / reached.size()))
+	var opening: Array[float] = []
+	var rest: Array[float] = []
+	for r in results:
+		for w: int in r.walked:
+			if w in OPENING_WAVES:
+				opening.append(r.walked[w])
+			if not WaveDefs.has_boss(w):
+				rest.append(r.walked[w])
+	rest.sort()
 	return (
-		"| %s | %s | %d/%d | %.1f, %d–%d | %.1f | %s | %s |"
+		"| %s | %s | %d/%d | %.1f, %d–%d | %.1f | %d%% | %d%% | %s | %s |"
 		% [
 			run[0],
 			_mode(run[1]),
@@ -154,10 +183,28 @@ func _row(run: Array, results: Array[Dictionary]) -> String:
 			lives.min(),
 			lives.max(),
 			close / results.size(),
+			roundi(
+				(
+					100.0
+					* opening.reduce(func(a: float, b: float) -> float: return a + b, 0.0)
+					/ opening.size()
+				)
+			),
+			roundi(100.0 * rest[rest.size() / 2]),
 			" / ".join(boss),
 			", ".join(losses) if not losses.is_empty() else "–",
 		]
 	)
+
+
+## Lives lost on each wave, summed over the row's games.
+func _leaks(results: Array[Dictionary]) -> Dictionary:
+	var total := {}
+	for r in results:
+		for w: int in r.lost_at:
+			total[w] = total.get(w, 0) + r.lost_at[w]
+	total.sort()
+	return total
 
 
 func _mode(hard: bool) -> String:

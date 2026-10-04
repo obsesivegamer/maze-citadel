@@ -19,17 +19,26 @@ static func _file() -> ConfigFile:
 ## "normal", "hard_twists", "normal_infinite", "hard_twists_infinite", ...; on
 ## other maps prefixed with the map, e.g. "rampart_hard". Runs on the default
 ## map without twists keep the keys they had before maps and Twists existed.
-static func mode_key(hard: bool, infinite: bool, twists := false, map := MapDefs.DEFAULT) -> String:
+## Rule sets other than classic end with their name, e.g. "hard_eletd", so
+## their records never mix with classic ones.
+static func mode_key(
+	hard: bool,
+	infinite: bool,
+	twists := false,
+	map := MapDefs.DEFAULT,
+	rules: StringName = &"classic"
+) -> String:
 	var key := (
 		("hard" if hard else "normal")
 		+ ("_twists" if twists else "")
 		+ ("_infinite" if infinite else "")
+		+ ("" if rules == &"classic" else "_%s" % rules)
 	)
 	return key if map == MapDefs.DEFAULT else "%s_%s" % [map, key]
 
 
 static func sim_key(sim: GameSim) -> String:
-	return mode_key(sim.hard, sim.infinite, sim.twists, sim.grid.map)
+	return mode_key(sim.hard, sim.infinite, sim.twists, sim.grid.map, sim.rules)
 
 
 static func best_wave(mode: String) -> int:

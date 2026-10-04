@@ -71,6 +71,9 @@ func _init() -> void:
 	sim.infinite = _carry.get("infinite", false)
 	sim.twists = _carry.get("twists", false)
 	sim.twist_seed = _carry.get("twist_seed", 0)
+	var rules := StringName(_carry.get("rules", Cli.get_str("rules", "classic")))
+	if rules in GameSim.RULES:
+		sim.rules = rules
 	_carry = {}
 	Coords.map = map
 
@@ -326,6 +329,7 @@ func change_map(id: StringName) -> bool:
 		"infinite": sim.infinite,
 		"twists": sim.twists,
 		"twist_seed": sim.twist_seed,
+		"rules": sim.rules,
 	}
 	restart()
 	return true
