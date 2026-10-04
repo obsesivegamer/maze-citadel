@@ -89,7 +89,7 @@ func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dic
 				if c.boss:
 					boss_walked[c.wave] = 1.0
 		for c in sim.creeps:
-			if c.leaked or c.progress <= 0.0:
+			if c.leaked or c.progress <= 0.0 or is_inf(c.progress):
 				continue
 			if not start.has(c.id):
 				# The route as it stood when this creep set off.

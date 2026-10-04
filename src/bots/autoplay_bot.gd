@@ -128,6 +128,8 @@ var _timer := 0.0
 ## Seed 0 plays the plain plan; other seeds jitter timing, wall order and
 ## tower picks so balance runs sample several players, not one trajectory.
 var _rng: RandomNumberGenerator
+## The smart strategy under the eletd rules (RouteLiner); null otherwise.
+var _liner: RouteLiner
 
 
 func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
@@ -149,6 +151,9 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 			var tile := Vector2i(col, wall[0])
 			if not col in wall[1] and not grid.is_blocked(tile) and not grid.is_reserved(tile):
 				plan.append(tile)
+	if strategy == &"smart" and sim.adjacent_reach():
+		_liner = RouteLiner.new(sim, plan, walls[grid.map], _rng)
+		skip_reasons = _liner.skip_reasons
 
 
 func step() -> void:
@@ -161,6 +166,9 @@ func step() -> void:
 
 
 func _decide() -> void:
+	if _liner:
+		_liner.decide()
+		return
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
 	# A novice adds one tower per decision, so its maze grows late.
 	var builds_left := 1 if strategy == &"novice" else plan.size()
@@ -253,8 +261,13 @@ func _counter_pick(slot: int) -> StringName:
 		options = CLASS_COUNTER[&"air"]
 	# A player who sees armor, air or a boss in the next two waves and owns
 	# almost nothing that answers it buys the answer first, saving up if need be.
+	# Under eletd the top bar also shows the wave after next, so a player sees
+	# two waves ahead even while the current one is still coming in.
+	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40))
+	if sim.adjacent_reach() and sim.spawning():
+		seen += WaveDefs.spawn_list(mini(w + 2, 40))
 	var threats := {}
-	for e in entries + WaveDefs.spawn_list(mini(w + 1, 40)):
+	for e in seen:
 		threats[CreepDefs.CREEPS[e[0]].class] = true
 	for cls in [&"air", &"armored", &"boss"]:
 		if threats.has(cls) and _count(CLASS_COUNTER[cls]) < 2:

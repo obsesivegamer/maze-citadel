@@ -30,5 +30,6 @@ echo "== unit tests"
 echo "== smoke (headless game, autoplay)"
 tools/smoke.sh
 tools/smoke.sh 2700 --map=rampart
+tools/smoke.sh 2700 --rules=eletd
 
 echo "check: OK"

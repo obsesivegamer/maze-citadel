@@ -44,12 +44,6 @@ const BOLT_HIT_RADIUS := 0.8
 ## Rule sets. &"classic" is the game as released; &"eletd" is the harder
 ## Element TD rebalance being tuned beside it (docs/balance.md).
 const RULES: Array[StringName] = [&"classic", &"eletd"]
-## eletd creep HP as a share of classic. A tower that reaches only the tiles
-## around it sees each creep for about 2 s, so the bot loses on wave 2 at full
-## HP (docs/balance.md).
-const ELETD_HP := 0.15
-## eletd pause between waves: time to read the next waves and rebuild.
-const ELETD_BREATHER := 30.0
 
 var grid: Grid
 var field := FlowField.new()
@@ -62,8 +56,12 @@ var infinite := false
 ## `twist_seed`. Set both before wave 1.
 var twists := false
 var twist_seed := 0
-## One of RULES. Set before wave 1.
-var rules: StringName = &"classic"
+## One of RULES. Set before wave 1: it moves gold by the difference in
+## starting gold, so gold a caller set beforehand keeps its offset.
+var rules: StringName = &"classic":
+	set(value):
+		gold += start_gold(value) - start_gold(rules)
+		rules = value
 ## Last wave started; 0 before wave 1.
 var wave := 0
 ## Seconds until the next wave starts on its own; -1 while one is running.
@@ -273,7 +271,7 @@ func last_wave() -> int:
 
 ## Seconds between a wave being cleared and the next one starting on its own.
 func breather() -> float:
-	return ELETD_BREATHER if rules == &"eletd" else BREATHER
+	return EletdRules.BREATHER if rules == &"eletd" else BREATHER
 
 
 ## True while the current wave still has creeps waiting to enter.
@@ -344,6 +342,10 @@ func _spawn() -> void:
 		_spawn_timer *= WaveTwists.STAMPEDE_SPAWN
 
 
+static func start_gold(r: StringName) -> int:
+	return EletdRules.START_GOLD if r == &"eletd" else START_GOLD
+
+
 static func hard_hp(w: int) -> float:
 	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
 	return lerpf(HARD_HP_FROM, HARD_HP_TO, f)
@@ -359,10 +361,10 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.pos = at
 	c.prev_pos = at
 	var hp_mult := hard_hp(w) if hard else 1.0
+	if rules == &"eletd":
+		hp_mult = EletdRules.hp_mult(type, w, hard)
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
-	if rules == &"eletd":
-		hp_mult *= ELETD_HP
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
 	c.hp = c.max_hp
 	c.speed = def.speed
@@ -746,7 +748,10 @@ func _tower_act(t: SimTower) -> void:
 	var fired := false
 	match kind:
 		&"projectile":
-			for c in _targets_in_range(t, t.stat("multishot", 1)):
+			var arrows: int = t.stat("multishot", 1)
+			if rules == &"eletd" and t.id == &"archer":
+				arrows = mini(arrows, EletdRules.ARCHER_MULTISHOT)
+			for c in _targets_in_range(t, arrows):
 				_launch(t, &"homing", c)
 				fired = true
 		&"shell", &"bolt":

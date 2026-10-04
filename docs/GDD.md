@@ -97,7 +97,9 @@ Everything in this document describes the classic rules, which are the game as r
 | Rule | Classic | `eletd` |
 |---|---|---|
 | Tower reach | The range in metres from §7 | The 3×3 block of tiles around the tower, for every attack. Splash, clouds, craters and the Bard's aura keep their sizes. The Demolisher has no minimum range. |
-| Creep HP | §8 | 15% of classic |
+| Creep HP | §8 | A share of classic that climbs in a straight line from 15% on wave 1 to 60% on wave 40; armored creeps climb to 62% on a squared curve. The wave-10 Ogre has 1.7 times its HP, the Dreadlord a third. Hard multiplies HP by 1.03 on wave 1 rising to 1.12 on wave 40. |
+| Starting gold | 220 | 400 |
+| Archer | Level 3 fires two arrows | One arrow at every level |
 | Between waves | 5 s breather | 30 s, and the top bar also shows the wave after next. `N` still calls a wave early. |
 | Shown on the board | Range ring | A square around the reach, and pale dots along the straight line flyers take |
 

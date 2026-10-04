@@ -106,6 +106,27 @@ func test_bot_plan_fits_every_map() -> void:
 			check(sim.field.route_length() > 4.0 * Grid.DEPTH, "%s: the maze is long" % at)
 
 
+func test_smart_bot_lines_the_route_under_eletd() -> void:
+	for id in MapDefs.ORDER:
+		var sim := GameSim.new(id)
+		sim.rules = &"eletd"
+		var bot := Bot.new(sim, &"smart")
+		while sim.wave == 0:
+			bot.step()
+		check(sim.towers.size() >= 4, "%s: an opening is built (%d)" % [id, sim.towers.size()])
+		check(sim.gold < TowerDefs.build_cost(&"cannon"), "%s: starting gold spent" % id)
+		var route := {}
+		for p in sim.field.route():
+			route[Grid.tile_at(p)] = true
+		for t: Vector2i in sim.towers:
+			check(t in bot.plan, "%s: %s is on the serpentine plan" % [id, t])
+			var near := false
+			for dy in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					near = near or route.has(t + Vector2i(dx, dy))
+			check(near, "%s: %s reaches the route" % [id, t])
+
+
 func test_records_are_kept_per_map() -> void:
 	check_eq(Save.mode_key(false, false), "normal", "default map keeps its keys")
 	check_eq(Save.mode_key(true, true, false, MapDefs.DEFAULT), "hard_infinite", "default map")

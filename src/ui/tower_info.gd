@@ -93,7 +93,17 @@ static func short_name(id: StringName) -> String:
 
 static func blurb(id: StringName) -> String:
 	var text: String = BLURBS.get(id, "")
-	return text.replace(" Can't hit closer than 4 m.", "") if adjacent_reach else text
+	if not adjacent_reach:
+		return text
+	return text.replace(" Can't hit closer than 4 m.", "").replace(" Level 3 fires two arrows.", "")
+
+
+## A stat as these rules play it: under eletd an Archer fires one arrow.
+static func _stat(id: StringName, key: String, level: int) -> float:
+	var v: float = TowerDefs.stat(id, key, level)
+	if adjacent_reach and id == &"archer" and key == "multishot":
+		return minf(v, EletdRules.ARCHER_MULTISHOT)
+	return v
 
 
 ## Whether this tower's range stat is replaced by the adjacent-tiles reach.
@@ -212,7 +222,7 @@ static func stat_rows(id: StringName) -> Array:
 		var values := PackedStringArray()
 		var any := false
 		for level in range(1, levels + 1):
-			var v: float = TowerDefs.stat(id, row[0], level)
+			var v := _stat(id, row[0], level)
 			any = any or v != 0.0
 			values.append(fmt_value(v, row[3]))
 		if any:
@@ -228,8 +238,8 @@ static func next_level_preview(id: StringName, level: int) -> String:
 	for row in STAT_ROWS:
 		if row[0] == "range" and _reach_only(id):
 			continue
-		var a: float = TowerDefs.stat(id, row[0], level)
-		var b: float = TowerDefs.stat(id, row[0], level + 1)
+		var a := _stat(id, row[0], level)
+		var b := _stat(id, row[0], level + 1)
 		if a != b:
 			parts.append("%s %s → %s" % [row[2], fmt_value(a, row[3]), fmt_value(b, row[3])])
 	return SEP.join(parts) if not parts.is_empty() else "Stronger effect"
