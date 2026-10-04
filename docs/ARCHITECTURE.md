@@ -39,7 +39,7 @@ The subsystems stay independent because they all keep to a few agreements.
 
 **Smooth movement.** The sim steps 30 times a second but the screen draws more often than that, so creeps are drawn between their last two sim positions: `c.prev_pos.lerp(c.pos, game.alpha())`.
 
-**Events.** The sim reports what happens by appending to `GameSim.events`, and `GameSim` is the place to look for every `events.append({...})`. The event types are `wave_started`, `wave_cleared`, `spawned`, `died`, `downed`, `revived`, `leaked`, `defeat`, `victory`, `built`, `sold`, `upgraded`, `fused`, `build_refused`, `path_changed`, `fired`, `hit`, `dot`, `shell_landed`, `nova`, `cloud`, `breath`, `frost_ring`, `immune`, `heal`, `summoned`, `interest`, `contagion` and `second_wind`.
+**Events.** The sim reports what happens by appending to `GameSim.events`, and `GameSim` is the place to look for nearly every `events.append({...})`; the interest lock's two come from `InterestLock`. The event types are `wave_started`, `wave_cleared`, `spawned`, `died`, `downed`, `revived`, `leaked`, `defeat`, `victory`, `built`, `sold`, `upgraded`, `fused`, `build_refused`, `path_changed`, `fired`, `hit`, `dot`, `shell_landed`, `nova`, `cloud`, `breath`, `frost_ring`, `immune`, `heal`, `summoned`, `interest`, `interest_locked`, `interest_unlocked`, `contagion` and `second_wind`.
 
 **Game signals.** `Game` emits `sim_event`, `build_choice_changed`, `selection_changed`, `speed_changed`, `pause_changed`, `quality_changed` and `booted`.
 

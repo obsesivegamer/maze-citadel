@@ -12,7 +12,7 @@ A full run plays 4 seeds of every row and takes about 8 minutes on one core. Opt
 
 | Option | What it does |
 |---|---|
-| `--only=smart:hard` | Runs a single row |
+| `--only=smart:hard` | Runs a single row, or several separated by commas. Under `--rules=eletd` the difficulty can also be `easy` or `very_hard` |
 | `--seeds=N` | Sets how many games each row plays |
 | `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
@@ -240,6 +240,25 @@ Tried on the way, with the smart bot on Normal unless a row says otherwise (mean
 | 0.15 → 0.6, 0.7 | 10: 1.6, 40: 0.4 | 1.03 → 1.12 | 4 | 8.5 / 8.2; wave 35 costs up to 7 lives; Hard 2/4 and 3/4 |
 | 0.15 → 0.6, 0.62 | 10: 1.7, 40: 0.4 | 1.03 → 1.12 | 4 | 11.8 / 10.0 with one Rampart game lost on wave 40; Hard 3/4 on both |
 | **0.15 → 0.6, 0.62** | **10: 1.7, 40: 0.33** | **1.03 → 1.12** | 4 | **The settings above** |
+
+## Element TD rules: the interest lock and four difficulties (2026-10-04)
+
+Two Element TD rules arrived together. A leak now stops interest until the field is clear, and there are four difficulties instead of two: Easy (creeps at 75% HP), Normal, Hard (the ramp above) and Very Hard (1.12 on wave 1 rising to 1.3 on wave 40, a first guess). Neither was tuned here.
+
+The lock costs the smart bot almost nothing, because it spends its gold as it comes and earns very little interest. Its Normal games on the Citadel went from 11.5 lives (11 and 12) to 11.0 (10 and 12) over the same two seeds, with the same waves leaking.
+
+Citadel, 2 seeds per row:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | easy | 2/2 | 20.0, 20–20 | 3.0 | 22% | 34% | 98% / 90% / 94% / 37% | – |
+| smart | normal | 2/2 | 11.0, 10–12 | 7.0 | 21% | 41% | 100% / 100% / 100% / 56% | – |
+| smart | hard | 1/2 | 5.0, 0–10 | 9.0 | 21% | 40% | 100% / 100% / 100% / 72% | w33 |
+| smart | very_hard | 0/2 | 0.0, 0–0 | 8.5 | 19% | 40% | 100% / 100% / 100% / 92% | w38, w40 |
+
+Lives lost per wave, both seeds: hard {10: 4, 20: 4, 23: 2, 29: 3, 30: 12, 33: 4, 40: 1} · very_hard {10: 4, 20: 4, 30: 10, 33: 2, 35: 8, 36: 1, 38: 7, 40: 4}
+
+Easy never leaks, and Very Hard is lost late in both games, on the armored waves 35 and 38 and the Dreadlord. Both are where a later retune starts.
 
 ## Latest run (2026-10-02)
 

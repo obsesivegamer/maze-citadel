@@ -9,6 +9,7 @@ extends Node3D
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
 ##   --twists [--seed=<n>]                      Twists mode, optionally a fixed schedule
 ##   --rules=classic|eletd                      rule set (default: classic)
+##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
@@ -46,7 +47,7 @@ func _ready() -> void:
 		game.choose_build(&"")
 	if Cli.has("twists"):
 		game.sim.twist_seed = int(Cli.get_str("seed", "0"))
-		game.set_mode(game.sim.hard, game.sim.infinite, true)
+		game.set_mode(game.sim.difficulty, game.sim.infinite, true)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
 	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).

@@ -50,7 +50,13 @@ var field := FlowField.new()
 var gold := START_GOLD
 var lives := START_LIVES
 var phase := Phase.BUILD
-var hard := false
+## One of EletdRules.difficulties(rules); `hard` reads and sets Hard as before.
+var difficulty: StringName = &"normal"
+var hard: bool:
+	get:
+		return difficulty == &"hard"
+	set(value):
+		difficulty = &"hard" if value else &"normal"
 var infinite := false
 ## Twists mode (WaveTwists): random creep abilities from wave 11, dealt from
 ## `twist_seed`. Set both before wave 1.
@@ -67,6 +73,8 @@ var wave := 0
 ## Seconds until the next wave starts on its own; -1 while one is running.
 var countdown := OPENING_BUILD_TIME
 var interest_timer := INTEREST_PERIOD
+## Set by a leak under eletd (InterestLock): the timer stands still.
+var interest_locked := false
 var time := 0.0
 var kills := 0
 var gold_earned := 0
@@ -98,7 +106,10 @@ func drain_events() -> Array[Dictionary]:
 
 func score() -> int:
 	var s := 10 * kills + 500 * lives + gold
-	return roundi(s * (1.3 if hard else 1.0) * (WaveTwists.SCORE_MULT if twists else 1.0))
+	var level := 1.3 if hard else 1.0
+	if rules == &"eletd":
+		level = EletdRules.SCORE_MULT[difficulty]
+	return roundi(s * level * (WaveTwists.SCORE_MULT if twists else 1.0))
 
 
 ## The twist on wave `w`, or &"" (none, or Twists mode is off).
@@ -317,7 +328,7 @@ func step() -> void:
 
 
 func _pay_interest() -> void:
-	interest_timer -= DT
+	interest_timer -= 0.0 if interest_locked else DT
 	if interest_timer > 0.0:
 		return
 	interest_timer += INTEREST_PERIOD
@@ -362,7 +373,7 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.prev_pos = at
 	var hp_mult := hard_hp(w) if hard else 1.0
 	if rules == &"eletd":
-		hp_mult = EletdRules.hp_mult(type, w, hard)
+		hp_mult = EletdRules.hp_mult(type, w, difficulty)
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
@@ -409,6 +420,7 @@ func _check_wave_cleared() -> void:
 		return
 	phase = Phase.BUILD
 	countdown = breather()
+	InterestLock.on_field_clear(self)
 
 
 # --- Creeps -----------------------------------------------------------------
@@ -533,6 +545,7 @@ func _leak(c: SimCreep) -> void:
 	c.pos = grid.spawn_point
 	c.prev_pos = c.pos
 	events.append({"type": &"leaked", "id": c.id, "cost": cost, "lives": lives})
+	InterestLock.on_leak(self)
 	if lives == 0:
 		phase = Phase.DEFEAT
 		events.append({"type": &"defeat", "wave": wave})

@@ -101,6 +101,8 @@ Everything in this document describes the classic rules, which are the game as r
 | Starting gold | 220 | 400 |
 | Archer | Level 3 fires two arrows | One arrow at every level |
 | Between waves | 5 s breather | 30 s, and the top bar also shows the wave after next. `N` still calls a wave early. |
+| Interest after a leak | Keeps paying | Locked until the field is clear: once any creep leaks, the interest countdown stops where it is and nothing is paid until every creep on the board is dead. Then the countdown carries on from where it stopped. The interest ring dims and shows a lock meanwhile. |
+| Difficulty | Normal and Hard | Easy, Normal, Hard and Very Hard, each with its own records. Easy gives creeps 75% of their HP; Hard is the ramp above; Very Hard multiplies HP by 1.12 on wave 1 rising to 1.3 on wave 40. Score × 0.7, 1, 1.3 and 1.6. |
 | Shown on the board | Range ring | A square around the reach, and pale dots along the straight line flyers take |
 
 ### 5.1 Twists (random wave abilities)
@@ -327,4 +329,4 @@ All presets: soft-shadow filter "low" with plain PCF (no PCSS blocker search), l
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …; `eletd` runs end in `_eletd`, from `easy_eletd` to `very_hard_eletd`), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.

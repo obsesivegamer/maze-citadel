@@ -31,6 +31,15 @@ const BREATHER := 30.0
 ## times their wave-1 share, and classic's ramp on top loses every game.
 const HARD_FROM := 1.03
 const HARD_TO := 1.12
+## Element TD's four difficulties; classic offers only Normal and Hard.
+const DIFFICULTIES: Array[StringName] = [&"easy", &"normal", &"hard", &"very_hard"]
+## Easy takes a flat share off creep HP, so the opening is gentler too.
+const EASY_HP := 0.75
+## Very Hard's ramp, steeper than Hard's from the first wave. Not yet tuned.
+const VERY_HARD_FROM := 1.12
+const VERY_HARD_TO := 1.3
+## Score multiplier per difficulty; Normal and Hard match classic's.
+const SCORE_MULT := {&"easy": 0.7, &"normal": 1.0, &"hard": 1.3, &"very_hard": 1.6}
 ## Boss HP per wave, on top of the wave table's boss_hp. The wave-10 Ogre is
 ## the opening's test: at 1.0 nothing leaks before wave 20. The Dreadlord at
 ## full share outlasts any maze, walks round four or five times and takes 7 to
@@ -38,17 +47,35 @@ const HARD_TO := 1.12
 const BOSS_HP := {10: 1.7, 40: 0.33}
 
 
+## The difficulties rule set `rules` offers, easiest first.
+static func difficulties(rules: StringName) -> Array[StringName]:
+	if rules == &"eletd":
+		return DIFFICULTIES
+	return [&"normal", &"hard"]
+
+
 ## The HP multiplier GameSim.spawn_creep gives a creep of `type` on wave `w`
-## under these rules, Hard included.
-static func hp_mult(type: StringName, w: int, hard: bool) -> float:
-	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
-	var m := lerpf(HARD_FROM, HARD_TO, f) if hard else 1.0
+## under these rules at `difficulty`.
+static func hp_mult(type: StringName, w: int, difficulty: StringName) -> float:
+	var m := difficulty_hp(difficulty, w)
 	match CreepDefs.CREEPS[type].class:
 		&"armored":
 			return m * armored_hp(w)
 		&"boss":
 			m *= BOSS_HP.get(w, 1.0)
 	return m * hp(w)
+
+
+static func difficulty_hp(difficulty: StringName, w: int) -> float:
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	match difficulty:
+		&"easy":
+			return EASY_HP
+		&"hard":
+			return lerpf(HARD_FROM, HARD_TO, f)
+		&"very_hard":
+			return lerpf(VERY_HARD_FROM, VERY_HARD_TO, f)
+	return 1.0
 
 
 static func hp(w: int) -> float:

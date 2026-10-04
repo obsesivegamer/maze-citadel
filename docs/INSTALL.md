@@ -298,6 +298,7 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--quality=performance` | Start on a quality preset: `cinematic`, `balanced` or `performance` |
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
 | `--rules=eletd` | Play the Element TD rule set that is being tuned (the default is `classic`) |
+| `--difficulty=hard` | Start on a difficulty: `normal` or `hard`, and under `--rules=eletd` also `easy` or `very_hard` |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
 

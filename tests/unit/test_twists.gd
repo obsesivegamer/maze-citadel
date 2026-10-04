@@ -173,9 +173,9 @@ func test_score_and_save_keys() -> void:
 	var plain := sim.score()
 	sim.twists = true
 	check_eq(sim.score(), roundi(plain * WaveTwists.SCORE_MULT), "score ×1.1")
-	check_eq(Save.mode_key(false, false), "normal", "old key kept")
-	check_eq(Save.mode_key(true, true), "hard_infinite", "old key kept")
-	check_eq(Save.mode_key(true, true, true), "hard_twists_infinite", "twists key")
+	check_eq(Save.mode_key(&"normal", false), "normal", "old key kept")
+	check_eq(Save.mode_key(&"hard", true), "hard_infinite", "old key kept")
+	check_eq(Save.mode_key(&"hard", true, true), "hard_twists_infinite", "twists key")
 	check_eq(Save.sim_key(sim), "normal_twists", "sim key")
 
 

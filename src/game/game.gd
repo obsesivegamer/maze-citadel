@@ -67,13 +67,19 @@ func _init() -> void:
 	if not MapDefs.has(map):
 		map = MapDefs.DEFAULT
 	sim = GameSim.new(map)
-	sim.hard = _carry.get("hard", false)
 	sim.infinite = _carry.get("infinite", false)
 	sim.twists = _carry.get("twists", false)
 	sim.twist_seed = _carry.get("twist_seed", 0)
 	var rules := StringName(_carry.get("rules", Cli.get_str("rules", "classic")))
 	if rules in GameSim.RULES:
 		sim.rules = rules
+	var level := StringName(_carry.get("difficulty", Cli.get_str("difficulty", "normal")))
+	if level in EletdRules.difficulties(sim.rules):
+		sim.difficulty = level
+	else:
+		push_warning(
+			"--difficulty=%s is not offered under %s rules; playing normal" % [level, sim.rules]
+		)
 	_carry = {}
 	TowerInfo.adjacent_reach = sim.adjacent_reach()
 	Coords.map = map
@@ -306,10 +312,10 @@ func set_quality(preset: Quality.Preset, remember := true) -> void:
 
 ## Mode can change only before wave 1 spawns (GDD §5). Turning Twists on
 ## deals a fresh schedule unless a seed was already given (--seed).
-func set_mode(hard: bool, infinite: bool, twists := false) -> bool:
-	if sim.wave > 0:
+func set_mode(difficulty: StringName, infinite: bool, twists := false) -> bool:
+	if sim.wave > 0 or not difficulty in EletdRules.difficulties(sim.rules):
 		return false
-	sim.hard = hard
+	sim.difficulty = difficulty
 	sim.infinite = infinite
 	if twists and not sim.twists and sim.twist_seed == 0:
 		sim.twist_seed = randi() | 1
@@ -326,7 +332,7 @@ func change_map(id: StringName) -> bool:
 	Save.set_setting("map", String(id))
 	_carry = {
 		"map": id,
-		"hard": sim.hard,
+		"difficulty": sim.difficulty,
 		"infinite": sim.infinite,
 		"twists": sim.twists,
 		"twist_seed": sim.twist_seed,

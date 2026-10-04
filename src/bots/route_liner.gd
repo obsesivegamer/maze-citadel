@@ -231,7 +231,7 @@ func _read_waves(w0: int, seen: int) -> void:
 ## stops. A plain creep and such a brute FUTURE_AHEAD waves on, of no element.
 func _add_yardsticks(w0: int) -> void:
 	var w := w0 + FUTURE_AHEAD
-	var hp := CreepDefs.max_hp(&"grunt", w, EletdRules.hp_mult(&"grunt", w, sim.hard))
+	var hp := CreepDefs.max_hp(&"grunt", w, EletdRules.hp_mult(&"grunt", w, sim.difficulty))
 	var plain := {
 		"w": FUTURE_WEIGHT,
 		"hp": hp,
@@ -255,7 +255,7 @@ func _add_yardsticks(w0: int) -> void:
 
 ## The creep HP multiplier GameSim.spawn_creep applies (mode and rule set).
 func _hp_mult(type: StringName, w: int) -> float:
-	return EletdRules.hp_mult(type, w, sim.hard)
+	return EletdRules.hp_mult(type, w, sim.difficulty)
 
 
 ## Damage per second a tower deals one foe while it is in reach, counting

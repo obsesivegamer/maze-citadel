@@ -292,12 +292,17 @@ static func sell_value(t: SimTower) -> int:
 	return floori(t.invested * GameSim.SELL_REFUND)
 
 
-static func mode_name(hard: bool, infinite: bool, twists := false) -> String:
+## "Normal", "Very Hard · Twists", ...
+static func mode_name(difficulty: StringName, infinite: bool, twists := false) -> String:
 	return (
-		("Hard" if hard else "Normal")
+		difficulty_name(difficulty)
 		+ (SEP + "Twists" if twists else "")
 		+ (SEP + "Infinite" if infinite else "")
 	)
+
+
+static func difficulty_name(difficulty: StringName) -> String:
+	return String(difficulty).capitalize()
 
 
 static func epic_requirement(epic: StringName) -> String:

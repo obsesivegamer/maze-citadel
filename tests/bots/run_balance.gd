@@ -7,16 +7,17 @@ extends SceneTree
 ##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
 ## --twists plays Twists mode; bot seed n uses twist schedule n + 1.
-## --rules=eletd plays that rule set (default: classic).
+## --rules=eletd plays that rule set (default: classic); --only then also
+## takes its other difficulties, e.g. smart:easy or smart:very_hard.
 ## --per-wave also prints the unspent gold at each wave's start.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
-	[&"smart", false],
-	[&"smart", true],
-	[&"archers", false],
-	[&"no_air", false],
-	[&"novice", false],
+	[&"smart", &"normal"],
+	[&"smart", &"hard"],
+	[&"archers", &"normal"],
+	[&"no_air", &"normal"],
+	[&"novice", &"normal"],
 ]
 const MAX_GAME_SECONDS := 6000.0
 ## A wave is a close call when some creep walked this much of its route.
@@ -39,6 +40,16 @@ func _initialize() -> void:
 		printerr("unknown rules %s (rules: %s)" % [rules, ", ".join(GameSim.RULES)])
 		quit(1)
 		return
+	var runs: Array = RUNS
+	if only != "":
+		runs = []
+		for label in only.split(","):
+			var run := [StringName(label.get_slice(":", 0)), StringName(label.get_slice(":", 1))]
+			if not Bot.PATTERNS.has(run[0]) or not run[1] in EletdRules.difficulties(rules):
+				printerr("unknown row %s under %s rules" % [label, rules])
+				quit(1)
+				return
+			runs.append(run)
 	print(
 		(
 			"| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | "
@@ -47,10 +58,8 @@ func _initialize() -> void:
 		)
 	)
 	print("|---|---|---|---|---|---|---|---|---|")
-	for run in RUNS:
-		var label := "%s:%s" % [run[0], "hard" if run[1] else "normal"]
-		if only != "" and not label in only.split(","):
-			continue
+	for run in runs:
+		var label := "%s:%s" % run
 		var results: Array[Dictionary] = []
 		for s in seeds:
 			results.append(_play(run[0], run[1], s, Cli.has("twists")))
@@ -62,10 +71,10 @@ func _initialize() -> void:
 ## One full game. Tracks lives lost per wave and, per wave, the furthest any
 ## creep got along its route (0 = killed at the portal, 1 = leaked), which
 ## shows how close a wave came even when nothing leaked.
-func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dictionary:
+func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: bool) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
 	var sim := GameSim.new(StringName(Cli.get_str("map", MapDefs.DEFAULT)))
-	sim.hard = hard
+	sim.difficulty = difficulty
 	sim.twists = twists
 	sim.twist_seed = bot_seed + 1
 	sim.rules = StringName(Cli.get_str("rules", "classic"))
@@ -126,7 +135,7 @@ func _play(strategy: StringName, hard: bool, bot_seed: int, twists: bool) -> Dic
 			"  %s/%s seed %d: %s, %d lives, %d close calls, leaks %s, gold %d, %d:%02d (%.1f s)"
 			% [
 				strategy,
-				_mode(hard),
+				_mode(difficulty),
 				bot_seed,
 				"won" if out.won else "lost at wave %d" % sim.wave,
 				sim.lives,
@@ -207,5 +216,5 @@ func _leaks(results: Array[Dictionary]) -> Dictionary:
 	return total
 
 
-func _mode(hard: bool) -> String:
-	return ("hard" if hard else "normal") + (" twists" if Cli.has("twists") else "")
+func _mode(difficulty: StringName) -> String:
+	return String(difficulty) + (" twists" if Cli.has("twists") else "")
