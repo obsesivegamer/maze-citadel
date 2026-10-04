@@ -21,6 +21,8 @@ const KEYS := {
 	&"cam_back": [KEY_S, KEY_DOWN],
 	&"cam_rotate_left": [KEY_Q],
 	&"cam_rotate_right": [KEY_E],
+	# eletd: while a pick waits, E opens the pick panel instead of turning.
+	&"element_picks": [KEY_E],
 }
 const BUILD_KEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
 

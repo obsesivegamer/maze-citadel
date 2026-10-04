@@ -126,7 +126,9 @@ func refresh() -> void:
 		return
 	var gold := _game.sim.gold
 	var partners := TowerInfo.fuse_partners(_game.sim, tile).size()
-	var key := [t.id, t.level, t.kills, roundi(t.damage_dealt), gold, t.aura, partners]
+	# eletd: the next level can wait on its element ("Needs Aqua level 2").
+	var needs := "" if t.is_epic() else _game.sim.elements.needs(t.id, t.level + 1)
+	var key := [t.id, t.level, t.kills, roundi(t.damage_dealt), gold, t.aura, partners, needs]
 	if key == _key:
 		return
 	var same_tower: bool = not _key.is_empty() and _key[0] == t.id and _key[1] == t.level
@@ -137,8 +139,10 @@ func refresh() -> void:
 	_aura.text = "+%d%% aura" % roundi(t.aura * 100.0)
 	_aura.add_theme_color_override("font_color", UiTheme.FAMILY_COLORS[&"support"])
 	var up := -1 if t.is_epic() else TowerDefs.upgrade_cost(t.id, t.level)
-	_upgrade.disabled = up < 0 or gold < up
+	_upgrade.disabled = up < 0 or gold < up or needs != ""
 	_upgrade.text = "Max level" if up < 0 else "Upgrade %dg" % up
+	if up >= 0 and needs != "":
+		_upgrade.text = needs
 	_sell.text = "Sell +%dg" % TowerInfo.sell_value(t)
 	var epic: StringName = TowerDefs.FUSIONS.get(t.family(), &"")
 	_fuse.visible = epic != &"" and t.level == TowerDefs.MAX_LEVEL and not t.is_epic()

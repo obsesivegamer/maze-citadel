@@ -10,6 +10,7 @@ const COLUMN_WIDTH := 58.0
 const COUNTER_COLORS := {
 	&"strong": UiTheme.GOOD,
 	&"weak": UiTheme.BAD,
+	&"even": UiTheme.TEXT,
 	&"bonus": UiTheme.GOLD_BRIGHT,
 	&"poor": Color(0.95, 0.65, 0.4),
 	&"note": UiTheme.TEXT_DIM,
@@ -120,6 +121,8 @@ func _footer_for(id: StringName, sim: GameSim) -> void:
 		text = TowerInfo.epic_requirement(id)
 		if TowerInfo.can_fuse(sim, id):
 			text = "Fusion ready — click to pick the first tower, then its partner."
+	elif sim.elements.needs(id) != "":
+		text = ElementPicks.locked_reason(sim, id)
 	elif sim.gold < TowerInfo.card_cost(id):
 		text = "Need %d more gold." % (TowerInfo.card_cost(id) - sim.gold)
 	else:

@@ -1,6 +1,7 @@
 class_name HudTopBar
 extends Control
-## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout.
+## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout,
+## and under eletd the element levels with the Pick chip (ElementStrip).
 ## Centre: wave n/40 and the next-wave chip with its countdown and a call
 ## button. Right: mode chip, speed, pause, camera presets, boss tracking, the
 ## Field Guide and settings. refresh() runs every frame but only touches a node when the value
@@ -8,6 +9,7 @@ extends Control
 
 signal settings_pressed
 signal guide_pressed
+signal picks_pressed
 
 const MARGIN := Vector2(10, 8)
 const ICON_PX := 22.0
@@ -24,6 +26,7 @@ const LOCKED_TIP := "Interest is locked until the leaked creeps are dead"
 
 var left_panel: PanelContainer
 var center_panel: PanelContainer
+var _right_panel: PanelContainer
 
 var _game: Game
 var _gold := UiKit.label("", &"Number")
@@ -53,6 +56,8 @@ var _pause: Button
 var _boss: Button
 var _boss_chip := UiKit.panel(&"Chip", false)
 var _boss_text := UiKit.label("", &"", UiTheme.SIZE_SMALL)
+## eletd only: the element levels and the Pick chip.
+var _elements: ElementStrip
 var _shown := {}
 
 
@@ -95,13 +100,22 @@ func _build_left() -> void:
 	_interest.add_child(_ring)
 	_payout.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT)
 	_interest.add_child(_payout)
-	_interest_tip = (
-		"Interest: every %d s you earn %d%% of unspent gold (max +%d). Next payout shown."
-		% [GameSim.INTEREST_PERIOD, roundi(GameSim.INTEREST_RATE * 100), GameSim.INTEREST_CAP]
-	)
-	_interest.tooltip_text = _interest_tip
 	_interest.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_interest)
+	if _game.sim.elements.enabled:
+		row.add_child(UiKit.divider())
+		_elements = ElementStrip.new(_game)
+		_elements.pick_pressed.connect(picks_pressed.emit)
+		row.add_child(_elements)
+
+
+## Interest picks (eletd) raise the rate and the cap the tooltip quotes.
+func _interest_text() -> String:
+	var el := _game.sim.elements
+	return (
+		"Interest: every %d s you earn %d%% of unspent gold (max +%d). Next payout shown."
+		% [GameSim.INTEREST_PERIOD, roundi(el.interest_rate() * 100), el.interest_cap()]
+	)
 
 
 func _build_center() -> void:
@@ -137,6 +151,7 @@ func _build_center() -> void:
 
 func _build_right() -> void:
 	var p := UiKit.panel()
+	_right_panel = p
 	p.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	p.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	p.offset_right = -MARGIN.x
@@ -304,7 +319,10 @@ func refresh() -> void:
 	if _changed(&"payout", payout):
 		_payout.text = "+%d" % payout
 	_ring.set_progress(1.0 - sim.interest_timer / GameSim.INTEREST_PERIOD)
-	if _changed(&"interest_locked", sim.interest_locked):
+	var tip_changed := _changed(&"interest_picks", sim.elements.interest_picks)
+	if tip_changed:
+		_interest_tip = _interest_text()
+	if _changed(&"interest_locked", sim.interest_locked) or tip_changed:
 		_ring.locked = sim.interest_locked
 		_interest.tooltip_text = LOCKED_TIP if sim.interest_locked else _interest_tip
 		_payout.add_theme_color_override(
@@ -317,13 +335,37 @@ func refresh() -> void:
 		_wave_inf.visible = sim.infinite
 		_sync_mode()
 	_refresh_next(sim)
+	if _elements != null:
+		_elements.refresh()
+		_fit_center()
 	if _boss_chip.visible:
-		var has_boss := false
-		for c in sim.creeps:
-			has_boss = has_boss or (c.boss and c.alive)
-		if _changed(&"boss", has_boss):
-			_boss_text.text = "Tracking the boss" if has_boss else "Boss tracking: no boss yet"
+		if _changed(&"boss", _tracked(sim)):
+			_boss_text.text = _shown[&"boss"]
 		_boss_chip.offset_top = center_panel.offset_top + center_panel.size.y + BOSS_CHIP_GAP
+
+
+## eletd's wider side panels (element levels, four difficulties) would cover
+## the centred wave panel and its call button, so it sits centred in the gap
+## between them instead.
+func _fit_center() -> void:
+	var left := left_panel.position.x + left_panel.size.x + GROUP_GAP
+	var right := _right_panel.position.x - GROUP_GAP
+	var x := maxf(left, (left + right - center_panel.size.x) / 2.0)
+	if not is_equal_approx(center_panel.position.x, x):
+		center_panel.position.x = x
+	if _boss_chip.visible:
+		_boss_chip.position.x = x + (center_panel.size.x - _boss_chip.size.x) / 2.0
+
+
+## The boss chip's text for the boss the camera follows (CameraRig: the
+## first boss alive), naming an eletd Guardian by its element.
+func _tracked(sim: GameSim) -> String:
+	for c in sim.creeps:
+		if c.boss and c.alive:
+			if c.type == &"guardian":
+				return "Tracking the " + ElementPicks.guardian_title(c.element)
+			return "Tracking the boss"
+	return "Boss tracking: no boss yet"
 
 
 func _refresh_next(sim: GameSim) -> void:

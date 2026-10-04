@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Render named camera views to PNGs. Opens a game window briefly.
-# Usage: tools/capture.sh <out-prefix> [views=overview,portal,gate] [quality=balanced] [extra args...]
+# Usage: tools/capture.sh <out-prefix> [views=full,portal,gate] [quality=balanced] [extra args...]
+# Views are the camera presets in src/camera/camera_rig.gd (the render spike's are its own).
 # Captures the Citadel Plateau unless the extra args say --map=...
 # GODOT_ARGS="--rendering-method mobile" adds engine args (before `--`).
 set -euo pipefail
@@ -11,7 +12,7 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 mkdir -p "$(dirname "$1")"
 prefix="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-views="${2:-overview,portal,gate}"
+views="${2:-full,portal,gate}"
 quality="${3:-balanced}"
 shift $(( $# < 3 ? $# : 3 ))
 engine=()

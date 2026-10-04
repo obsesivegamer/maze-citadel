@@ -83,6 +83,7 @@ func _init() -> void:
 	_apply_cli_picks()
 	_carry = {}
 	TowerInfo.adjacent_reach = sim.adjacent_reach()
+	TowerInfo.composite = sim.elements.enabled
 	Coords.map = map
 
 
@@ -254,7 +255,14 @@ func alpha() -> float:
 # --- Player actions ---------------------------------------------------------
 
 
+## A tower whose element isn't picked yet (eletd) can't be chosen: the same
+## build_refused the sim sends for a refused tile, so the thunk plays and the
+## HUD says why.
 func choose_build(id: StringName) -> void:
+	if id != &"" and sim.elements.needs(id) != "":
+		var reason := Placement.Result.LOCKED
+		sim_event.emit({"type": &"build_refused", "tile": NONE, "reason": reason, "id": id})
+		return
 	build_choice = id
 	if id != &"":
 		select(NONE)
@@ -294,6 +302,13 @@ func fuse_selected_with(other: Vector2i) -> bool:
 	var ok := selected != NONE and sim.fuse(selected, other)
 	_flush()
 	selection_changed.emit(selected)
+	return ok
+
+
+## Spends a pending element pick (eletd) on an element level or Interest.
+func pick_element(choice: StringName) -> bool:
+	var ok := sim.elements.pick(sim, choice)
+	_flush()
 	return ok
 
 

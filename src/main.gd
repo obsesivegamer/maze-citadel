@@ -13,6 +13,9 @@ extends Node3D
 ##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
+##   --select=<x,y|tower id>                    select a tower (the first of that kind)
+##   --open=pick|guide|elements                 open the pick panel (eletd), the Field Guide
+##                                              or its Elements and picks page (eletd)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
@@ -62,6 +65,10 @@ func _ready() -> void:
 			node.visible = false
 	if Cli.has("warp-wave"):
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
+	if Cli.has("select"):
+		game.select(_tile_to_select(game, Cli.get_str("select")))
+	if Cli.has("open"):
+		game.hud.open_panel(Cli.get_str("open"))
 	_attach_tools(
 		func(view: String) -> void: game.camera.preset(StringName(view), true),
 		game.quality_settings,
@@ -111,6 +118,17 @@ func _attach_tools(set_view: Callable, settings: Dictionary, context := Callable
 		bench.context = context
 		bench.settings = settings
 		add_child(bench)
+
+
+## --select=x,y is that tile; --select=<tower id> the first tower of that kind.
+static func _tile_to_select(game: Game, what: String) -> Vector2i:
+	var xy := what.split(",")
+	if xy.size() == 2:
+		return Vector2i(int(xy[0]), int(xy[1]))
+	for t: SimTower in game.sim.towers.values():
+		if t.id == StringName(what):
+			return t.tile
+	return Game.NONE
 
 
 static func _context(game: Game) -> Dictionary:

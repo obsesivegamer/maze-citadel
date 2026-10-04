@@ -82,6 +82,9 @@ const SEP := " · "
 ## True under rules where towers reach only the tiles around them
 ## (GameSim.adjacent_reach): attackers then show a reach, not a range in metres.
 static var adjacent_reach := false
+## True under rules where the starters deal composite damage (eletd): their
+## cards and texts say Composite instead of their wheel element.
+static var composite := false
 
 
 static func full_name(id: StringName) -> String:
@@ -127,10 +130,17 @@ static func subtitle(id: StringName) -> String:
 	var parts := PackedStringArray([FAMILY_NAMES[def.family]])
 	if def.has("attack"):
 		parts.append(ATTACK_NAMES[def.attack])
-		parts.append(ELEMENT_NAMES[def.element])
+		parts.append(ELEMENT_NAMES[element_of(id)])
 	else:
 		parts.append("Aura")
 	return SEP.join(parts)
+
+
+## The element a tower attacks with as these rules play it.
+static func element_of(id: StringName) -> StringName:
+	if composite and id in EletdRules.COMPOSITE_TOWERS:
+		return &"composite"
+	return TowerDefs.TOWERS[id].get("element", &"")
 
 
 static func strong_against(element: StringName) -> StringName:
@@ -159,15 +169,18 @@ static func classes_by_mult(attack: StringName, better: bool) -> Array[StringNam
 	return out
 
 
-## [kind, text] pairs. Kinds: strong, weak, bonus, poor, note.
+## [kind, text] pairs. Kinds: strong, weak, even, bonus, poor, note.
 static func counter_parts(id: StringName) -> Array:
 	var def: Dictionary = TowerDefs.TOWERS[id]
 	if not def.has("attack"):
 		var r: float = TowerDefs.stat(id, "range", 1)
 		return [[&"note", "Buffs towers within %s m" % fmt_num(r)], [&"note", "Doesn't attack"]]
 	var out := []
-	out.append([&"strong", "Strong vs " + ELEMENT_NAMES[strong_against(def.element)]])
-	out.append([&"weak", "Weak vs " + ELEMENT_NAMES[weak_against(def.element)]])
+	if element_of(id) == &"composite":
+		out.append([&"even", "100% against everything"])
+	else:
+		out.append([&"strong", "Strong vs " + ELEMENT_NAMES[strong_against(def.element)]])
+		out.append([&"weak", "Weak vs " + ELEMENT_NAMES[weak_against(def.element)]])
 	var bonus := _class_names(classes_by_mult(def.attack, true))
 	if bonus != "":
 		out.append([&"bonus", "Bonus vs " + bonus])
@@ -186,7 +199,10 @@ static func counter_parts(id: StringName) -> Array:
 static func counters(id: StringName) -> String:
 	var parts := PackedStringArray()
 	for p in counter_parts(id):
-		if p[0] in [&"strong", &"weak", &"bonus"] or not TowerDefs.TOWERS[id].has("attack"):
+		if (
+			p[0] in [&"strong", &"weak", &"even", &"bonus"]
+			or not TowerDefs.TOWERS[id].has("attack")
+		):
 			parts.append(p[1])
 	return SEP.join(parts)
 

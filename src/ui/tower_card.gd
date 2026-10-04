@@ -15,6 +15,7 @@ const COST_Y := 104.0
 const COIN_PX := 12.0
 const BADGE := Rect2(5, 5, 17, 15)
 const AIR_PX := 15.0
+const LOCK_PX := 22.0
 const NAME_SIZE := 12
 const COST_SIZE := 13
 const DIM := Color(1, 1, 1, 0.42)
@@ -31,6 +32,9 @@ var chosen := false:
 ## Epic cards only: a fusion is possible right now.
 var lit := false:
 	set = set_lit
+## eletd: the tower's element isn't picked yet. Dimmed with a lock.
+var locked := false:
+	set = set_locked
 
 var _hover := false
 var _warm_size := -Vector2.ONE
@@ -64,6 +68,12 @@ func set_chosen(value: bool) -> void:
 		queue_redraw()
 
 
+func set_locked(value: bool) -> void:
+	if value != locked:
+		locked = value
+		queue_redraw()
+
+
 func set_lit(value: bool) -> void:
 	if value == lit:
 		return
@@ -87,7 +97,7 @@ func _set_hover(value: bool) -> void:
 func _draw() -> void:
 	var epic := TowerInfo.is_epic(id)
 	draw_style_box(_frame(epic), Rect2(Vector2.ZERO, size))
-	var usable := lit if epic else (affordable or chosen)
+	var usable := lit if epic else ((affordable or chosen) and not locked)
 	var tint := Color.WHITE if usable else DIM
 	var font := UiTheme.bold()
 	var cost := ("+%d" if epic else "%d") % TowerInfo.card_cost(id)
@@ -121,7 +131,9 @@ func _draw() -> void:
 		(UiTheme.GOLD_BRIGHT if chosen else UiTheme.TEXT) * tint
 	)
 	meshes[2].submit(self)
-	var ok := lit if epic else affordable
+	if locked:
+		UiMesh.cached([&"card_lock", size], _build_lock).submit(self)
+	var ok := lit if epic else (affordable and not locked)
 	var color := UiTheme.GOLD_BRIGHT if ok else UiTheme.BAD
 	draw_string(
 		font,
@@ -137,7 +149,7 @@ func _draw() -> void:
 ## The shapes between the card's texts, one draw call each: icon disc and
 ## glyph; the air badge; attack/element pips and the cost coin.
 func _meshes(tint: Color, cost_x: float) -> Array[UiMesh]:
-	var key := [id, size, tint, cost_x]
+	var key := [id, size, tint, cost_x, TowerInfo.element_of(id)]
 	return [
 		UiMesh.cached([&"card_icon"] + key, _build_icon.bind(tint)),
 		UiMesh.cached([&"card_air"] + key, _build_air.bind(tint)),
@@ -153,6 +165,13 @@ func _build_icon(mesh: UiMesh, tint: Color) -> void:
 	UiGlyphs.draw(mesh, id, icon_rect, tint)
 
 
+## A lock on a dark disc over the icon's lower right.
+func _build_lock(mesh: UiMesh) -> void:
+	var c := Vector2(size.x / 2.0 + ICON_PX * 0.32, ICON_TOP + ICON_PX * 0.72)
+	mesh.draw_circle(c, LOCK_PX * 0.62, Color(UiTheme.STONE_DEEP, 0.9), true, -1.0, true)
+	UiGlyphs.draw(mesh, &"lock", Rect2(c - Vector2.ONE * LOCK_PX / 2.0, Vector2.ONE * LOCK_PX))
+
+
 func _build_air(mesh: UiMesh, tint: Color) -> void:
 	if TowerDefs.TOWERS[id].get("air", false):
 		var air := Rect2(Vector2(size.x - AIR_PX - 5.0, 5.0), Vector2(AIR_PX, AIR_PX))
@@ -164,7 +183,7 @@ func _build_tail(mesh: UiMesh, tint: Color, cost_x: float) -> void:
 	var glyphs: Array[StringName] = []
 	if def.has("attack"):
 		glyphs.append(UiGlyphs.attack(def.attack))
-		glyphs.append(UiGlyphs.element(def.element))
+		glyphs.append(UiGlyphs.element(TowerInfo.element_of(id)))
 	else:
 		glyphs.append(&"aura")
 	var w := glyphs.size() * PIP_PX + (glyphs.size() - 1) * 4.0

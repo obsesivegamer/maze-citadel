@@ -4,7 +4,8 @@ extends UiModal
 ## page, like the quest log of a Warcraft III tower defense map. The element
 ## wheel (hover an element for what it beats and which towers carry it), the
 ## attack vs armor chart, counsel for the next wave and how to read damage
-## numbers. Opening it pauses the game; closing resumes if opening paused it.
+## numbers. Under eletd a second page explains the element picks. Opening it
+## pauses the game; closing resumes if opening paused it.
 
 const PANEL_WIDTH := 920.0
 const WHEEL_PX := 250.0
@@ -19,6 +20,10 @@ var _wheel := ElementWheel.new(WHEEL_PX)
 var _wheel_info := UiKit.rich(UiTheme.SIZE_SMALL, INFO_WIDTH)
 var _next_caption := UiKit.label("", &"Caption")
 var _counsel: CounselView
+var _counters_page: Array[Control] = []
+## eletd only: the "Elements and picks" page and the button that turns to it.
+var _elements_page: Control
+var _page_button: Button
 
 
 func setup(game: Game) -> void:
@@ -37,13 +42,18 @@ func setup(game: Game) -> void:
 	top.add_child(UiKit.divider(WHEEL_PX))
 	top.add_child(_build_chart())
 	box.add_child(top)
-	box.add_child(_rule())
+	var mid := _rule()
+	box.add_child(mid)
 	var bottom := UiKit.hbox(24)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
 	bottom.add_child(_build_next())
 	bottom.add_child(UiKit.divider(150))
 	bottom.add_child(_build_numbers())
 	box.add_child(bottom)
+	_counters_page = [top, mid, bottom]
+	if game.sim.elements.enabled:
+		_elements_page = _build_elements()
+		box.add_child(_elements_page)
 	box.add_child(_rule())
 	var foot := UiKit.hbox(16)
 	foot.add_child(
@@ -51,6 +61,11 @@ func setup(game: Game) -> void:
 			"H or Esc closes. Tower card tooltips rate each tower against the next wave.", &"Dim"
 		)
 	)
+	if _elements_page != null:
+		_page_button = UiKit.text_button(game, "", &"Segment")
+		_page_button.pressed.connect(func() -> void: show_page(not _elements_page.visible))
+		foot.add_child(_page_button)
+		show_page(false)
 	var close := UiKit.text_button(game, "Close")
 	close.custom_minimum_size = Vector2(120, 30)
 	close.pressed.connect(close_modal)
@@ -187,6 +202,50 @@ func _build_numbers() -> Control:
 	return col
 
 
+## Elements and picks (eletd): how picks and Guardians work, and each
+## element's towers and level.
+func _build_elements() -> Control:
+	var col := UiKit.vbox(8)
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(UiKit.label("ELEMENTS AND PICKS", &"Caption"))
+	var text := UiKit.rich(UiTheme.SIZE_BODY, PANEL_WIDTH - 80.0)
+	text.text = ElementPicks.guide_text()
+	col.add_child(text)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.add_theme_constant_override("h_separation", 60)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for e in Damage.WHEEL:
+		var row := UiKit.hbox(8)
+		row.alignment = BoxContainer.ALIGNMENT_BEGIN
+		row.add_child(UiIcon.new(UiGlyphs.element(e), 22.0))
+		var name := UiKit.label(ElementPicks.element_name(e), &"", UiTheme.SIZE_BODY)
+		name.add_theme_font_override("font", UiTheme.bold())
+		name.add_theme_color_override("font_color", UiTheme.element_color(e))
+		row.add_child(name)
+		for id in ElementPicks.towers_of(e):
+			row.add_child(UiIcon.new(id, 22.0))
+		var towers := PackedStringArray()
+		for id in ElementPicks.towers_of(e):
+			towers.append(TowerInfo.short_name(id))
+		row.add_child(UiKit.label(", ".join(towers), &"Dim"))
+		grid.add_child(row)
+	col.add_child(grid)
+	return col
+
+
+## The counters (the default) or, under eletd, the elements page.
+func show_page(elements: bool) -> void:
+	if _elements_page == null:
+		return
+	for c in _counters_page:
+		c.visible = not elements
+	_elements_page.visible = elements
+	_page_button.text = "Counters" if elements else "Elements and picks"
+
+
 func _rule() -> Control:
 	var c := Control.new()
 	c.custom_minimum_size = Vector2(PANEL_WIDTH - 40.0, 2)
@@ -242,6 +301,7 @@ func open() -> void:
 
 func close_modal() -> void:
 	_wheel.focus = &""
+	show_page(false)
 	super()
 
 

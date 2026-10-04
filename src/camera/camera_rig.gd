@@ -154,6 +154,8 @@ func _process(delta: float) -> void:
 	if move != Vector2.ZERO:
 		_pan(Vector2(move.x, -move.y) * delta * _distance * 0.9)
 	var rot := Input.get_axis(&"cam_rotate_left", &"cam_rotate_right")
+	if _game.sim.elements.pending_picks() > 0:
+		rot = minf(rot, 0.0)  # E opens the element picks (eletd) while one waits
 	_yaw += rot * ROTATE_SPEED * delta
 	if boss_tracking:
 		var boss: Variant = _boss_position()
