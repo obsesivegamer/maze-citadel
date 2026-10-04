@@ -107,3 +107,30 @@ func test_build_refused_on_creep() -> void:
 	var t := Grid.tile_at(sim.creeps[0].pos)
 	check_eq(sim.build(t, &"archer"), R.CREEP_ON_TILE, "creep tile refused")
 	check_eq(sim.gold, 220, "nothing spent")
+
+
+## Classic gives 5 s between waves; eletd gives 30 s to plan, and N still
+## calls the next wave early.
+func test_breather_follows_the_rules() -> void:
+	for rules in GameSim.RULES:
+		var sim := GameSim.new()
+		sim.rules = rules
+		sim.gold = 1000
+		sim.build(Vector2i(2, 20), &"runesmith")
+		sim.start_next_wave()
+		_run(sim, 12.0)
+		for c: SimCreep in sim.creeps.duplicate():
+			sim.hit(c, 1e9, sim.tower_at(Vector2i(2, 20)), 0.0)
+		sim.step()
+		var want := 30.0 if rules == &"eletd" else 5.0
+		check_eq(sim.phase, GameSim.Phase.BUILD, "%s: wave 1 cleared" % rules)
+		check_near(sim.countdown, want, 0.1, "%s breather" % rules)
+		_run(sim, want - 1.0)
+		check_eq(sim.wave, 1, "%s: still waiting" % rules)
+		_run(sim, 1.5)
+		check_eq(sim.wave, 2, "%s: wave 2 starts on its own" % rules)
+	var early := GameSim.new()
+	early.rules = &"eletd"
+	early.start_next_wave()
+	early.start_next_wave()
+	check_eq(early.wave, 2, "N calls the next wave during a wave")

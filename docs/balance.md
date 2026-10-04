@@ -95,6 +95,19 @@ What it shows:
 - The archers-only bot now wins, and the novice dies on wave 2. Both are the wrong way round and are the next things to tune.
 - The Rampart is much easier than the Citadel under these rules (19 lives on Normal, 18 on Hard).
 
+## Element TD rules: 30 seconds between waves (2026-10-04)
+
+Under `eletd` the pause after a cleared wave is 30 seconds, up from 5, and the top bar shows the wave after next as well. The classic game gave no time to read a wave and rebuild for it. `N` still calls the next wave early.
+
+Citadel, 4 seeds, against the adjacent-reach run above:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | normal | 4/4 | 15.0, 9–19 | 2.8 | 26% | 19% | 38% / 30% / 44% / 42% | – |
+| smart | hard | 4/4 | 5.0, 1–9 | 4.0 | 49% | 22% | 39% / 35% / 57% / 60% | – |
+
+The pause helps the bot more than expected: 15.0 lives on Normal against 11.0, and 4/4 on Hard against 3/4. It earns no more gold (about 11,900 either way). The extra seconds let it finish building before the early waves arrive, and those are the only waves that leak. A game the bot never hurries takes about 43 minutes, against 27.
+
 ## Latest run (2026-10-02)
 
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |

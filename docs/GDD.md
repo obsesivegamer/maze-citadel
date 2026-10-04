@@ -98,6 +98,7 @@ Everything in this document describes the classic rules, which are the game as r
 |---|---|---|
 | Tower reach | The range in metres from §7 | The 3×3 block of tiles around the tower, for every attack. Splash, clouds, craters and the Bard's aura keep their sizes. The Demolisher has no minimum range. |
 | Creep HP | §8 | 15% of classic |
+| Between waves | 5 s breather | 30 s, and the top bar also shows the wave after next. `N` still calls a wave early. |
 | Shown on the board | Range ring | A square around the reach, and pale dots along the straight line flyers take |
 
 ### 5.1 Twists (random wave abilities)

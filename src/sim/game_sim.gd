@@ -48,6 +48,8 @@ const RULES: Array[StringName] = [&"classic", &"eletd"]
 ## around it sees each creep for about 2 s, so the bot loses on wave 2 at full
 ## HP (docs/balance.md).
 const ELETD_HP := 0.15
+## eletd pause between waves: time to read the next waves and rebuild.
+const ELETD_BREATHER := 30.0
 
 var grid: Grid
 var field := FlowField.new()
@@ -269,6 +271,11 @@ func last_wave() -> int:
 	return 1_000_000 if infinite else WaveDefs.count()
 
 
+## Seconds between a wave being cleared and the next one starting on its own.
+func breather() -> float:
+	return ELETD_BREATHER if rules == &"eletd" else BREATHER
+
+
 ## True while the current wave still has creeps waiting to enter.
 func spawning() -> bool:
 	return not _spawn_queue.is_empty()
@@ -399,7 +406,7 @@ func _check_wave_cleared() -> void:
 		events.append({"type": &"victory"})
 		return
 	phase = Phase.BUILD
-	countdown = BREATHER
+	countdown = breather()
 
 
 # --- Creeps -----------------------------------------------------------------
