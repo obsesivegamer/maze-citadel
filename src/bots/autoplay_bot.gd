@@ -22,6 +22,39 @@ const WALLS := {
 		[25, [19]],
 	],
 }
+## The same per map for the eletd rules, where a tower reaches only the tiles
+## around it: corridors one tile wide, so every wall tower borders two lanes.
+## The Rampart's boulders sit in wider corridors, and its east breach stays open.
+const WALLS_ELETD := {
+	&"citadel":
+	[
+		[3, [19]],
+		[5, [0]],
+		[7, [19]],
+		[9, [0]],
+		[11, [19]],
+		[13, [0]],
+		[15, [19]],
+		[17, [0]],
+		[19, [19]],
+		[21, [0]],
+		[23, [19]],
+		[25, [0]],
+	],
+	&"rampart":
+	[
+		[2, [19], 5.5],
+		[4, [0]],
+		[8, [19]],
+		[10, [0]],
+		[13, [17, 18]],
+		[15, [0]],
+		[17, [19]],
+		[21, [0]],
+		[23, [19]],
+		[25, [0]],
+	],
+}
 const WALL_CENTER := 9.5
 const DECIDE_EVERY := 1.0
 const UPGRADE_RESERVE := 120
@@ -105,7 +138,8 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 		_rng.seed = p_seed
 		_timer = _rng.randf() * DECIDE_EVERY
 	var grid := sim.grid
-	for wall: Array in WALLS[grid.map]:
+	var walls: Dictionary = WALLS_ELETD if sim.adjacent_reach() else WALLS
+	for wall: Array in walls[grid.map]:
 		# Build each wall from the middle outwards: the opening towers sit on the
 		# straight route, and the wall bends the path as it grows.
 		var mid: float = wall[2] if wall.size() > 2 else WALL_CENTER

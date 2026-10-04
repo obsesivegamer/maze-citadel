@@ -44,6 +44,10 @@ const BOLT_HIT_RADIUS := 0.8
 ## Rule sets. &"classic" is the game as released; &"eletd" is the harder
 ## Element TD rebalance being tuned beside it (docs/balance.md).
 const RULES: Array[StringName] = [&"classic", &"eletd"]
+## eletd creep HP as a share of classic. A tower that reaches only the tiles
+## around it sees each creep for about 2 s, so the bot loses on wave 2 at full
+## HP (docs/balance.md).
+const ELETD_HP := 0.15
 
 var grid: Grid
 var field := FlowField.new()
@@ -350,6 +354,8 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	var hp_mult := hard_hp(w) if hard else 1.0
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
+	if rules == &"eletd":
+		hp_mult *= ELETD_HP
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
 	c.hp = c.max_hp
 	c.speed = def.speed
@@ -690,16 +696,30 @@ func _spread_plague(c: SimCreep) -> void:
 # --- Towers -----------------------------------------------------------------
 
 
+## Under eletd rules a tower attacks only creeps on the eight tiles around
+## it (and its own), whatever its range stat; classic uses the range in metres.
+## The square's edges count, so a creep walking a tile border (flyers do, on
+## the portal-to-gate line) is reached from both sides alike.
+func adjacent_reach() -> bool:
+	return rules == &"eletd"
+
+
+func reaches(t: SimTower, c: SimCreep) -> bool:
+	if adjacent_reach():
+		var d := (c.pos - t.pos).abs()
+		return maxf(d.x, d.y) <= Grid.TILE * 1.5
+	return c.pos.distance_to(t.pos) <= float(t.stat("range"))
+
+
 func _targets_in_range(t: SimTower, count: int) -> Array[SimCreep]:
-	var r: float = t.stat("range")
-	var min_r: float = t.stat("min_range", 0.0)
+	# A minimum range would leave nothing to shoot at inside the adjacent tiles.
+	var min_r: float = 0.0 if adjacent_reach() else t.stat("min_range", 0.0)
 	var air: bool = t.stat("air", false)
 	var found: Array[SimCreep] = []
 	for c in creeps:
 		if not c.targetable() or (c.flying and not air):
 			continue
-		var d := c.pos.distance_to(t.pos)
-		if d <= r and d >= min_r:
+		if reaches(t, c) and c.pos.distance_to(t.pos) >= min_r:
 			found.append(c)
 	found.sort_custom(func(a: SimCreep, b: SimCreep) -> bool: return a.progress < b.progress)
 	if t.stat("targeting", &"") == &"uninfected":
@@ -873,10 +893,9 @@ func _step_bolt(p: SimProjectile) -> void:
 
 
 func _nova(t: SimTower) -> bool:
-	var r: float = t.stat("range")
 	var victims: Array[SimCreep] = []
 	for c in creeps:
-		if c.targetable() and not c.flying and c.pos.distance_to(t.pos) <= r:
+		if c.targetable() and not c.flying and reaches(t, c):
 			victims.append(c)
 	if victims.is_empty():
 		return false
@@ -885,6 +904,7 @@ func _nova(t: SimTower) -> bool:
 		if c.targetable():
 			apply_slow(c, t.stat("slow"), t.stat("slow_time"))
 			apply_root(c, t.stat("root"))
+	var r := Grid.TILE * 1.5 if adjacent_reach() else float(t.stat("range"))
 	events.append({"type": &"nova", "tile": t.tile, "radius": r})
 	return true
 
@@ -920,7 +940,7 @@ func _cone(t: SimTower) -> bool:
 	var freeze_every: int = t.stat("freeze_every", 0)
 	var freeze := freeze_every > 0 and (t.shots + 1) % freeze_every == 0
 	for c: SimCreep in creeps.duplicate():
-		if not c.targetable() or c.pos.distance_to(t.pos) > float(t.stat("range")):
+		if not c.targetable() or not reaches(t, c):
 			continue
 		if absf(t.aim.angle_to(c.pos - t.pos)) > half:
 			continue

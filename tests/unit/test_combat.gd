@@ -237,3 +237,186 @@ func test_roots_nova_roots_ground_only() -> void:
 	var g: SimCreep = sim.creeps[0]
 	check(g.root_time > 0.0 and g.slow > 0.0, "grunt rooted and slowed")
 	check_eq(harpy.hp, harpy.max_hp, "harpy untouched")
+
+
+# --- eletd rules: towers reach only the tiles around them ----------------------
+
+
+## An eletd sim with one creep parked on `tile`.
+func _eletd_with(type: StringName, tile: Vector2i) -> GameSim:
+	var sim := _sim_with(type, Grid.center(tile))
+	sim.rules = &"eletd"
+	return sim
+
+
+func test_eletd_towers_reach_only_adjacent_tiles() -> void:
+	# Every way of attacking: arrow, shell, slow bolt, poison, shred, bolt,
+	# crater shell, nova, cloud, cone, lance, plague.
+	var attackers: Array[StringName] = [
+		&"archer",
+		&"cannon",
+		&"frost",
+		&"plague",
+		&"runesmith",
+		&"ballista",
+		&"demolisher",
+		&"roots",
+		&"shadow",
+	]
+	attackers.append_array(TowerDefs.EPICS)
+	for id in attackers:
+		for offset: Vector2i in [Vector2i(1, 0), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-1, 1)]:
+			var near := _eletd_with(&"ogre", Vector2i(10, 10))
+			var t := _place_any(near, Vector2i(10, 10) + offset, id)
+			_run(near, 4.0)
+			check(t.shots > 0, "%s attacks a creep at %s" % [id, offset])
+		for offset: Vector2i in [Vector2i(2, 0), Vector2i(0, 2), Vector2i(2, 2), Vector2i(-2, 1)]:
+			var far := _eletd_with(&"ogre", Vector2i(10, 10))
+			var t := _place_any(far, Vector2i(10, 10) + offset, id)
+			_run(far, 4.0)
+			check_eq(t.shots, 0, "%s holds fire at %s" % [id, offset])
+			check_eq(far.creeps[0].hp, far.creeps[0].max_hp, "%s: no damage at %s" % [id, offset])
+
+
+func test_eletd_archer_multishot_stays_adjacent() -> void:
+	var sim := _eletd_with(&"ogre", Vector2i(10, 10))
+	var far := sim.spawn_creep(&"ogre", &"flame", 1, Grid.center(Vector2i(13, 10)))
+	far.speed = 0.0
+	_place(sim, Vector2i(11, 10), &"archer", 3)
+	_run(sim, 3.0)
+	check(sim.creeps[0].hp < sim.creeps[0].max_hp, "adjacent ogre hit")
+	check_eq(far.hp, far.max_hp, "second arrow finds nothing two tiles away")
+
+
+func test_eletd_air_needs_a_tower_under_the_flight() -> void:
+	var sim := _eletd_with(&"harpy", Vector2i(10, 10))
+	var off := _place(sim, Vector2i(12, 10), &"archer")
+	var under := _place(sim, Vector2i(10, 11), &"archer")
+	var siege := _place(sim, Vector2i(9, 10), &"cannon")
+	_run(sim, 2.0)
+	check_eq(off.shots, 0, "archer two tiles from the harpy can't reach it")
+	check(under.shots > 0, "archer beside it can")
+	check_eq(siege.shots, 0, "siege still never targets air")
+
+
+func test_eletd_ballista_bolt_still_flies_down_the_lane() -> void:
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	sim.countdown = -1.0
+	for i in 5:
+		var c := sim.spawn_creep(&"ogre", &"flame", 20, Grid.center(Vector2i(10, 3 + i)))
+		c.speed = 0.0
+	var t := _place(sim, Vector2i(10, 2), &"ballista")
+	t.cooldown = 0.0
+	_run(sim, 0.6)
+	var damaged := sim.creeps.filter(func(c: SimCreep) -> bool: return c.hp < c.max_hp)
+	check_eq(damaged.size(), 3, "aimed at the adjacent creep, pierced two behind it")
+
+
+func test_eletd_creeps_have_less_hp_and_bard_keeps_its_aura() -> void:
+	var classic := GameSim.new()
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	var a := classic.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
+	var b := sim.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
+	check_near(b.max_hp, a.max_hp * GameSim.ELETD_HP, 1e-4, "HP share")
+	var archer := _place(sim, Vector2i(13, 10), &"archer")
+	_place(sim, Vector2i(10, 10), &"bard")
+	sim.step()
+	check(archer.aura > 0.0, "bard buffs a tower three tiles away")
+
+
+## Builds basic towers, and Epics by fusing two level-3 towers beside `tile`.
+func _place_any(sim: GameSim, tile: Vector2i, id: StringName) -> SimTower:
+	if not id in TowerDefs.EPICS:
+		return _place(sim, tile, id)
+	var member: StringName = &""
+	for basic in TowerDefs.BUILD_ORDER:
+		if TowerDefs.TOWERS[basic].family == TowerDefs.TOWERS[id].family:
+			member = basic
+			break
+	var spare := Vector2i(tile.x, 20)
+	_place(sim, tile, member, 3)
+	_place(sim, spare, member, 3)
+	sim.fuse(tile, spare)
+	return sim.tower_at(tile)
+
+
+## The reach is the 3×3 block of tiles, not a circle: a creep in the far corner
+## of a diagonal tile is reached, one just past the block's edge is not.
+func test_eletd_reach_is_a_square_of_tiles() -> void:
+	var tile := Vector2i(10, 10)
+	var cases := [
+		[Vector2(23.9, 23.9), true, "far corner of the diagonal tile"],
+		[Vector2(23.99, 21.0), true, "just inside the block"],
+		[Vector2(24.01, 21.0), false, "just outside the block"],
+	]
+	for case: Array in cases:
+		var sim := _sim_with(&"ogre", case[0])
+		sim.rules = &"eletd"
+		var t := _place(sim, tile, &"archer")
+		_run(sim, 3.0)
+		check_eq(t.shots > 0, case[1], case[2])
+
+
+## Flyers on the Citadel fly the border between two columns; towers the same
+## distance either side of it must be treated alike.
+func test_eletd_flight_line_is_reached_from_both_sides() -> void:
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	sim.countdown = -1.0
+	var x := sim.grid.spawn_point.x
+	check_eq(x, sim.grid.gate_point.x, "citadel flyers fly straight down")
+	var harpy := sim.spawn_creep(&"harpy", &"flame", 1, Vector2(x, Grid.center(Vector2i(0, 12)).y))
+	harpy.speed = 0.0
+	var col := int(x / Grid.TILE)
+	for dx: int in [-2, 1]:
+		check(sim.reaches(_place(sim, Vector2i(col + dx, 12), &"archer"), harpy), "column %+d" % dx)
+	for dx: int in [-3, 2]:
+		check(
+			not sim.reaches(_place(sim, Vector2i(col + dx, 12), &"archer"), harpy),
+			"column %+d" % dx
+		)
+
+
+func test_eletd_breath_stops_at_the_adjacent_tiles() -> void:
+	var sim := _eletd_with(&"ogre", Vector2i(10, 10))
+	var behind := sim.spawn_creep(&"ogre", &"flame", 1, Grid.center(Vector2i(10, 8)))
+	behind.speed = 0.0
+	_place_any(sim, Vector2i(10, 11), &"frost_wyrm")
+	_run(sim, 3.0)
+	check(sim.creeps[0].hp < sim.creeps[0].max_hp, "adjacent ogre breathed on")
+	check_eq(behind.hp, behind.max_hp, "ogre in the cone but three tiles out is untouched")
+
+
+## Splash is area damage, not targeting: it keeps its radius under eletd.
+func test_eletd_splash_keeps_its_radius() -> void:
+	var sim := _eletd_with(&"ogre", Vector2i(10, 10))
+	var beyond := sim.spawn_creep(&"ogre", &"flame", 1, Grid.center(Vector2i(10, 9)))
+	beyond.speed = 0.0
+	_place(sim, Vector2i(10, 11), &"cannon")
+	_run(sim, 4.0)
+	check(beyond.hp < beyond.max_hp, "ogre two tiles from the cannon is splashed")
+
+
+# --- classic rules keep their ranges -------------------------------------------
+
+
+func test_classic_demolisher_keeps_its_minimum_range() -> void:
+	var sim := _sim_with(&"ogre", Grid.center(Vector2i(10, 10)))
+	var close := _place(sim, Vector2i(11, 10), &"demolisher")
+	var far := _place(sim, Vector2i(14, 10), &"demolisher")
+	_run(sim, 4.0)
+	check_eq(close.shots, 0, "can't hit closer than 4 m")
+	check(far.shots > 0, "fires from 8 m")
+
+
+func test_classic_nova_and_cone_use_their_range() -> void:
+	var sim := _sim_with(&"grunt", Grid.center(Vector2i(10, 10)))
+	_place(sim, Vector2i(12, 10), &"roots")
+	sim.step()
+	check(sim.creeps[0].root_time > 0.0, "roots reach two tiles")
+	var cone := _sim_with(&"ogre", Grid.center(Vector2i(10, 10)))
+	var wyrm := _place_any(cone, Vector2i(13, 10), &"frost_wyrm")
+	_run(cone, 3.0)
+	check(wyrm.shots > 0 and cone.creeps[0].slow > 0.0, "breath reaches three tiles")

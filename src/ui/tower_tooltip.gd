@@ -64,7 +64,7 @@ func show_for(id: StringName, sim: GameSim) -> void:
 	_icon.glyph = id
 	_title.text = TowerInfo.full_name(id)
 	_subtitle.text = TowerInfo.subtitle(id)
-	_blurb.text = TowerInfo.BLURBS.get(id, "")
+	_blurb.text = TowerInfo.blurb(id)
 	_fill_grid(id)
 	var parts := PackedStringArray()
 	for p in TowerInfo.counter_parts(id):

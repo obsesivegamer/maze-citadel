@@ -75,6 +75,7 @@ func _init() -> void:
 	if rules in GameSim.RULES:
 		sim.rules = rules
 	_carry = {}
+	TowerInfo.adjacent_reach = sim.adjacent_reach()
 	Coords.map = map
 
 

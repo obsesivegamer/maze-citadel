@@ -2,7 +2,8 @@ class_name BuildController
 extends Node3D
 ## Mouse and hotkey input for building and selecting (GDD §10). Shows the
 ## snapped ghost (green = valid, red = refused) and the range ring for the
-## ghost, the hovered tower or the selected tower only.
+## ghost, the hovered tower or the selected tower only. Under rules where
+## towers reach only the tiles around them, a square marks those tiles instead.
 
 const GHOST_OK := Color(0.3, 1.0, 0.45, 0.45)
 const GHOST_BAD := Color(1.0, 0.2, 0.15, 0.5)
@@ -19,6 +20,7 @@ var _ghost := MeshInstance3D.new()
 var _ghost_mat := StandardMaterial3D.new()
 var _ring := MeshInstance3D.new()
 var _ring_mesh := TorusMesh.new()
+var _reach_square := Node3D.new()
 ## While fusing: the selected tower waits for a second click on its partner.
 var _fusing := false
 var _refusal_shake := 0.0
@@ -50,6 +52,18 @@ func setup(game: Game) -> void:
 	_ring.material_override = ring_mat
 	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ring)
+	var side := Grid.TILE * 3.0
+	for i in 4:
+		var bar := MeshInstance3D.new()
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(side + 0.16, 0.12, 0.16) if i < 2 else Vector3(0.16, 0.12, side + 0.16)
+		bar.mesh = mesh
+		var off := side / 2.0 * (1.0 if i % 2 == 0 else -1.0)
+		bar.position = Vector3(0, 0, off) if i < 2 else Vector3(off, 0, 0)
+		bar.material_override = ring_mat
+		bar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_reach_square.add_child(bar)
+	add_child(_reach_square)
 	var partner_mesh := TorusMesh.new()
 	partner_mesh.inner_radius = 1.05
 	partner_mesh.outer_radius = 1.3
@@ -239,6 +253,11 @@ func _update_ring(building: bool) -> void:
 			id = t.id
 			level = t.level
 	var r: float = TowerDefs.stat(id, "range", level, 0.0) if id != &"" else 0.0
+	var square: bool = r > 0.0 and _game.sim.adjacent_reach() and TowerDefs.TOWERS[id].has("attack")
+	_reach_square.visible = square
+	if square:
+		_reach_square.position = Coords.tile_to_world(tile, Coords.PLATEAU_TOP + 0.1)
+		r = 0.0
 	_ring.visible = r > 0.0
 	if r > 0.0:
 		_ring_mesh.inner_radius = r - 0.08

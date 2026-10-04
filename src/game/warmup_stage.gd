@@ -30,6 +30,9 @@ func run(host: Game, progress: Callable) -> void:
 	quality_settings = host.quality_settings
 	sim.countdown = -1.0
 	sim.interest_timer = INF
+	# The staging below is laid out for classic ranges; under adjacent reach
+	# some towers would never fire and their effects would compile mid-match.
+	sim.rules = &"classic"
 	units = Units.new()
 	add_child(units)
 	units.setup(self)
