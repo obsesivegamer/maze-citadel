@@ -26,7 +26,7 @@ The game is playable from the first wave to the last. It's still before version 
 
 ## Install
 
-Maze Citadel runs on Macs with Apple silicon, on 64-bit Windows 10 and 11, and on 64-bit x86 Linux. There is nothing else to install. The Windows and Linux builds are new: they're less tested than the Mac build, and releases up to 0.2.0 are Mac only.
+Maze Citadel runs on Macs with Apple silicon, on 64-bit Windows 10 and 11, and on 64-bit x86 Linux. There is nothing else to install. The Windows and Linux builds are new in 0.3.0 and less tested than the Mac build. Releases up to 0.2.0 are Mac only.
 
 ### Mac
 
