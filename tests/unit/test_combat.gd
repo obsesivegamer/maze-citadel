@@ -319,11 +319,47 @@ func test_eletd_creeps_have_less_hp_and_bard_keeps_its_aura() -> void:
 	sim.rules = &"eletd"
 	var a := classic.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
 	var b := sim.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
-	check_near(b.max_hp, a.max_hp * GameSim.eletd_hp(5), 1e-4, "HP share")
+	check_near(b.max_hp, a.max_hp * EletdRules.hp(5), 1e-4, "HP share")
 	var archer := _place(sim, Vector2i(13, 10), &"archer")
 	_place(sim, Vector2i(10, 10), &"bard")
 	sim.step()
 	check(archer.aura > 0.0, "bard buffs a tower three tiles away")
+
+
+func test_eletd_armored_creeps_climb_to_their_own_hp_share() -> void:
+	check_near(EletdRules.armored_hp(1), EletdRules.HP_FROM, 1e-6, "wave 1")
+	check_near(EletdRules.armored_hp(40), EletdRules.ARMORED_HP_TO, 1e-6, "wave 40")
+	check(EletdRules.armored_hp(7) < EletdRules.HP_FROM * 1.1, "wave 7 barely changes")
+	for w in range(1, 41):
+		check(EletdRules.armored_hp(w) >= EletdRules.hp(w), "never below the rest, w%d" % w)
+	var classic := GameSim.new()
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	for type: StringName in [&"footman", &"steam_tank", &"grunt"]:
+		var a := classic.spawn_creep(type, &"flame", 30, Vector2.ZERO)
+		var b := sim.spawn_creep(type, &"flame", 30, Vector2.ZERO)
+		var share := EletdRules.hp(30) if type == &"grunt" else EletdRules.armored_hp(30)
+		check_near(b.max_hp, a.max_hp * share, 1e-3, "%s share" % type)
+
+
+func test_eletd_level3_archer_fires_one_arrow() -> void:
+	for rules: StringName in [&"classic", &"eletd"]:
+		var sim := _sim_with(&"ogre", Grid.center(Vector2i(10, 10)))
+		sim.rules = rules
+		sim.spawn_creep(&"ogre", &"flame", 1, Grid.center(Vector2i(12, 10))).speed = 0.0
+		_place(sim, Vector2i(11, 10), &"archer", 3)
+		_run(sim, 0.3)
+		var hit := sim.creeps.filter(func(c: SimCreep) -> bool: return c.hp < c.max_hp)
+		check_eq(hit.size(), 1 if rules == &"eletd" else 2, "%s: creeps hit by one volley" % rules)
+
+
+func test_eletd_starting_gold() -> void:
+	var sim := GameSim.new()
+	check_eq(sim.gold, GameSim.START_GOLD, "classic")
+	sim.rules = &"eletd"
+	check_eq(sim.gold, EletdRules.START_GOLD, "eletd")
+	sim.rules = &"classic"
+	check_eq(sim.gold, GameSim.START_GOLD, "back to classic")
 
 
 ## Builds basic towers, and Epics by fusing two level-3 towers beside `tile`.

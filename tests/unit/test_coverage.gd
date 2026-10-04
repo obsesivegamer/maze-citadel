@@ -81,7 +81,16 @@ func test_adjacent_reach_wording() -> void:
 	var bard := TowerInfo.stat_rows(&"bard").map(func(r: Array) -> String: return r[0])
 	var preview := TowerInfo.next_level_preview(&"archer", 1)
 	var demolisher := TowerInfo.blurb(&"demolisher")
+	var archer_blurb := TowerInfo.blurb(&"archer")
+	var arrows: Array = TowerInfo.stat_rows(&"archer").filter(
+		func(r: Array) -> bool: return r[0] == "Arrows"
+	)
+	var l3_preview := TowerInfo.next_level_preview(&"archer", 2)
 	TowerInfo.adjacent_reach = false
+	check(not "two arrows" in archer_blurb, "eletd archer blurb drops two arrows")
+	check_eq(arrows[0][1][2], "×1", "eletd level-3 archer shows one arrow")
+	check(not "Arrows" in l3_preview, "eletd L3 preview adds no arrow (%s)" % l3_preview)
+	check("two arrows" in TowerInfo.blurb(&"archer"), "classic archer blurb unchanged")
 	check("Reach" in archer and not "Range" in archer, "archer shows a reach")
 	check("Range" in bard, "bard keeps its aura range")
 	check(not "Range" in preview, "upgrade preview leaves range out (%s)" % preview)

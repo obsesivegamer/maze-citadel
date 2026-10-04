@@ -253,8 +253,13 @@ func _counter_pick(slot: int) -> StringName:
 		options = CLASS_COUNTER[&"air"]
 	# A player who sees armor, air or a boss in the next two waves and owns
 	# almost nothing that answers it buys the answer first, saving up if need be.
+	# Under eletd the top bar also shows the wave after next, so a player sees
+	# two waves ahead even while the current one is still coming in.
+	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40))
+	if sim.adjacent_reach() and sim.spawning():
+		seen += WaveDefs.spawn_list(mini(w + 2, 40))
 	var threats := {}
-	for e in entries + WaveDefs.spawn_list(mini(w + 1, 40)):
+	for e in seen:
 		threats[CreepDefs.CREEPS[e[0]].class] = true
 	for cls in [&"air", &"armored", &"boss"]:
 		if threats.has(cls) and _count(CLASS_COUNTER[cls]) < 2:
