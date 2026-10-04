@@ -163,18 +163,23 @@ p { margin: 0; }
 .btn.is-off:hover { transform: none; filter: none; }
 .get-meta { display: grid; gap: 6px; font-size: var(--step--1); line-height: 1.5; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .get-meta strong { color: var(--text); font-weight: 500; }
-/* With PC builds: one choice per system. The page script puts the visitor's
-   own system first; without it the Mac build leads. */
-.choices { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; min-width: 0; }
-.choice { display: grid; gap: 6px; justify-items: start; min-width: 0; }
-.choice-meta { font-size: var(--step--1); line-height: 1.4; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+/* With PC builds: one slot per system, all the same size, like the cards on
+   the game's build bar. The page script puts the visitor's own system first
+   and makes its button the gold one; without it the Mac build leads. */
+.get-choices { justify-self: stretch; display: grid; gap: 0; padding: 0; }
+.choices { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 18px; padding: 22px 22px 18px; }
+.choice { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.choice .btn { width: 100%; padding: 0 14px; font-size: 1.1875rem; white-space: nowrap; }
 .choice.alt .btn {
-  min-height: 44px; padding: 0 18px; font: 500 var(--step-0)/1 var(--body); color: var(--gold-bright);
+  font-weight: 500; color: var(--gold-bright);
   background: transparent; border: 1px solid var(--gold-dim); box-shadow: none;
 }
 .choice.alt .btn:hover { background: var(--stone-hi); color: var(--gold-bright); }
-.choice.alt .btn svg { width: 16px; height: 16px; }
-.choices + .get-meta { flex-basis: 100%; }
+.choice-meta { display: grid; gap: 2px; font-size: var(--step--1); line-height: 1.4; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.get-choices .get-meta {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px;
+  margin-inline: 22px; padding-block: 12px 16px; border-top: 1px solid var(--stone-line);
+}
 .pill {
   justify-self: start; padding: 2px 10px; border-radius: 999px;
   font: 500 0.75rem/1.6 var(--body); letter-spacing: 0.08em; text-transform: uppercase;
@@ -342,6 +347,10 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+@media (max-width: 960px) {
+  .get-choices { justify-self: start; width: 100%; max-width: 30rem; }
+  .choices { grid-auto-flow: row; }
+}
 @media (max-width: 760px) {
   .keys { grid-template-columns: minmax(0, 1fr); }
 }
@@ -358,8 +367,8 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   .hero::after { display: none; }
   .hero-inner { padding-block: 0 48px; margin-top: -8px; position: relative; }
   .get { justify-self: stretch; }
+  .get-choices { max-width: none; }
   .btn { width: 100%; }
-  .choice { flex: 1 1 100%; justify-items: stretch; }
   main section { padding-block: 64px; }
   .keys dt { min-width: 6rem; }
   .panel { padding: 22px; }
@@ -410,7 +419,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
     <p class="eyebrow">A maze tower defense for {{platforms}}</p>
     <h1 class="title">Maze Citadel</h1>
     <p class="lede">Wall the plateau with towers, bend the demons' road from the portal to the town gate, and hold for forty waves.</p>
-    <div class="get framed" id="download">
+    <div class="get framed<!--if:pc--> get-choices<!--end:pc-->" id="download">
       <!--if:release--><!--if:mac_only-->
       <a class="btn" href="{{dmg_href}}" download>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -427,7 +436,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Download for Mac
           </a>
-          <p class="choice-meta">{{size_mb}} · Apple silicon · macOS {{min_macos_name}} or later</p>
+          <p class="choice-meta"><span>Apple silicon, macOS {{min_macos}} or later</span><span>{{size_mb}}</span></p>
         </div>
         <!--if:windows-->
         <div class="choice alt" data-os="windows">
@@ -435,7 +444,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Download for Windows
           </a>
-          <p class="choice-meta">{{win_size_mb}} · Windows 10 or 11, 64-bit</p>
+          <p class="choice-meta"><span>Windows 10 or 11, 64-bit</span><span>{{win_size_mb}}</span></p>
         </div>
         <!--end:windows-->
         <!--if:linux-->
@@ -444,13 +453,13 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Download for Linux
           </a>
-          <p class="choice-meta">{{linux_size_mb}} · 64-bit x86 Linux</p>
+          <p class="choice-meta"><span>64-bit x86 Linux</span><span>{{linux_size_mb}}</span></p>
         </div>
         <!--end:linux-->
       </div>
       <div class="get-meta">
-        <!--if:prerelease--><span class="pill">Early access</span><!--end:prerelease-->
-        <p><strong>Version {{version}}</strong> · {{release_date}} · <a href="#install">How to install</a></p>
+        <p><!--if:prerelease--><span class="pill">Early access</span> <!--end:prerelease--><strong>Version {{version}}</strong> · {{release_date}}</p>
+        <a href="#install">How to install</a>
       </div>
       <!--end:pc--><!--end:release-->
       <!--if:no_release-->
