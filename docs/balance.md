@@ -16,7 +16,7 @@ It plays the Element TD rules, the game's default. Every table on this page that
 | `--seeds=N` | Sets how many games each row plays |
 | `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
-| `--map=rampart` | Plays on Fallen Rampart |
+| `--map=rampart` | Plays on Fallen Rampart; `--map=causeway` plays on the Winding Causeway, under the Element TD rules only |
 | `--rules=classic` | Plays the classic rule set instead of the Element TD one |
 | `--picks=aqua,dark,dark,interest` | Under the Element TD rules, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
 
@@ -343,6 +343,36 @@ Tried on the way (mean lives, Citadel Normal / Citadel Hard / Rampart Normal / R
 The bot used to hold a pick for as long as an element it could not yet summon safely was worth more than Interest. A Guardian's HP grows with the wave, so that element often never became safe, and after wave 35 no third pick ever arrived to force the held one out. The bot now takes Interest at once when the wave-35 pick is in. It also never lets a forced third pick summon a Guardian just before a boss wave; Interest goes then instead.
 
 Smart bot, Normal, Citadel, 2 seeds: the results are unchanged (won with 8 and 6 lives). The last Interest pick now comes at wave 35 instead of 36 or 38, which adds 18 gold to one game. On Fallen Rampart, Very Hard, seed 1 still loses on wave 35 holding the picks of waves 25 and 30. Before wave 35 is cleared, the bot keeps up to two picks in hand by design.
+
+## Element TD rules: the fixed-lane map (2026-10-04)
+
+The Winding Causeway ([maps.md](maps.md#winding-causeway)) gives the creeps a fixed road of 119 tiles, about 240 m, from wave 1. Nothing can block or lengthen it, so the bots spend nothing on walls. The smart bot weighs every tile in reach of the road or the flyers' line; the other bots build beside the road in the order the creeps pass it. At the rules' HP the map played much easier than the Citadel for the smart bot: on Normal it lost lives only to the wave-40 Dreadlord, and the median wave got a fifth of the way along the road. No global number changed. The map has one number of its own instead: its creeps, Guardians included, get 1.4 times the HP the rules and the difficulty give them (`hp` in its `MapDefs` entry).
+
+4 seeds per row, on the code as it is on this branch:
+
+| Map | Creep HP | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Citadel | rules | smart | normal | 4/4 | 7.0, 6–8 | 8.8 | 37% | 44% | 100% / 100% / 100% / 94% | – |
+| Citadel | rules | smart | hard | 1/4 | 0.8, 0–3 | 7.5 | 36% | 42% | 100% / 100% / 100% / 95% | w40, w40, w30 |
+| Citadel | rules | novice | normal | 0/4 | 0.0, 0–0 | 2.0 | 35% | 22% | – / – / – / – | w6, w6, w6, w6 |
+| Citadel | rules | archers | normal | 0/4 | 0.0, 0–0 | 8.5 | 32% | 26% | 100% / 100% / 100% / – | w38, w38, w38, w38 |
+| Causeway | × 1 | smart | normal | 4/4 | 11.5, 11–12 | 1.8 | 19% | 20% | 36% / 83% / 56% / 100% | – |
+| Causeway | × 1 | smart | hard | 4/4 | 8.8, 5–11 | 3.0 | 22% | 18% | 35% / 95% / 87% / 100% | – |
+| Causeway | × 1.3 | smart | normal | 4/4 | 8.5, 3–11 | 3.5 | 18% | 25% | 67% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | smart | normal | 4/4 | 5.8, 3–9 | 3.8 | 17% | 20% | 76% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | smart | hard | 4/4 | 4.0, 2–6 | 5.8 | 21% | 24% | 84% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | novice | normal | 0/4 | 0.0, 0–0 | 5.5 | 1% | 4% | 100% / 100% / 100% / – | w30, w30, w38, w28 |
+| Causeway | **× 1.4** | archers | normal | 0/4 | 0.0, 0–0 | 5.0 | 1% | 7% | 100% / 100% / – / – | w25, w25, w25, w25 |
+
+Lives lost per wave at × 1.4, all seeds: smart normal {20: 8, 30: 14, 40: 35}, hard {20: 8, 30: 16, 35: 1, 38: 2, 40: 37}. On the Citadel: smart normal {10: 8, 20: 8, 25: 6, 30: 10, 40: 20}, hard {10: 8, 20: 8, 25: 20, 28: 1, 29: 1, 30: 15, 35: 6, 40: 19}.
+
+What it shows:
+
+- At × 1.4 the smart bot on Normal ends with about as many lives as on the Citadel (5.8 against 7.0, the ranges overlapping), which was the aim. × 1.3 left it 1.5 lives better off.
+- The pressure comes differently. On the Causeway the ordinary waves die early (the median wave walks a fifth of the road, against 44% of the Citadel's maze), and nearly every life is lost to the bosses of waves 20, 30 and 40. On the Citadel the maze is short early and the losses spread over the boss waves and the Bulky wave 25.
+- Hard is gentler here than on the Citadel: 4/4 wins with 4.0 lives, against 1/4 with 0.8. The single map number was set for Normal; making Hard match too would need a second one, and Hard is the other team's to retune.
+- The novice, who builds one tower every four seconds, does far better: it reaches waves 28 to 38 instead of dying on wave 6, since the road is long from the start and needs no maze. The archers-only bot does worse (wave 25 against 38), since a single row of Archers beside a 240 m road meets less of each wave than the Citadel's 500 m maze, where every tower borders two corridors.
+- By wave 8 the smart bot has filled the hairpin row, the tiles that reach two stretches of road, with Plague Cauldrons and Archers, and has only a handful of towers anywhere else.
 
 ## Latest run (2026-10-02)
 

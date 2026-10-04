@@ -2,7 +2,8 @@ extends SceneTree
 ## Headless balance run: every strategy × mode over several bot seeds, prints
 ## a markdown table. Seed 0 is the bot's plain plan; other seeds vary its
 ## timing, wall order and tower picks the way different players would.
-## --map=rampart plays the Fallen Rampart (default: Citadel Plateau).
+## --map=rampart plays the Fallen Rampart, --map=causeway the Winding Causeway
+## (Element TD rules only; default: Citadel Plateau).
 ## Usage: godot --headless --path . --script res://tests/bots/run_balance.gd
 ##        [-- --seeds=4 --only=smart:hard --per-wave --twists]
 ## --per-wave also prints how far each wave got (percent of the route).
@@ -39,6 +40,10 @@ func _initialize() -> void:
 	var rules := StringName(Cli.get_str("rules", Game.DEFAULT_RULES))
 	if not rules in GameSim.RULES:
 		printerr("unknown rules %s (rules: %s)" % [rules, ", ".join(GameSim.RULES)])
+		quit(1)
+		return
+	if not MapDefs.offered(map, rules):
+		printerr("%s is not played under %s rules" % [MapDefs.display_name(map), rules])
 		quit(1)
 		return
 	for p in SimElements.parse_picks(Cli.get_str("picks")):

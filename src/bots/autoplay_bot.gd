@@ -1,8 +1,9 @@
 class_name AutoplayBot
 extends RefCounted
 ## Plays a GameSim headless with a fixed strategy, the way a player would:
-## a serpentine maze of 1-tile walls built from the portal side, then
-## upgrades and fusions. Used by the balance runs and by --autoplay.
+## a serpentine maze of 1-tile walls built from the portal side (on a
+## fixed-lane map, towers along the lane: lane_plan), then upgrades and
+## fusions. Used by the balance runs and by --autoplay.
 
 ## The serpentine per map as [row, gap columns, centre], built in order and
 ## each wall from its centre column outwards (default the board's middle).
@@ -151,7 +152,9 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 		_timer = _rng.randf() * DECIDE_EVERY
 	var grid := sim.grid
 	var walls: Dictionary = WALLS_ELETD if sim.adjacent_reach() else WALLS
-	for wall: Array in walls[grid.map]:
+	if not grid.lane.is_empty():
+		plan = lane_plan(grid)
+	for wall: Array in walls.get(grid.map, []):
 		# Build each wall from the middle outwards: the opening towers sit on the
 		# straight route, and the wall bends the path as it grows.
 		var mid: float = wall[2] if wall.size() > 2 else WALL_CENTER
@@ -162,8 +165,21 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 			if not col in wall[1] and not grid.is_blocked(tile) and not grid.is_reserved(tile):
 				plan.append(tile)
 	if strategy == &"smart" and sim.adjacent_reach():
-		_liner = RouteLiner.new(sim, plan, walls[grid.map], _rng)
+		_liner = RouteLiner.new(sim, plan, walls.get(grid.map, []), _rng)
 		skip_reasons = _liner.skip_reasons
+
+
+## On a fixed-lane map there is no maze to build: the plan is every tile
+## beside the lane, in the order the creeps pass them, each tile's sides
+## before its corners.
+static func lane_plan(grid: Grid) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for t in grid.lane:
+		for dir in FlowField.DIRS:
+			var n := t + dir
+			if grid.is_ground(n) and not grid.is_reserved(n) and not n in out:
+				out.append(n)
+	return out
 
 
 func step() -> void:

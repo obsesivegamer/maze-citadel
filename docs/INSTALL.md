@@ -317,7 +317,7 @@ A game run from source uses the same save folder as the installed app.
 tools/check.sh
 ```
 
-This is the one command to run before committing. It imports the project, checks that every asset has a listed license, tests the benchmark scripts, lints and format-checks the code, runs the unit tests, and has the bot play both maps under both rule sets with no window. It finishes with `check: OK`.
+This is the one command to run before committing. It imports the project, checks that every asset has a listed license, tests the benchmark scripts, lints and format-checks the code, runs the unit tests, and has the bot play the Citadel and the Rampart under both rule sets, and the Causeway under Element TD, with no window. It finishes with `check: OK`.
 
 ### 5. Build the app
 

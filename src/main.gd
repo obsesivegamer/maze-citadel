@@ -3,7 +3,8 @@ extends Node3D
 ##
 ## User args (after `--`):
 ##   --scene=spike                              M1 render spike instead of the game
-##   --map=citadel|rampart                       board (default: the last pick)
+##   --map=citadel|rampart|causeway              board (default: the last pick;
+##                                              causeway needs eletd rules)
 ##   --quality=cinematic|balanced|performance   presentation preset
 ##   --<setting>=<value>                        override one preset setting
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays

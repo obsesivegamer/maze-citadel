@@ -8,9 +8,12 @@ extends RefCounted
 ## upgrade or fusion that adds the most per gold, saving up when the best one
 ## is out of reach, and builds only on the bot's serpentine plan. So it lines
 ## the straight route first and turns it into the serpentine a step at a time
-## once a longer route pays more than upgrades (_add_step). Under element
-## picks it buys only what its elements allow, and weighs its picks once per
-## breather against the wave table (_spend_picks).
+## once a longer route pays more than upgrades (_add_step). On a fixed-lane
+## map there is no serpentine: it weighs every tile beside the lane or the
+## flight line, and a tile beside two stretches of lane is worth more simply
+## because it reaches more of the route. Under element picks it buys only
+## what its elements allow, and weighs its picks once per breather against the
+## wave table (_spend_picks).
 
 ## Weight of the wave being planned for, the one after and the one after that.
 const HORIZON: Array[float] = [1.0, 0.6, 0.35]
@@ -79,7 +82,8 @@ const MAX_ELEMENTS := 4
 const WORTH_BUYING := 0.5
 
 var sim: GameSim
-## The serpentine plan: every tile the bot may build on.
+## The serpentine plan, or on a fixed-lane map the tiles in reach of the lane
+## or the flight line: every tile the bot may build on.
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many plan tiles were given up for that reason.
 var skip_reasons := {}
@@ -126,7 +130,14 @@ func _init(
 	var n := ceili(a.distance_to(b) / Grid.TILE)
 	for i in n + 1:
 		samples.append(a.lerp(b, float(i) / n))
-	for tile in plan:
+	# On a fixed lane nothing is built to shape the route, so every ground tile
+	# that reaches the flight line is worth weighing too, not just the lane's.
+	var tiles := plan.duplicate()
+	if not sim.grid.lane.is_empty():
+		for i in Grid.COLS * Grid.ROWS:
+			if sim.grid.is_ground(Grid.tile_of(i)) and not sim.grid.is_reserved(Grid.tile_of(i)):
+				tiles.append(Grid.tile_of(i))
+	for tile: Vector2i in tiles:
 		var c := Grid.center(tile)
 		var k := 0
 		for p in samples:
@@ -135,6 +146,8 @@ func _init(
 				k += 1
 		if k > 0:
 			_air_contact[tile] = k
+			if not tile in plan:
+				plan.append(tile)
 
 
 func decide() -> void:
@@ -308,7 +321,11 @@ func _guardian_foe(e: StringName) -> Dictionary:
 	var lvl := sim.elements.taken(e) + 1
 	return {
 		"w": 0.0,
-		"hp": EletdRules.guardian_hp(lvl, maxi(sim.wave, 1), sim.difficulty),
+		"hp":
+		(
+			EletdRules.guardian_hp(lvl, maxi(sim.wave, 1), sim.difficulty)
+			* MapDefs.hp_mult(sim.grid.map)
+		),
 		"speed": def.speed,
 		"air": false,
 		"cap": INF,
@@ -443,7 +460,7 @@ func _price_towers() -> void:
 ## stops. A plain creep and such a brute FUTURE_AHEAD waves on, of no element.
 func _add_yardsticks(w0: int) -> void:
 	var w := w0 + FUTURE_AHEAD
-	var hp := CreepDefs.max_hp(&"grunt", w, EletdRules.hp_mult(&"grunt", w, sim.difficulty))
+	var hp := CreepDefs.max_hp(&"grunt", w, _hp_mult(&"grunt", w))
 	var plain := {
 		"w": FUTURE_WEIGHT,
 		"hp": hp,
@@ -465,9 +482,9 @@ func _add_yardsticks(w0: int) -> void:
 	_foes.append(brute)
 
 
-## The creep HP multiplier GameSim.spawn_creep applies (mode and rule set).
+## The creep HP multiplier GameSim.spawn_creep applies (mode, rule set, map).
 func _hp_mult(type: StringName, w: int) -> float:
-	return EletdRules.hp_mult(type, w, sim.difficulty)
+	return EletdRules.hp_mult(type, w, sim.difficulty) * MapDefs.hp_mult(sim.grid.map)
 
 
 ## Damage per second a tower deals one foe while it is in reach, counting

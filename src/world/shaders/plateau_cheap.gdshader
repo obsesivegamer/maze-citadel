@@ -1,8 +1,8 @@
 // plateau.gdshader with fewer texture reads, for the terrain-cheap
 // performance switch (PerfFlags); the look is the same. The second grass is
 // read only where the two grasses blend, dirt only on the rim and under ruins,
-// cobbles only on the paved strips, and the ruin mask only when the map has
-// ruins. One screen-space footprint of the position stands in for three of
+// cobbles only on the paved strips, and the ruin and lane masks only when the
+// map has ruins or a lane. One screen-space footprint of the position stands in for three of
 // the four fwidth() calls, and sampling takes gradients from before any
 // branch, so mip selection stays right on pixels next to a mask edge.
 shader_type spatial;
@@ -28,6 +28,9 @@ uniform vec4 paved_south = vec4(-2.0, 26.0, 2.0, 40.0);
 uniform sampler2D ruins : hint_default_black, filter_linear, repeat_disable;
 uniform bool has_ruins = false;
 uniform vec3 ruin_tint : source_color = vec3(0.72, 0.66, 0.58);
+uniform sampler2D lane : hint_default_black, filter_linear, repeat_disable;
+uniform bool has_lane = false;
+uniform vec3 kerb_tint : source_color = vec3(0.62, 0.58, 0.5);
 uniform vec2 blight_center = vec2(0.0, -34.0);
 uniform float blight_radius = 9.0;
 uniform vec3 blight_tint : source_color = vec3(0.45, 0.2, 0.17);
@@ -104,10 +107,17 @@ void fragment() {
 	}
 
 	float pave = max(rect_mask(p, paved_north, fw), rect_mask(p, paved_south, fw));
+	float kerb = 0.0;
+	if (has_lane && in_grid > 0.0) {
+		float lane_k = textureLod(lane, (p + grid_half) / (2.0 * grid_half), 0.0).r * in_grid;
+		pave = max(pave, smoothstep(0.42, 0.58, lane_k));
+		kerb = smoothstep(0.3, 0.45, lane_k) * (1.0 - smoothstep(0.55, 0.7, lane_k));
+	}
 	if (pave > 0.0) {
 		vec3 cob = textureGrad(cobble, p * 0.3, pdx * 0.3, pdy * 0.3).rgb * cobble_tint;
 		col = mix(col, cob, pave);
 	}
+	col = mix(col, col * kerb_tint, kerb);
 
 	float b = 1.0 - smoothstep(blight_radius * 0.25, blight_radius, distance(p, blight_center));
 	col = mix(col, col * blight_tint * 1.6, b * (1.0 - in_grid * 0.7));

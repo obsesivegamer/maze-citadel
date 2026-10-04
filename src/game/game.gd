@@ -66,16 +66,20 @@ var _loading: LoadingScreen
 
 
 ## The map comes from a map switch in progress, else --map, else the last
-## pick; the rules the same way (choose_rules).
+## pick; the rules the same way (choose_rules). A map the rules don't offer
+## (MapDefs.offered) gives way to the default one.
 func _init() -> void:
+	var rules := choose_rules(_carry.get("rules"), Cli.get_str("rules"), Save.setting("rules", ""))
 	var map := StringName(_carry.get("map", Cli.get_str("map", Save.setting("map", ""))))
-	if not MapDefs.has(map):
+	if MapDefs.has(map) and not MapDefs.offered(map, rules) and Cli.get_str("map") == map:
+		push_warning("--map=%s is not offered under %s rules; playing the default" % [map, rules])
+	if not MapDefs.has(map) or not MapDefs.offered(map, rules):
 		map = MapDefs.DEFAULT
 	sim = GameSim.new(map)
 	sim.infinite = _carry.get("infinite", false)
 	sim.twists = _carry.get("twists", false)
 	sim.twist_seed = _carry.get("twist_seed", 0)
-	sim.rules = choose_rules(_carry.get("rules"), Cli.get_str("rules"), Save.setting("rules", ""))
+	sim.rules = rules
 	var level := StringName(_carry.get("difficulty", Cli.get_str("difficulty", "normal")))
 	sim.difficulty = offered_difficulty(level, sim.rules)
 	if sim.difficulty != level and not _carry.has("difficulty"):
@@ -374,9 +378,12 @@ func set_mode(difficulty: StringName, infinite: bool, twists := false) -> bool:
 
 ## Map can change only before wave 1 spawns, like the mode. The board is
 ## rebuilt from scratch (towers placed so far are cleared); the mode carries
-## over and the pick is remembered for the next launch.
+## over and the pick is remembered for the next launch. A map the current
+## rules don't offer is refused.
 func change_map(id: StringName) -> bool:
 	if sim.wave > 0 or id == sim.grid.map or not MapDefs.has(id):
+		return false
+	if not MapDefs.offered(id, sim.rules):
 		return false
 	Save.set_setting("map", String(id))
 	_carry = _carry_with({"map": id})
@@ -385,8 +392,9 @@ func change_map(id: StringName) -> bool:
 
 
 ## Rules change the way the map does: only before wave 1, by rebuilding the
-## board, and remembered for the next launch. The map and modes carry over,
-## and so does the difficulty where the new rules offer it (else Normal).
+## board, and remembered for the next launch. The modes carry over, and so do
+## the map and the difficulty where the new rules offer them (else the
+## default map and Normal).
 func change_rules(rules: StringName) -> bool:
 	if sim.wave > 0 or rules == sim.rules or not rules in GameSim.RULES:
 		return false

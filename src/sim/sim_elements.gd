@@ -190,7 +190,7 @@ func _summon(sim: GameSim, element: StringName, to: int) -> void:
 	_guarding[element] = to
 	var w := maxi(sim.wave, 1)
 	var c := sim.spawn_creep(&"guardian", element, w, sim.grid.spawn_point)
-	c.max_hp = EletdRules.guardian_hp(to, w, sim.difficulty)
+	c.max_hp = EletdRules.guardian_hp(to, w, sim.difficulty) * MapDefs.hp_mult(sim.grid.map)
 	c.hp = c.max_hp
 	c.bounty = 0
 	sim.events.append({"type": &"guardian_spawned", "id": c.id, "element": element, "level": to})

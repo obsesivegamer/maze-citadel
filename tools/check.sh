@@ -28,10 +28,12 @@ echo "== unit tests"
   | grep -qE "^[0-9]+ passed, 0 failed$"
 
 echo "== smoke (headless game, autoplay)"
-# Both rule sets on both maps. The loading-screen boot runs once per rule set
-# (their HUDs differ), which keeps the gate as fast as with three runs.
+# Both rule sets on both mazing maps, and the Causeway under the Element TD
+# rules, the only ones it is played under. The loading-screen boot runs once
+# per rule set (their HUDs differ).
 tools/smoke.sh
 SMOKE_ASYNC=0 tools/smoke.sh 2700 --map=rampart
+SMOKE_ASYNC=0 tools/smoke.sh 1800 --map=causeway
 tools/smoke.sh 2700 --rules=classic
 SMOKE_ASYNC=0 tools/smoke.sh 2700 --rules=classic --map=rampart
 

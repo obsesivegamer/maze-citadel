@@ -2,7 +2,8 @@ class_name Placement
 extends RefCounted
 ## Anti-block validation (GDD §2). A tower may go on a tile only if, with it
 ## in place, the portal still reaches the gate and no ground creep is cut off.
-## Map ruins are never buildable.
+## Map ruins and a fixed lane's tiles are never buildable; the ground beside a
+## lane always is, since creeps never walk it (Grid.GROUND).
 
 enum Result {
 	OK,
@@ -16,6 +17,8 @@ enum Result {
 	OBSTACLE,
 	## Not placement: the tower's element isn't picked yet (eletd, SimElements.needs).
 	LOCKED,
+	## A fixed lane's tile (Grid.is_lane): creeps walk it, nothing is built on it.
+	LANE,
 }
 
 
@@ -37,6 +40,8 @@ static func check(
 		return Result.RESERVED
 	if grid.is_obstacle(tile):
 		return Result.OBSTACLE
+	if grid.is_lane(tile):
+		return Result.LANE
 	if grid.is_blocked(tile):
 		return Result.OCCUPIED
 	if tile in body_tiles:
@@ -76,4 +81,6 @@ static func describe(result: Result) -> String:
 			return "Ruins block this tile"
 		Result.LOCKED:
 			return "Needs its element"
+		Result.LANE:
+			return "Keep the road clear"
 	return "Can't build here"

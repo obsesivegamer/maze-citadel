@@ -144,7 +144,10 @@ static func row(sim: GameSim, choice: StringName) -> Dictionary:
 	if el.summons():
 		r.action = "Summon Guardian"
 		if not maxed:
-			r.hp = EletdRules.guardian_hp(level + 1, maxi(sim.wave, 1), sim.difficulty)
+			r.hp = (
+				EletdRules.guardian_hp(level + 1, maxi(sim.wave, 1), sim.difficulty)
+				* MapDefs.hp_mult(sim.grid.map)
+			)
 	return r
 
 

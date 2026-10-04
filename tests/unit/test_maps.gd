@@ -86,9 +86,12 @@ func test_rampart_wave_walks_from_portal_to_gate() -> void:
 	check(leaked > 0, "an unguarded wave reaches the gate")
 
 
+## The serpentine maps; the fixed-lane map's plan is checked on its own below.
 func test_bot_plan_fits_every_map() -> void:
 	for rules in GameSim.RULES:
 		for id in MapDefs.ORDER:
+			if not MapDefs.lane(id).is_empty():
+				continue
 			var sim := GameSim.new(id)
 			sim.rules = rules
 			var bot := Bot.new(sim, &"archers")
