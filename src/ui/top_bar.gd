@@ -36,6 +36,9 @@ var _wave_total := UiKit.label("", &"Dim", UiTheme.SIZE_BODY)
 var _wave_inf := UiIcon.new(&"infinity", 16.0, UiTheme.TEXT_DIM)
 var _next_caption := UiKit.label("", &"Caption")
 var _next := WaveIcons.new(NEXT_ICON_PX, 13)
+## The wave after next, shown under rules with a long pause between waves.
+var _after_caption := UiKit.label("", &"Caption")
+var _after := WaveIcons.new(NEXT_ICON_PX * 0.8, 11)
 var _call: Button
 var _normal: Button
 var _hard: Button
@@ -118,6 +121,8 @@ func _build_center() -> void:
 	var next_col := UiKit.vbox(1)
 	next_col.add_child(_next_caption)
 	next_col.add_child(_next)
+	next_col.add_child(_after_caption)
+	next_col.add_child(_after)
 	next_col.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(next_col)
 	_call = UiKit.icon_button(_game, &"next", "Call the next wave now (N)", BUTTON_PX)
@@ -308,6 +313,16 @@ func _refresh_next(sim: GameSim) -> void:
 		if has_next:
 			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next)
 		_next.get_parent().tooltip_text = tip
+	var after := next + 1
+	var has_after := (
+		has_next and sim.rules == &"eletd" and after <= sim.last_wave() and not _game.is_over()
+	)
+	var after_twist := sim.twist_for(after) if has_after else &""
+	_after_caption.visible = has_after
+	_after.visible = has_after
+	if _changed(&"after", [after if has_after else 0, after_twist]):
+		_after.show_wave(after if has_after else 0, after_twist)
+		_after_caption.text = "THEN · WAVE %d" % after
 
 
 func _changed(key: StringName, value: Variant) -> bool:
