@@ -44,10 +44,12 @@ const BOLT_HIT_RADIUS := 0.8
 ## Rule sets. &"classic" is the game as released; &"eletd" is the harder
 ## Element TD rebalance being tuned beside it (docs/balance.md).
 const RULES: Array[StringName] = [&"classic", &"eletd"]
-## eletd creep HP as a share of classic. A tower that reaches only the tiles
+## eletd creep HP as a share of classic: ELETD_HP_FROM on wave 1 rising to
+## ELETD_HP_TO on wave 40 (and after). A tower that reaches only the tiles
 ## around it sees each creep for about 2 s, so the bot loses on wave 2 at full
 ## HP (docs/balance.md).
-const ELETD_HP := 0.15
+const ELETD_HP_FROM := 0.15
+const ELETD_HP_TO := 0.15
 ## eletd pause between waves: time to read the next waves and rebuild.
 const ELETD_BREATHER := 30.0
 
@@ -349,6 +351,11 @@ static func hard_hp(w: int) -> float:
 	return lerpf(HARD_HP_FROM, HARD_HP_TO, f)
 
 
+static func eletd_hp(w: int) -> float:
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	return lerpf(ELETD_HP_FROM, ELETD_HP_TO, f)
+
+
 func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> SimCreep:
 	var def: Dictionary = CreepDefs.CREEPS[type]
 	var c := SimCreep.new()
@@ -362,7 +369,7 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
 	if rules == &"eletd":
-		hp_mult *= ELETD_HP
+		hp_mult *= eletd_hp(w)
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)
 	c.hp = c.max_hp
 	c.speed = def.speed
