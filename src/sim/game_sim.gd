@@ -41,6 +41,9 @@ const SUMMON_COUNT := 3
 const SHRED_MAX := 10.0
 const SHRED_TIME := 6.0
 const BOLT_HIT_RADIUS := 0.8
+## Rule sets. &"classic" is the game as released; &"eletd" is the harder
+## Element TD rebalance being tuned beside it (docs/balance.md).
+const RULES: Array[StringName] = [&"classic", &"eletd"]
 
 var grid: Grid
 var field := FlowField.new()
@@ -53,6 +56,8 @@ var infinite := false
 ## `twist_seed`. Set both before wave 1.
 var twists := false
 var twist_seed := 0
+## One of RULES. Set before wave 1.
+var rules: StringName = &"classic"
 ## Last wave started; 0 before wave 1.
 var wave := 0
 ## Seconds until the next wave starts on its own; -1 while one is running.

@@ -297,6 +297,7 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--map=rampart` | Start on Fallen Rampart. `--map=citadel` is the default board. |
 | `--quality=performance` | Start on a quality preset: `cinematic`, `balanced` or `performance` |
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
+| `--rules=eletd` | Play the Element TD rule set that is being tuned (the default is `classic`) |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
 
