@@ -111,8 +111,12 @@ var _radius_scale := PerfFlags.get_float("nature-radius-scale", 1.0)
 var _lod_bias := PerfFlags.get_float("nature-lod-bias", 1.0)
 ## Visibility range (m) for the sets without one (trees, rocks); 0 = any.
 var _tree_range := PerfFlags.get_float("nature-tree-range", 0.0)
-## Small plants fade out at their range instead of popping.
-var _fade := PerfFlags.get_bool("nature-fade", true)
+## Small plants fade out at their range instead of popping. Off Metal they pop
+## where the fade would end: a fading chunk draws in the transparent pass, which
+## gives FSR 2 no depth or motion vectors, so its leaves flicker (issue #22).
+var _fade := PerfFlags.get_bool(
+	"nature-fade", RenderingServer.get_current_rendering_driver_name() == "metal"
+)
 ## Share (0..1) of grass tufts and of flower clumps kept. Thinning drops the
 ## plants whose planting roll was highest, so the rest stay where they were.
 var _grass_share := PerfFlags.get_float("grass-density", 1.0)
@@ -302,6 +306,9 @@ func _scatter(spec: Dictionary, density: Callable, keep_share := Callable()) -> 
 			mmi.visibility_range_end_margin = 20.0
 			if spec.view_range > 0.0 and _fade:
 				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			elif spec.view_range > 0.0:
+				mmi.visibility_range_end = view_range + 20.0
+				mmi.visibility_range_end_margin = 0.0
 		if _lod_bias != 1.0:
 			mmi.lod_bias = _lod_bias
 		if small and _small_lod_bias > 0.0:

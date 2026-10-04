@@ -13,8 +13,10 @@ uniform float scissor = 0.5;
 uniform float height = 7.0;
 // Sway at the top, in world metres.
 uniform float amp = 0.2;
-// Leaf shiver along the normal, in model units.
+// Leaf shiver along the normal, in model units, times the preset's
+// leaf_flutter (0 on Performance, where spatial upscaling makes it shimmer).
 uniform float flutter = 0.0;
+global uniform float leaf_flutter;
 uniform vec3 wind_dir = vec3(0.82, 0.0, -0.57);
 
 void vertex() {
@@ -26,9 +28,9 @@ void vertex() {
 	// Instances are rotated and uniformly scaled: M^-1 = M^T / s^2.
 	float s2 = dot(MODEL_MATRIX[0].xyz, MODEL_MATRIX[0].xyz);
 	VERTEX += transpose(mat3(MODEL_MATRIX)) * world_off / s2;
-	if (flutter > 0.0) {
+	if (flutter * leaf_flutter > 0.0) {
 		float f = sin(TIME * 6.5 + dot(VERTEX, vec3(3.1, 2.3, 2.7)) + phase * 3.0);
-		VERTEX += NORMAL * f * flutter * h;
+		VERTEX += NORMAL * f * flutter * leaf_flutter * h;
 	}
 }
 

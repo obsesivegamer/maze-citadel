@@ -237,3 +237,13 @@ The first Windows build (PR #20's CI artifact) on a real PC: AMD Radeon RX 6950 
 | Balanced, wave 35, vsync on | 0.51, FSR 2 | 60.0 | 60.0 | 16.7 ms | 1.5 ms | 25 ms, 0.06% missed |
 
 Launch: 22.8 s to the board on the first run (shader compile behind the loading screen), 6.5 s after that. Both launches had one ~59 ms frame in wave 1, warm as well as cold, so it isn't shader compilation; the Mac's worst wave-1 frame is 32 ms. Worth a look on this PC with the hitch probe. The 720 px floor barely applies here: a maximized window is 1406 px tall, so Balanced renders at 0.51.
+
+## Foliage flicker on PCs (issue #22, 2026-10-03)
+
+Grass, flowers and bushes flickered around the edge of the map on Windows. Measured on this Mac through Vulkan (MoltenVK) with `tests/perf/flicker.gd`: per 10,000 pixels of the west and east lowland, how many change by more than 24 levels between consecutive frames of the same "full" view (`--shot-frames=60`), with the open board as the control (0.0 in every run).
+
+1. **FSR 2 (Balanced, Cinematic): the distance fade.** Small plants fade out between 100 and 140 m, and each 64 m MultiMesh chunk that is fading draws in the transparent pass, which gives FSR 2 no depth or motion vectors. Forcing that pass without any fade made it worse (13.7 / 14.1 frozen), so the pass is the cause, not the alpha. Off Metal the plants now pop where the fade would end: Balanced at 0.51 went from 6.9 / 8.0 to 1.9 / 0.4. MetalFX temporal never flickered (0.3 / 0.1 before, 0.4 / 0.1 after), so the Mac keeps its fade.
+2. **Spatial upscaling (Performance on both PC and Mac): leaf flutter.** Shivering leaf cards shimmer when MetalFX spatial or FSR 1 upscales them from half size. Performance now turns flutter off through the `leaf_flutter` global shader parameter: 9.3 / 4.1 to 3.8 / 2.0 on Vulkan, 9.9 / 4.3 to 4.0 / 1.9 on Metal. What remains is the whole-plant wind sway; stopping the wind entirely reaches 0.0, but the plants then look frozen.
+
+Ruled out along the way: mip bias, trilinear filtering, shadows at distance, sharper alpha edges and render scale. TAA on top of FSR 1 removed most of the Performance shimmer (5.9 to 0.9 in a Balanced scene) but costs a full-screen pass and wasn't timed or look-checked; it's the next step if the remaining shimmer matters.
+
