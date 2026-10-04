@@ -22,7 +22,7 @@ const CAMERA_TIPS := {
 	&"full": "Full board (R)", &"portal": "Portal close-up (C)", &"gate": "Gate defense (C)"
 }
 const CAMERA_GLYPHS := {&"full": &"cam_full", &"portal": &"cam_portal", &"gate": &"cam_gate"}
-const LOCKED_TIP := "Interest is locked until the leaked creeps are dead"
+const LOCKED_TIP := "Interest is locked until every creep on the board is dead"
 
 var left_panel: PanelContainer
 var center_panel: PanelContainer
@@ -373,7 +373,9 @@ func _refresh_next(sim: GameSim) -> void:
 	var has_next := next <= sim.last_wave() and not _game.is_over()
 	var secs := ceili(sim.countdown) if sim.countdown >= 0.0 else -1
 	var twist := sim.twist_for(next) if has_next else &""
+	var open := sim.elements.unlocked_towers()
 	var dirty := _changed(&"next", next)
+	dirty = _changed(&"open", open) or dirty
 	dirty = _changed(&"twist", twist) or dirty
 	dirty = _changed(&"has_next", has_next) or dirty
 	dirty = _changed(&"secs", secs) or dirty
@@ -394,7 +396,7 @@ func _refresh_next(sim: GameSim) -> void:
 		if has_next and WaveDefs.bulky(next, sim.rules):
 			tip += "\nBulky: %s" % TowerInfo.bulky_text()
 		if has_next:
-			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next, sim.rules)
+			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next, sim.rules, open)
 		_next.get_parent().tooltip_text = tip
 	var after := next + 1
 	var has_after := (

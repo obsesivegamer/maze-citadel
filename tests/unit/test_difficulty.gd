@@ -65,6 +65,28 @@ func test_eletd_leak_holds_interest_until_the_field_is_clear() -> void:
 	check_eq(_count(resumed, &"interest"), 1, "and pays when it runs out")
 
 
+## A Guardian can be summoned, leak and die all between waves: the field is
+## clear then too, so interest must not wait for the next wave's end.
+func test_a_guardian_leak_between_waves_unlocks_once_it_dies() -> void:
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	sim.countdown = 1000.0
+	sim.elements.pick(sim, &"aqua")
+	sim.elements.granted += 1
+	sim.elements.pick(sim, &"flame")
+	var leak := _until(sim, &"leaked")
+	check_eq(_count(leak, &"interest_locked"), 1, "the Guardian's leak locks interest")
+	check_eq(sim.phase, GameSim.Phase.BUILD, "still between waves")
+	for c: SimCreep in sim.creeps.duplicate():
+		sim.kill(c)
+	var held := sim.interest_timer
+	var after := _run(sim, 1.0)
+	check_eq(_count(after, &"interest_unlocked"), 1, "unlocked once the field is clear")
+	check(not sim.interest_locked, "unlocked")
+	check_eq(sim.phase, GameSim.Phase.BUILD, "before any wave is cleared")
+	check(not is_equal_approx(sim.interest_timer, held), "and the timer runs again")
+
+
 func test_classic_leaks_never_lock_interest() -> void:
 	var sim := _leaking_wave(&"classic")
 	_until(sim, &"leaked")

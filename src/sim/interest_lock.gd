@@ -13,7 +13,8 @@ static func on_leak(sim: GameSim) -> void:
 	sim.events.append({"type": &"interest_locked"})
 
 
-## Called when the last creep on the field dies and the sim returns to BUILD.
+## Called whenever the field is empty, between waves too: a Guardian can be
+## summoned, leak and die before the next wave starts.
 static func on_field_clear(sim: GameSim) -> void:
 	if not sim.interest_locked:
 		return

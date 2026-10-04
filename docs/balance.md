@@ -338,6 +338,12 @@ Tried on the way (mean lives, Citadel Normal / Citadel Hard / Rampart Normal / R
 | Unlocked purchases counted only for what they add over the last purchase the budget buys anyway | Took Interest with the free first pick in 3 of 4 games; 5.5 on Citadel Normal with one game lost. Dropped |
 | **Ten waves fading by 0.6, purchases counted at half the best one's value per gold or more** | **6.2 / 1.0 / 5.0 / 0.0, the bot above** |
 
+## Element TD rules: the smart bot's last picks (2026-10-04)
+
+The bot used to hold a pick for as long as an element it could not yet summon safely was worth more than Interest. A Guardian's HP grows with the wave, so that element often never became safe, and after wave 35 no third pick ever arrived to force the held one out. The bot now takes Interest at once when the wave-35 pick is in. It also never lets a forced third pick summon a Guardian just before a boss wave; Interest goes then instead.
+
+Smart bot, Normal, Citadel, 2 seeds: the results are unchanged (won with 8 and 6 lives). The last Interest pick now comes at wave 35 instead of 36 or 38, which adds 18 gold to one game. On Fallen Rampart, Very Hard, seed 1 still loses on wave 35 holding the picks of waves 25 and 30. Before wave 35 is cleared, the bot keeps up to two picks in hand by design.
+
 ## Latest run (2026-10-02)
 
 | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Boss walked w10 / w20 / w30 / w40 | Losses |

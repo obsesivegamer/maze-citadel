@@ -188,13 +188,17 @@ func decide() -> void:
 ## route alone: the best pick it may take now, if no better one has to wait
 ## for a stronger route (_pick_now). A held pick waits for a later breather,
 ## but no more than MAX_HELD are kept past one with no Guardian walking: then
-## the one that costs fewest lives goes (Interest costs none).
+## the one that costs fewest lives goes (Interest costs none), and never a
+## Guardian ahead of a boss wave.
 func _spend_picks() -> void:
 	var options := _pick_options()
 	var choice := _pick_now(options)
 	if choice != &"":
 		sim.elements.pick(sim, choice)
-		options = options.filter(func(o: Dictionary) -> bool: return o.choice != choice)
+	options = options.filter(
+		func(o: Dictionary) -> bool:
+			return o.choice != choice and (o.choice == SimElements.INTEREST or _guardian_window())
+	)
 	if sim.elements.pending_picks() > MAX_HELD and not _guardian_walking() and options:
 		options.sort_custom(
 			func(x: Dictionary, y: Dictionary) -> bool:
@@ -205,7 +209,10 @@ func _spend_picks() -> void:
 
 ## The best pick worth taking now, or &"" to hold: an element whose Guardian
 ## the route kills on its first pass (the free first pick has none), at a
-## moment fit for one, or Interest when no element is worth more.
+## moment fit for one, or Interest when no element is worth more. Once the
+## last pick is in, Interest goes whatever an element is worth: a Guardian
+## the route can't kill only grows with the waves, and holding the pick
+## would carry it to the end of the game.
 func _pick_now(options: Array[Dictionary]) -> StringName:
 	var best := -INF
 	var now: Dictionary = {}
@@ -214,7 +221,8 @@ func _pick_now(options: Array[Dictionary]) -> StringName:
 		var ready: bool = o.lives == 0 and (o.choice == SimElements.INTEREST or _guardian_window())
 		if ready and (now.is_empty() or o.worth > now.worth):
 			now = o
-	if now.is_empty() or (now.choice == SimElements.INTEREST and best > now.worth):
+	var more_coming := _next_pick_wave() < WaveDefs.count()
+	if now.is_empty() or (now.choice == SimElements.INTEREST and best > now.worth and more_coming):
 		return &""
 	return now.choice
 

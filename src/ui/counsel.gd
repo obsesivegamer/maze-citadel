@@ -329,10 +329,12 @@ static func tower_vs_wave(id: StringName, wave: int, rules: StringName = &"class
 
 
 ## The top bar's one-line counter for the next-wave chip tooltip, e.g.
-## "Counter: Cannon Tower 350%, Demolisher 350%".
-static func summary(wave: int, rules: StringName = &"classic") -> String:
+## "Counter: Cannon Tower 350%, Demolisher 350%". Names only towers in `open`.
+static func summary(
+	wave: int, rules: StringName = &"classic", open: Array[StringName] = TowerDefs.BUILD_ORDER
+) -> String:
 	var parts := PackedStringArray()
-	for p in picks(wave, rules):
+	for p in picks(wave, rules, 2, open):
 		var vs: String = (" vs " + p.vs) if p.vs != "" else ""
 		parts.append("%s %s%s" % [TowerInfo.full_name(p.id), _pct(p.mult, false), vs])
 	return "Counter: " + ", ".join(parts)

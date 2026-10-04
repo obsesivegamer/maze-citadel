@@ -130,7 +130,11 @@ static func start_gold(rules: StringName) -> int:
 	return START_GOLD if rules == &"eletd" else GameSim.START_GOLD
 
 
-## A Grunt is the plain creep (HP × 1), so this is a lone Ogre of wave `w`.
+## A Grunt is the plain creep (HP × 1), so this is a lone Ogre of wave `w`,
+## Infinite's growth past the last wave included: a kept pick can be spent
+## there.
 static func guardian_hp(level: int, w: int, difficulty: StringName) -> float:
 	var ogre: float = CreepDefs.max_hp(&"grunt", w) * CreepDefs.CREEPS[&"ogre"].hp
+	if w > WaveDefs.count():
+		ogre *= pow(GameSim.INFINITE_HP_GROWTH, w - WaveDefs.count())
 	return ogre * hp(w) * difficulty_hp(difficulty, w) * GUARDIAN_HP[level - 1]

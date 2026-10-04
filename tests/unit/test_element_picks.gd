@@ -273,6 +273,43 @@ func test_composite_starters_say_so() -> void:
 	check(TowerInfo.counters(&"archer").begins_with("Strong vs Dark · Weak vs Stone"), "classic")
 
 
+## The Field Guide's wheel lists under each element the towers that attack
+## with it in the sim, so the composite starters are under none.
+func test_guide_wheel_lists_the_towers_the_sim_gives_each_element() -> void:
+	var sim := _eletd()
+	TowerInfo.composite = true
+	for e in Damage.WHEEL:
+		var want := PackedStringArray()
+		for id in TowerDefs.BUILD_ORDER + TowerDefs.EPICS:
+			if sim.elements.attack_element(id) == e:
+				want.append(TowerInfo.short_name(id))
+		check_eq(FieldGuide.towers_with(&"element", e), want, "%s" % e)
+	TowerInfo.composite = false
+
+
+## The next-wave chip's "Counter:" line names only towers that can be built,
+## and names more once a pick opens them.
+func test_next_wave_counter_names_only_open_towers() -> void:
+	var game := _eletd_game()
+	game.camera = CameraRig.new()
+	var bar := HudTopBar.new()
+	bar.setup(game)
+	var counter := func() -> String:
+		bar.refresh()
+		var tip: String = bar._next.get_parent().tooltip_text
+		return tip.substr(tip.find("Counter:"))
+	var before: String = counter.call()
+	for id in TowerDefs.BUILD_ORDER:
+		if game.sim.elements.needs(id) != "":
+			check(not before.contains(TowerInfo.full_name(id)), "%s is locked" % id)
+	game.pick_element(&"aqua")
+	check(counter.call().contains(TowerInfo.full_name(&"frost")), "Frost Spire once Aqua is in")
+	bar.free()
+	game.camera.camera.free()
+	game.camera.free()
+	game.free()
+
+
 func test_counsel_names_only_open_towers_and_composite_numbers() -> void:
 	var sim := _eletd()
 	var open := sim.elements.unlocked_towers()

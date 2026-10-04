@@ -410,7 +410,10 @@ func _apply_twist(c: SimCreep, twist: StringName) -> void:
 
 
 func _check_wave_cleared() -> void:
-	if phase != Phase.WAVE or not _spawn_queue.is_empty() or not creeps.is_empty():
+	if not _spawn_queue.is_empty() or not creeps.is_empty():
+		return
+	InterestLock.on_field_clear(self)
+	if phase != Phase.WAVE:
 		return
 	events.append({"type": &"wave_cleared", "wave": wave})
 	elements.on_wave_cleared(self)
@@ -420,7 +423,6 @@ func _check_wave_cleared() -> void:
 		return
 	phase = Phase.BUILD
 	countdown = breather()
-	InterestLock.on_field_clear(self)
 
 
 # --- Creeps -----------------------------------------------------------------

@@ -258,11 +258,15 @@ func _rule() -> Control:
 	return c
 
 
-## Short names of the towers whose `key` stat is `value`, buildable first.
+## Short names of the towers whose `key` stat is `value`, buildable first. The
+## element is the one they attack with under these rules (composite starters).
 static func towers_with(key: String, value: StringName) -> PackedStringArray:
 	var out := PackedStringArray()
 	for id in TowerDefs.BUILD_ORDER + TowerDefs.EPICS:
-		if TowerDefs.TOWERS[id].get(key, &"") == value:
+		var v: StringName = (
+			TowerInfo.element_of(id) if key == "element" else TowerDefs.TOWERS[id].get(key, &"")
+		)
+		if v == value:
 			out.append(TowerInfo.short_name(id))
 	return out
 

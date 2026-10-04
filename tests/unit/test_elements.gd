@@ -146,6 +146,20 @@ func test_waves_cleared_together_still_grant_their_pick() -> void:
 	check_eq(sim.elements.pending_picks(), 2, "start + wave 5")
 
 
+func test_a_pick_comes_when_its_wave_is_cleared_not_when_it_starts() -> void:
+	var sim := _eletd()
+	_clear_to(sim, 4)
+	sim.drain_events()
+	sim.start_next_wave()
+	sim.step()
+	check_eq(_count(sim.drain_events(), &"pick_granted"), 0, "no pick as wave 5 starts")
+	check_eq(sim.elements.pending_picks(), 1, "still only the start pick")
+	var types := _play_out(sim).map(func(e: Dictionary) -> StringName: return e.type)
+	check(types.find(&"wave_cleared") >= 0, "wave 5 cleared")
+	check(types.find(&"pick_granted") > types.find(&"wave_cleared"), "its pick comes after")
+	check_eq(sim.elements.pending_picks(), 2, "start + wave 5")
+
+
 func test_first_element_pick_is_free_later_ones_summon() -> void:
 	var sim := _eletd()
 	check(sim.elements.pick(sim, &"interest"), "interest first")
@@ -187,6 +201,28 @@ func test_guardian_hp_climbs_with_the_level_it_guards() -> void:
 		var share: float = [0.5, 0.8, 1.2][lvl - 1]
 		var want := 60.0 * pow(1.105, 19) * 12.0 * EletdRules.hp(20) * share
 		check_near(EletdRules.guardian_hp(lvl, 20, &"normal"), want, 1e-2, "level %d" % lvl)
+
+
+## Picks are kept, so one can be spent past wave 40 in Infinite: its Guardian
+## is still that share of a lone Ogre of the wave it enters on, as the sim
+## would spawn the Ogre then (boss-wave tuning aside), at every difficulty.
+func test_guardian_is_a_share_of_the_current_ogre_in_infinite_too() -> void:
+	for difficulty in EletdRules.DIFFICULTIES:
+		var sim := _eletd()
+		sim.infinite = true
+		sim.difficulty = difficulty
+		for w in [5, 25, 41, 60]:
+			sim.wave = w
+			var ogre := sim.spawn_creep(&"ogre", &"", w, sim.grid.spawn_point).max_hp
+			for lvl in range(1, 4):
+				var share: float = [0.5, 0.8, 1.2][lvl - 1]
+				var got := EletdRules.guardian_hp(lvl, w, difficulty)
+				check_near(got / ogre, share, 1e-4, "%s wave %d level %d" % [difficulty, w, lvl])
+		sim.elements.pick(sim, &"aqua")
+		sim.elements.granted += 1
+		sim.elements.pick(sim, &"dark")
+		var lone := sim.spawn_creep(&"ogre", &"", 60, sim.grid.spawn_point).max_hp
+		check_near(_guardian(sim).max_hp / lone, 0.5, 1e-4, "%s: summoned on 60" % difficulty)
 
 
 func test_guardian_leak_costs_three_and_it_walks_again() -> void:
