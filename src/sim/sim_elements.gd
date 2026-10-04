@@ -44,6 +44,11 @@ func pending_picks() -> int:
 	return granted - spent if enabled else 0
 
 
+## True once the free first element pick is spent: every later one summons.
+func summons() -> bool:
+	return _element_picked
+
+
 ## How much of `choice` the player has or has coming: an element's level
 ## counting its Guardian, or the Interest picks taken.
 func taken(choice: StringName) -> int:

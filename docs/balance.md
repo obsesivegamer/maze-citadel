@@ -25,7 +25,7 @@ A full run plays 4 seeds of every row and takes about 8 minutes on one core. Opt
 | Bot | Plays like |
 |---|---|
 | smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics of all four families between waves, only with gold to rebuild the freed wall tile; ignores twists |
-| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)) |
+| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)). Weighs its element picks once per breather against the wave table, and summons a Guardian only when its route can kill it ([below](#element-td-rules-the-smart-bot-plays-its-picks-2026-10-04)) |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
@@ -291,6 +291,52 @@ What it shows:
 - The novice now dies on wave 6, where it used to live to wave 20 or later. Its Cannons no longer deal double to the Verdant Footmen of wave 3, nor its Archers to the Dark Ghouls of wave 6, and its first Guardian leaks.
 - The archers-only bot lives longer, to wave 38 against 33: composite arrows lose nothing to the Stone waves that used to halve them, and three Interest picks pay more.
 - The ground-only bot still dies on wave 5, the first Harpies.
+
+## Element TD rules: the smart bot plays its picks (2026-10-04)
+
+The smart bot spent each pick the moment it had it, on the element of the best purchase it was locked out of, and summoned every Guardian as soon as the pick came. About one Guardian in seven got through, at 3 lives each. It now plays its picks the way a player who knows the wave table would, so that it stays a fair yardstick for these rules. Nothing in the game's numbers changed.
+
+Once in each breather, and once before wave 1, it weighs every pick against the creeps of the next ten waves, reading further waves for less. Those are the waves the Field Guide lists for anyone to read. An element is worth what the purchases it unlocks add for the gold the bot will have before the next pick, counting only purchases worth at least half as much per gold as the best one open now, since it would never get round to the rest. A level that lets every Plague Cauldron climb a step can be worth more than a new element's best tower. Interest is worth the gold it would add by the next pick, and it wins only when no element is worth more.
+
+A Guardian is treated as a lone boss the route must kill, and its damage is summed the way the bot already sums it for its lone brute. The bot summons one only when its route would deal one and a half times the Guardian's HP in one pass. It also waits for a breather that comes before a wave without a boss, and never summons a second Guardian while one is walking. Otherwise it keeps the pick in hand, but it never takes more than two picks into a wave with no Guardian walking. A third goes on whatever costs the fewest lives, which is Interest when that is still open. It builds from at most four elements. The balance runner now prints each game's picks (`picks: dark@0, dark@5, ...`, the wave being the last one started) and how many Guardians were summoned, got through and cost lives.
+
+Smart bot, 4 seeds per row, before (the bot of the section above) and after:
+
+| Map | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Citadel | before | normal | 3/4 | 3.8, 0–8 | 8.8 | 31% | 43% | 100% / 100% / 100% / 98% | w40 |
+| Citadel | after | normal | 4/4 | 6.2, 3–8 | 8.8 | 37% | 44% | 100% / 100% / 100% / 96% | – |
+| Citadel | before | hard | 1/4 | 0.2, 0–1 | 6.8 | 31% | 41% | 100% / 100% / 100% / 99% | w40, w30, w36 |
+| Citadel | after | hard | 1/4 | 1.0, 0–4 | 7.5 | 36% | 42% | 100% / 100% / 100% / 96% | w40, w40, w30 |
+| Rampart | before | normal | 2/4 | 1.5, 0–4 | 9.8 | 28% | 41% | 100% / 100% / 100% / 93% | w36, w36 |
+| Rampart | after | normal | 3/4 | 5.0, 0–9 | 8.8 | 25% | 40% | 100% / 100% / 100% / 92% | w40 |
+| Rampart | before | hard | 0/4 | 0.0, 0–0 | 9.0 | 28% | 39% | 100% / 100% / 100% / 96% | w36, w40, w40, w35 |
+| Rampart | after | hard | 0/4 | 0.0, 0–0 | 9.8 | 26% | 39% | 100% / 100% / 100% / 97% | w40, w40, w40, w30 |
+
+Guardians, all 4 seeds: before, 16 of 109 got through (3 to 5 in each row) and cost 48 lives; after, none of 73 did. Lives lost per wave after: Citadel normal {10: 8, 20: 8, 25: 6, 30: 10, 40: 23}, hard {10: 8, 20: 8, 25: 20, 28: 1, 29: 1, 30: 15, 35: 6, 40: 18}; Rampart normal {10: 8, 20: 8, 25: 16, 29: 2, 30: 10, 40: 16}, hard {10: 8, 20: 8, 23: 5, 25: 26, 29: 2, 30: 12, 35: 6, 39: 1, 40: 13}.
+
+Three games, read as a player would:
+
+- **Citadel, Normal, seed 0** (won, 8 lives): `dark@0, dark@5, dark@10, interest@15, flame@20, interest@25, flame@30, interest@36`. Dark first because the Plague Cauldron's poison ignores armor, reaches flyers and does double to Aqua creeps, and the first ten waves bring armored Footmen and Tanks on 3, 7 and 9, Harpies on 5 and Aqua on 4 and 9. The next two Dark levels let all its Cauldrons climb a step (in the games traced it had about fifteen by wave 5). At wave 15 nothing a new element unlocks is worth half as much per gold as the best purchase open, so it takes Interest. Flame comes at 20, for Demolishers to use siege on the armored stretch of waves 21 to 25. It holds the wave-35 pick for one breather, because no Guardian it could summon would die on its first pass. Then it takes Interest, since too few waves are left for a level to pay.
+- **Fallen Rampart, Normal, seed 1** (won, 9 lives): `dark@0, dark@5, dark@10, flame@15, light@20, light@25, flame@30, interest@38`. It goes three deep in Dark as above and ends with 26 level-3 Cauldrons. Then come Flame for the armored waves, Light at 20 and 25 for Ballistas (Light does double to the Dark creeps of waves 25 and 32, and the Ballista hits Harpies), and a second Flame level at 30 for the armored waves 33, 35 and 38. It holds the wave-35 pick through three breathers, because no Guardian it could summon then would die on its first pass, and at wave 38 it takes the gold.
+- **Fallen Rampart, Normal, seed 2** (won, 5 lives): `dark@0, dark@5, dark@10, interest@15, flame@20, interest@25, light@30, flame@35`. It is the same build, with Interest where no element paid, and every Guardian, including the one summoned at 35, died on its first pass.
+
+What it shows:
+
+- Mean lives rise on both maps on Normal (3.8 to 6.2 on the Citadel, 1.5 to 5.0 on the Rampart) and on the Citadel on Hard. Rampart Hard stays at 0, though three of its four games now last until wave 40. The gain is about what the Guardians used to cost, 2 to 4 lives a game.
+- Every game builds the same core: Dark to level 3 by wave 10, then Flame, and Light in most games. That is three or four elements, with Interest when nothing else pays.
+- A new element's towers come slowly. The Demolishers from a wave-15 or wave-20 Flame pick first appear around wave 30, because Archer upgrades stay cheaper per gold until then. That comes from the composite starters' strength and the per-gold buyer, not from the picks, and is left for the retune.
+- The losses are where they were: the Bulky wave 25, the boss waves and the Dreadlord.
+
+Tried on the way (mean lives, Citadel Normal / Citadel Hard / Rampart Normal / Rampart Hard, 4 seeds unless a row says otherwise):
+
+| Pick valuation | Result |
+|---|---|
+| Best purchase an element unlocks, against the best one open | Took Interest with the free first pick, because the starters are the best value per gold early on. Scaled by the coming bounty instead, it took Dark first but lost both Citadel Normal games it played. Dropped |
+| Unlocked purchases within the budget, all counted, ten waves fading by 0.85 | 4.8 / 0.8 / 1.8 / 1.2. Picks sat unused for 10 to 15 waves: Aqua at 25 and no Frost Spire ever built |
+| The same, at most three elements | 3.5 / 0.0 / 4.5 / 1.2 |
+| Unlocked purchases counted only for what they add over the last purchase the budget buys anyway | Took Interest with the free first pick in 3 of 4 games; 5.5 on Citadel Normal with one game lost. Dropped |
+| **Ten waves fading by 0.6, purchases counted at half the best one's value per gold or more** | **6.2 / 1.0 / 5.0 / 0.0, the bot above** |
 
 ## Latest run (2026-10-02)
 

@@ -91,16 +91,24 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	var start := {}
 	var banked := {}
 	var fly_route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
+	var picks: Array[String] = []
+	var guardians := {"summoned": 0, "leaked": {}, "lives": 0}
 	while sim.time < MAX_GAME_SECONDS:
 		var wave_before := sim.wave
 		bot.step()
 		if sim.wave != wave_before:
 			banked[sim.wave] = sim.gold
 		for e in sim.drain_events():
+			if e.type == &"pick_spent":
+				picks.append("%s@%d" % [e.choice, sim.wave])
+			elif e.type == &"guardian_spawned":
+				guardians.summoned += 1
 			if e.type == &"leaked":
 				var c := sim.creep(e.id)
 				lost_at[c.wave] = lost_at.get(c.wave, 0) + e.cost
 				if c.type == &"guardian":
+					guardians.leaked[c.id] = true
+					guardians.lives += e.cost
 					continue
 				walked[c.wave] = 1.0
 				if c.boss:
@@ -159,6 +167,13 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	)
 	if sim.elements.enabled:
 		printerr("    elements: %s" % _elements(sim))
+		printerr("    picks: %s" % ", ".join(picks))
+		printerr(
+			(
+				"    guardians: %d summoned, %d leaked, %d lives"
+				% [guardians.summoned, guardians.leaked.size(), guardians.lives]
+			)
+		)
 	return out
 
 
