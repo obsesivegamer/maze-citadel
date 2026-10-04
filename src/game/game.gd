@@ -80,9 +80,23 @@ func _init() -> void:
 		push_warning(
 			"--difficulty=%s is not offered under %s rules; playing normal" % [level, sim.rules]
 		)
+	_apply_cli_picks()
 	_carry = {}
 	TowerInfo.adjacent_reach = sim.adjacent_reach()
 	Coords.map = map
+
+
+## --picks=aqua,dark,interest: element levels and Interest set up at the
+## start, with no Guardians (SimElements.apply_picks).
+func _apply_cli_picks() -> void:
+	if not Cli.has("picks"):
+		return
+	var picks := SimElements.parse_picks(Cli.get_str("picks"))
+	var bad := picks.filter(func(p: StringName) -> bool: return not SimElements.is_choice(p))
+	if sim.rules != &"eletd" or not bad.is_empty():
+		push_warning("--picks needs --rules=eletd and elements or interest; ignored")
+		return
+	sim.elements.apply_picks(picks)
 
 
 func _ready() -> void:

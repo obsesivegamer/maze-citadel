@@ -116,6 +116,7 @@ func test_breather_follows_the_rules() -> void:
 		var sim := GameSim.new()
 		sim.rules = rules
 		sim.gold = 1000
+		sim.elements.apply_picks([&"stone"])
 		sim.build(Vector2i(2, 20), &"runesmith")
 		sim.start_next_wave()
 		_run(sim, 12.0)

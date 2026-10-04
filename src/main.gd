@@ -10,6 +10,7 @@ extends Node3D
 ##   --twists [--seed=<n>]                      Twists mode, optionally a fixed schedule
 ##   --rules=classic|eletd                      rule set (default: classic)
 ##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
+##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit

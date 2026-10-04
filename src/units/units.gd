@@ -98,6 +98,9 @@ func _acquire(c: SimCreep, alpha: float) -> CreepView:
 ## first appearance of a type doesn't build its rig mid-wave.
 func prewarm(per_type := 1) -> void:
 	for type in CreepDefs.CREEPS:
+		# Guardians walk only under the eletd rules (SimElements).
+		if type == &"guardian" and not _game.sim.elements.enabled:
+			continue
 		var pool: Array = _pools.get(type, [])
 		_pools[type] = pool
 		for i in per_type:

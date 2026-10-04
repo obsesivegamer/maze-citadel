@@ -299,6 +299,7 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
 | `--rules=eletd` | Play the Element TD rule set that is being tuned (the default is `classic`) |
 | `--difficulty=hard` | Start on a difficulty: `normal` or `hard`, and under `--rules=eletd` also `easy` or `very_hard` |
+| `--picks=aqua,dark,dark,interest` | Under `--rules=eletd`, start with these element levels and Interest picks already taken, with no Guardians to kill. They come on top of the picks the game hands out. Meant for tests, screenshots and experiments. |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
 

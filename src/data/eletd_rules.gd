@@ -65,6 +65,23 @@ const BULKY_HP := 2.5
 const BULKY_BOUNTY := 2
 const BULKY_LIVES := 2
 const BULKY_SCALE := 1.3
+## Element picks (SimElements): one at the start and one as each of these
+## waves is cleared, 8 in all against 18 element levels, so no game can have
+## everything.
+const PICK_WAVES: Array[int] = [5, 10, 15, 20, 25, 30, 35]
+const MAX_ELEMENT_LEVEL := 3
+## The other use of a pick: INTEREST_PICK_RATE more interest and
+## INTEREST_PICK_CAP more gold per tick, at most INTEREST_PICKS times.
+const INTEREST_PICKS := 3
+const INTEREST_PICK_RATE := 0.01
+const INTEREST_PICK_CAP := 10
+## The starter towers need no element and deal composite damage: the same to
+## every creep element, composite armor included. The Bard needs none either.
+const COMPOSITE_TOWERS: Array[StringName] = [&"archer", &"cannon"]
+## A Guardian's HP for the element level it guards, as a share of a lone Ogre
+## of the current wave (without any wave's own boss tuning). A first guess.
+const GUARDIAN_HP: Array[float] = [0.5, 0.8, 1.2]
+const GUARDIAN_LIVES := 3
 
 
 ## The difficulties rule set `rules` offers, easiest first.
@@ -107,3 +124,13 @@ static func hp(w: int) -> float:
 static func armored_hp(w: int) -> float:
 	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
 	return maxf(hp(w), lerpf(HP_FROM, ARMORED_HP_TO, f * f))
+
+
+static func start_gold(rules: StringName) -> int:
+	return START_GOLD if rules == &"eletd" else GameSim.START_GOLD
+
+
+## A Grunt is the plain creep (HP × 1), so this is a lone Ogre of wave `w`.
+static func guardian_hp(level: int, w: int, difficulty: StringName) -> float:
+	var ogre: float = CreepDefs.max_hp(&"grunt", w) * CreepDefs.CREEPS[&"ogre"].hp
+	return ogre * hp(w) * difficulty_hp(difficulty, w) * GUARDIAN_HP[level - 1]

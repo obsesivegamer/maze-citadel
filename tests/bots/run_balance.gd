@@ -40,6 +40,11 @@ func _initialize() -> void:
 		printerr("unknown rules %s (rules: %s)" % [rules, ", ".join(GameSim.RULES)])
 		quit(1)
 		return
+	for p in SimElements.parse_picks(Cli.get_str("picks")):
+		if rules != &"eletd" or not SimElements.is_choice(p):
+			printerr("--picks takes elements and interest, under --rules=eletd (got %s)" % p)
+			quit(1)
+			return
 	var runs: Array = RUNS
 	if only != "":
 		runs = []
@@ -78,6 +83,7 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	sim.twists = twists
 	sim.twist_seed = bot_seed + 1
 	sim.rules = StringName(Cli.get_str("rules", "classic"))
+	sim.elements.apply_picks(SimElements.parse_picks(Cli.get_str("picks")))
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
@@ -94,11 +100,14 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 			if e.type == &"leaked":
 				var c := sim.creep(e.id)
 				lost_at[c.wave] = lost_at.get(c.wave, 0) + e.cost
+				if c.type == &"guardian":
+					continue
 				walked[c.wave] = 1.0
 				if c.boss:
 					boss_walked[c.wave] = 1.0
 		for c in sim.creeps:
-			if c.leaked or c.progress <= 0.0 or is_inf(c.progress):
+			# A Guardian (eletd) is no part of its wave: only its leaks count.
+			if c.leaked or c.progress <= 0.0 or is_inf(c.progress) or c.type == &"guardian":
 				continue
 			if not start.has(c.id):
 				# The route as it stood when this creep set off.
@@ -148,6 +157,8 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 			]
 		)
 	)
+	if sim.elements.enabled:
+		printerr("    elements: %s" % _elements(sim))
 	return out
 
 
@@ -214,6 +225,15 @@ func _leaks(results: Array[Dictionary]) -> Dictionary:
 			total[w] = total.get(w, 0) + r.lost_at[w]
 	total.sort()
 	return total
+
+
+## Element levels and Interest picks at the end of a game, e.g. "aqua 2, interest 1".
+func _elements(sim: GameSim) -> String:
+	var parts: Array[String] = []
+	for choice: StringName in Damage.WHEEL + [SimElements.INTEREST]:
+		if sim.elements.taken(choice) > 0:
+			parts.append("%s %d" % [choice, sim.elements.taken(choice)])
+	return ", ".join(parts)
 
 
 func _mode(difficulty: StringName) -> String:

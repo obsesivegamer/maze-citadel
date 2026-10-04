@@ -18,6 +18,7 @@ A full run plays 4 seeds of every row and takes about 8 minutes on one core. Opt
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
 | `--map=rampart` | Plays on Fallen Rampart |
 | `--rules=eletd` | Plays the Element TD rule set instead of the classic one |
+| `--picks=aqua,dark,dark,interest` | Under `--rules=eletd`, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
 
 ## The bots
 
@@ -265,6 +266,31 @@ Easy never leaks, and Very Hard is lost late in both games, on the armored waves
 Element TD sends long, tight streams, so how much of the lane a maze covers matters more than any one tower. Under `eletd` every group except a boss now has one and a half times the creeps, 0.6 s apart instead of 0.9 (fast creeps 0.35 s instead of 0.5). Each creep carries the matching share of the HP and the bounty, so a wave's total HP and gold are unchanged. Waves 14, 27 and 34 are now composite (every element deals 90%), and waves 12, 18, 25 and 37 are Bulky (half the creeps, each with 2.5 times the HP and twice the bounty, 2 lives a leak). None of this was tuned here.
 
 It barely moves the smart bot on Normal. Over the same two Citadel seeds it went from 11.0 lives (10 and 12) to 12.0 (12 in both), with 9.0 close calls a game against 7.0 before. It still loses lives only to the wave-10, 20 and 30 bosses: {10: 4, 20: 4, 30: 8}. The composite and Bulky waves cost it nothing, even though a Bulky wave carries about a quarter more HP than the wave it replaces. They are left for the retune.
+
+## Element TD rules: element picks and Guardians (2026-10-04)
+
+Under `eletd` a tower now needs its element: one pick at the start and one after each of waves 5, 10, 15, 20, 25, 30 and 35, spent on an element level or on Interest. The first element pick is granted at once; every later one summons a Guardian, a boss that grants the level only when it dies and costs 3 lives a leak. The Archer and the Cannon need no element and now deal composite damage, the same to every element. The rules are in [GDD.md](GDD.md#50-rule-sets). Nothing was tuned here: the Guardian's HP is a first guess.
+
+The bots spend each pick as soon as they have it. The archers-only bot takes Interest three times. The ground-only bot takes Dark, then Verdant, then levels both, and builds Cannons where its pattern wants a tower it can't have yet. The novice takes Aqua, then Light, Dark, Flame, Stone and Verdant at level 1, then Interest. The smart bot only buys what its elements allow, and gives each pick to the element of the best purchase it is locked out of. Playing the picks well is left for later.
+
+Citadel, 2 seeds per row:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | normal | 1/2 | 3.0, 0–6 | 9.5 | 31% | 43% | 100% / 100% / 100% / 98% | w40 |
+| smart | hard | 1/2 | 0.5, 0–1 | 7.0 | 30% | 43% | 100% / 100% / 100% / 99% | w40 |
+| archers | normal | 0/2 | 0.0, 0–0 | 8.0 | 26% | 26% | 100% / 100% / 100% / – | w38, w38 |
+| no_air | normal | 0/2 | 0.0, 0–0 | 2.0 | 51% | 23% | – / – / – / – | w5, w5 |
+| novice | normal | 0/2 | 0.0, 0–0 | 2.0 | 34% | 22% | – / – / – / – | w6, w6 |
+
+Lives lost per wave, both seeds: smart/normal {10: 4, 20: 4, 25: 4, 30: 7, 35: 3, 40: 12} · smart/hard {10: 4, 20: 4, 25: 4, 30: 9, 35: 6, 40: 12} · archers {10: 4, 20: 4, 25: 4, 30: 4, 35: 11, 38: 13} · no_air {2: 9, 5: 31} · novice {3: 22, 5: 6, 6: 12}
+
+What it shows:
+
+- The smart bot on Normal fell from 12.0 lives (12 in both games, the section above) to 3.0, and lost one game on the Dreadlord. It spent its picks on Light, Dark and Flame, and once on Aqua, never on Interest. It now loses lives on the Bulky wave 25 and, in one game, to the wave-35 Guardian, and the Dreadlord takes 3 to 9.
+- The novice now dies on wave 6, where it used to live to wave 20 or later. Its Cannons no longer deal double to the Verdant Footmen of wave 3, nor its Archers to the Dark Ghouls of wave 6, and its first Guardian leaks.
+- The archers-only bot lives longer, to wave 38 against 33: composite arrows lose nothing to the Stone waves that used to halve them, and three Interest picks pay more.
+- The ground-only bot still dies on wave 5, the first Harpies.
 
 ## Latest run (2026-10-02)
 

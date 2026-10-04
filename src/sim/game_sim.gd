@@ -66,7 +66,8 @@ var twist_seed := 0
 ## starting gold, so gold a caller set beforehand keeps its offset.
 var rules: StringName = &"classic":
 	set(value):
-		gold += start_gold(value) - start_gold(rules)
+		gold += EletdRules.start_gold(value) - EletdRules.start_gold(rules)
+		elements.enabled = value == &"eletd"
 		rules = value
 ## Last wave started; 0 before wave 1.
 var wave := 0
@@ -83,6 +84,7 @@ var towers := {}
 var projectiles: Array[SimProjectile] = []
 var zones: Array[SimZone] = []
 var events: Array[Dictionary] = []
+var elements := SimElements.new()
 
 var _by_id := {}
 var _spawn_queue: Array = []
@@ -159,6 +161,8 @@ func creep_tiles() -> Array[Vector2i]:
 
 
 func check_build(tile: Vector2i, id: StringName, after: FlowField = null) -> Placement.Result:
+	if elements.needs(id) != "":
+		return Placement.Result.LOCKED
 	var result := Placement.check(grid, tile, creep_tiles(), creep_center_tiles(), after)
 	if result == Placement.Result.OK and gold < TowerDefs.build_cost(id):
 		return Placement.Result.NO_GOLD
@@ -200,7 +204,7 @@ func sell(tile: Vector2i) -> int:
 
 func upgrade(tile: Vector2i) -> bool:
 	var t := tower_at(tile)
-	if t == null or t.level >= t.max_level():
+	if t == null or t.level >= t.max_level() or not elements.may_upgrade(self, t):
 		return false
 	var cost := TowerDefs.upgrade_cost(t.id, t.level)
 	if gold < cost:
@@ -332,7 +336,7 @@ func _pay_interest() -> void:
 	if interest_timer > 0.0:
 		return
 	interest_timer += INTEREST_PERIOD
-	var amount := mini(floori(gold * INTEREST_RATE), INTEREST_CAP)
+	var amount := mini(floori(gold * elements.interest_rate()), elements.interest_cap())
 	gold += amount
 	gold_earned += amount
 	events.append({"type": &"interest", "amount": amount})
@@ -351,10 +355,6 @@ func _spawn() -> void:
 	_spawn_timer = WaveDefs.spawn_interval(c.type, rules)
 	if c.twist == &"stampede":
 		_spawn_timer *= WaveTwists.STAMPEDE_SPAWN
-
-
-static func start_gold(r: StringName) -> int:
-	return EletdRules.START_GOLD if r == &"eletd" else START_GOLD
 
 
 static func hard_hp(w: int) -> float:
@@ -413,6 +413,7 @@ func _check_wave_cleared() -> void:
 	if phase != Phase.WAVE or not _spawn_queue.is_empty() or not creeps.is_empty():
 		return
 	events.append({"type": &"wave_cleared", "wave": wave})
+	elements.on_wave_cleared(self)
 	if wave >= last_wave():
 		phase = Phase.VICTORY
 		events.append({"type": &"victory"})
@@ -561,6 +562,7 @@ func kill(c: SimCreep, by: SimTower = null) -> void:
 	gold_earned += paid
 	if by != null:
 		by.kills += 1
+	elements.on_died(self, c)
 	(
 		events
 		. append(
@@ -597,7 +599,7 @@ func hit(c: SimCreep, base: float, t: SimTower, aura: float) -> float:
 		events.append({"type": &"hit", "id": c.id, "amount": 0.0, "counter": &"immune"})
 		return 0.0
 	var attack: StringName = t.stat("attack")
-	var element: StringName = t.stat("element")
+	var element := elements.attack_element(t.id)
 	var amount := Damage.amount(base, attack, element, c, aura, c.effective_armor())
 	c.hp -= amount
 	t.damage_dealt += amount

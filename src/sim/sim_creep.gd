@@ -60,6 +60,8 @@ func reshape(hp_share: float, p_bounty: int, p_bulky: bool) -> void:
 
 ## Lives a leak costs.
 func leak_cost() -> int:
+	if type == &"guardian":
+		return EletdRules.GUARDIAN_LIVES
 	if bulky:
 		return EletdRules.BULKY_LIVES
 	return 2 if boss else 1

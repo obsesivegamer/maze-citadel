@@ -80,6 +80,16 @@ const PATTERNS := {
 	&"no_air": [&"cannon", &"cannon", &"roots", &"cannon", &"shadow"],
 	&"novice": [&"archer", &"archer", &"cannon", &"archer", &"frost"],
 }
+## Element picks under the eletd rules (SimElements), spent as soon as they
+## come: the first choice in the list not yet taken as often as it is listed.
+## The smart strategy's RouteLiner picks for itself.
+const PICKS := {
+	&"archers": [&"interest", &"interest", &"interest"],
+	&"no_air":
+	[&"dark", &"verdant", &"dark", &"verdant", &"dark", &"verdant", &"interest", &"interest"],
+	&"novice":
+	[&"aqua", &"light", &"dark", &"flame", &"stone", &"verdant", &"interest", &"interest"],
+}
 ## Seconds between decisions, for strategies slower than DECIDE_EVERY.
 const DECIDE_SLOWLY := {&"novice": 4.0}
 const ELEMENT_COUNTER := {
@@ -169,6 +179,7 @@ func _decide() -> void:
 	if _liner:
 		_liner.decide()
 		return
+	_spend_picks()
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
 	# A novice adds one tower per decision, so its maze grows late.
 	var builds_left := 1 if strategy == &"novice" else plan.size()
@@ -225,7 +236,12 @@ func _pattern_at(slot: int) -> StringName:
 	if strategy == &"smart":
 		return _counter_pick(slot)
 	var p: Array = PATTERNS[strategy]
-	return p[slot % p.size()]
+	var id: StringName = p[slot % p.size()]
+	# Under eletd, a tower whose element isn't picked yet gives way to the
+	# pattern's first one that needs none.
+	if sim.elements.needs(id) != "":
+		id = p.filter(func(x: StringName) -> bool: return sim.elements.needs(x) == "")[0]
+	return id
 
 
 ## Reads the upcoming wave like a player reading the preview: alternate the
@@ -307,9 +323,19 @@ func _upgrade_one(reserve: int) -> void:
 			var t := sim.tower_at(tile)
 			if t == null or t.id != id or t.level >= t.max_level():
 				continue
+			if sim.elements.needs(t.id, t.level + 1) != "":
+				continue
 			if sim.gold >= TowerDefs.upgrade_cost(t.id, t.level) + reserve:
 				sim.upgrade(tile)
 				return
+
+
+func _spend_picks() -> void:
+	var counts := {}
+	for choice: StringName in PICKS.get(strategy, []):
+		counts[choice] = counts.get(choice, 0) + 1
+		if sim.elements.taken(choice) < counts[choice] and sim.elements.pick(sim, choice):
+			return
 
 
 ## Fuses between waves only, and only with gold to rebuild the freed wall

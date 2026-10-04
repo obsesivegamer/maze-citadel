@@ -175,8 +175,11 @@ const DEATH := {
 	&"ogre": &"ogre_death",
 	&"dreadlord": &"dreadlord_death",
 	&"felhound": &"felhound_death",
+	&"guardian": &"ogre_death",
 }
-const ARRIVAL := {&"ogre": &"ogre_roar", &"dreadlord": &"dreadlord_arrives"}
+const ARRIVAL := {
+	&"ogre": &"ogre_roar", &"dreadlord": &"dreadlord_arrives", &"guardian": &"ogre_roar"
+}
 ## Events whose cue doesn't depend on who caused them.
 const EVENT_CUES := {
 	&"nova": &"roots_nova",

@@ -14,6 +14,8 @@ enum Result {
 	TRAPS_CREEP,
 	NO_GOLD,
 	OBSTACLE,
+	## Not placement: the tower's element isn't picked yet (eletd, SimElements.needs).
+	LOCKED,
 }
 
 
@@ -72,4 +74,6 @@ static func describe(result: Result) -> String:
 			return "Not enough gold"
 		Result.OBSTACLE:
 			return "Ruins block this tile"
+		Result.LOCKED:
+			return "Needs its element"
 	return "Can't build here"

@@ -300,7 +300,7 @@ func refresh() -> void:
 		_lives.add_theme_color_override(
 			"font_color", UiTheme.BAD if sim.lives <= 5 else UiTheme.TEXT
 		)
-	var payout := mini(floori(sim.gold * GameSim.INTEREST_RATE), GameSim.INTEREST_CAP)
+	var payout := mini(floori(sim.gold * sim.elements.interest_rate()), sim.elements.interest_cap())
 	if _changed(&"payout", payout):
 		_payout.text = "+%d" % payout
 	_ring.set_progress(1.0 - sim.interest_timer / GameSim.INTEREST_PERIOD)

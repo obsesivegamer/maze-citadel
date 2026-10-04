@@ -16,6 +16,8 @@ const CREEPS := {
 	&"ogre": {"name": "Ogre Boss", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
 	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 27.0},
 	&"felhound": {"name": "Felhound", "class": &"light", "armor": 2, "speed": 4.0, "hp": 0.6},
+	## Summoned by an element pick under eletd (SimElements), which sets its HP.
+	&"guardian": {"name": "Guardian", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
 }
 
 const BASE_HP := 60.0

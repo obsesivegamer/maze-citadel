@@ -237,13 +237,13 @@ func test_composite_takes_ninety_percent_from_every_element() -> void:
 func test_composite_creep_takes_ninety_percent_in_the_sim() -> void:
 	var sim := _eletd()
 	var t := SimTower.new()
-	t.id = &"archer"
+	t.id = &"ballista"
 	var dealt := []
 	for element in [&"flame", &"composite"]:
 		var c := sim.spawn_creep(&"grunt", element, 14, Vector2(20, 20))
 		c.armor = 0.0
 		dealt.append(sim.hit(c, 10.0, t, 0.0))
-	check_near(dealt[1], dealt[0] * 0.9, 1e-4, "archer (light) on composite vs neutral flame")
+	check_near(dealt[1], dealt[0] * 0.9, 1e-4, "ballista (light) on composite vs neutral flame")
 
 
 func test_bulky_waves() -> void:

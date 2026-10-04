@@ -8,7 +8,9 @@ extends RefCounted
 ## upgrade or fusion that adds the most per gold, saving up when the best one
 ## is out of reach, and builds only on the bot's serpentine plan. So it lines
 ## the straight route first and turns it into the serpentine a step at a time
-## once a longer route pays more than upgrades (_add_step).
+## once a longer route pays more than upgrades (_add_step). Under element
+## picks it buys only what its elements allow, and spends each pick on the
+## element of the best locked purchase (_spend_pick).
 
 ## Weight of the wave being planned for, the one after and the one after that.
 const HORIZON: Array[float] = [1.0, 0.6, 0.35]
@@ -90,6 +92,8 @@ var _ground_by := {}
 var _totals := PackedFloat32Array()
 var _poison_cap := PackedFloat32Array()
 var _actions: Array[Dictionary] = []
+## Element → the best value per gold among the purchases it would unlock.
+var _wishes := {}
 var _dirty := true
 
 
@@ -126,6 +130,10 @@ func decide() -> void:
 		_horizon_wave = key
 		_read_waves(w, 3 if sim.spawning() else 2)
 		_dirty = true
+	if sim.elements.pending_picks() > 0:
+		if _dirty:
+			_evaluate()
+		_dirty = _spend_pick()
 	if sim.gold < TowerDefs.build_cost(&"archer") and not _dirty:
 		return
 	var blocked_now := {}
@@ -151,6 +159,18 @@ func decide() -> void:
 			&"fuse":
 				_fuse(a)
 		_dirty = true
+
+
+## The element of the best purchase that is locked now, else Interest. A
+## level that comes with a Guardian counts as taken: no second pick waits on it.
+func _spend_pick() -> bool:
+	var best: StringName = SimElements.INTEREST
+	var best_ratio := 0.0
+	for e: StringName in _wishes:
+		if _wishes[e] > best_ratio and sim.elements.can_pick(e):
+			best = e
+			best_ratio = _wishes[e]
+	return sim.elements.pick(sim, best)
 
 
 ## The best action per gold if affordable; else the best affordable one worth
@@ -267,8 +287,9 @@ func _tower_dps(id: StringName, lvl: int, foe: Dictionary) -> float:
 	if def.kind == &"aura" or (foe.air and not def.get("air", false)):
 		return 0.0
 	var attack: StringName = def.attack
+	var element := sim.elements.attack_element(id)
 	var mult: float = (
-		Damage.class_mult(attack, foe.class) * Damage.element_mult(def.element, foe.element)
+		Damage.class_mult(attack, foe.class) * Damage.element_mult(element, foe.element)
 	)
 	if attack != &"poison":
 		mult *= Damage.armor_factor(foe.armor)
@@ -425,6 +446,7 @@ func _totals_on(route: Dictionary) -> PackedFloat32Array:
 func _evaluate() -> void:
 	_dirty = false
 	_actions.clear()
+	_wishes.clear()
 	_read_board()
 	var now := _value(_totals)
 	for tile: Vector2i in sim.towers:
@@ -485,6 +507,11 @@ func _push(kind: StringName, tile: Vector2i, id: StringName, cost: int, gain: fl
 		return
 	if _rng:
 		gain *= _rng.randf_range(0.9, 1.1)
+	var lvl := 1 if kind == &"build" else sim.tower_at(tile).level + 1
+	if sim.elements.needs(id, lvl) != "":
+		var e := SimElements.element_of(id)
+		_wishes[e] = maxf(_wishes.get(e, 0.0), gain / cost)
+		return
 	_actions.append({"kind": kind, "tile": tile, "id": id, "cost": cost, "ratio": gain / cost})
 
 
@@ -588,7 +615,7 @@ func _best_build(tile: Vector2i, route: Dictionary, base: PackedFloat32Array) ->
 	var pick: StringName = &"archer"
 	var best := -INF
 	for id in BUILDS:
-		if id == &"bard":
+		if id == &"bard" or sim.elements.needs(id) != "":
 			continue
 		var gain := _value(_plus(base, _raw(id, 1, g, a), 1.0 + aura)) - before
 		if gain / TowerDefs.build_cost(id) > best:
