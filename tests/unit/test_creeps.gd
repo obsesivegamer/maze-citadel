@@ -73,7 +73,7 @@ func test_priestess_heals_and_poison_halves_it() -> void:
 	for c in [a, b]:
 		c.speed = 0.0
 		c.hp = c.max_hp * 0.5
-	b.poison.append(Vector2(0.0, 30.0))
+	b.poison.append(Vector3(0.0, 30.0, 0.0))
 	b.poison_src.append(null)
 	_run(sim, 2.05)
 	check_near(a.hp, a.max_hp * 0.54, 0.01, "4% heal")
@@ -135,7 +135,7 @@ func test_poisoned_ghoul_going_down_mid_tick() -> void:
 	var sim := _sim_with(&"ghoul", Grid.center(Vector2i(10, 10)))
 	var c: SimCreep = sim.creeps[0]
 	for i in 3:
-		c.poison.append(Vector2(100000.0, 5.0))
+		c.poison.append(Vector3(100000.0, 5.0, 0.0))
 		c.poison_src.append(null)
 	sim.step()
 	check(c.alive and c.revive_time > 0.0, "downed by poison, stacks cleared safely")

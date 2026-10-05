@@ -19,6 +19,9 @@ echo "== perf matrix tools"
 python3 tools/test_perf_matrix.py 2>&1 | tail -1
 tools/perf_matrix.sh --dry-run tools/perf_configs/renderer.txt >/dev/null
 
+echo "== site tools"
+python3 tools/test_build_site.py 2>&1 | tail -1
+
 echo "== lint"
 gdlint src tests
 gdformat --check src tests
@@ -28,8 +31,13 @@ echo "== unit tests"
   | grep -qE "^[0-9]+ passed, 0 failed$"
 
 echo "== smoke (headless game, autoplay)"
+# Both rule sets on both mazing maps, and the Causeway under the Element TD
+# rules, the only ones it is played under. The loading-screen boot runs once
+# per rule set (their HUDs differ).
 tools/smoke.sh
-tools/smoke.sh 2700 --map=rampart
-tools/smoke.sh 2700 --rules=eletd
+SMOKE_ASYNC=0 tools/smoke.sh 2700 --map=rampart
+SMOKE_ASYNC=0 tools/smoke.sh 1800 --map=causeway
+tools/smoke.sh 2700 --rules=classic
+SMOKE_ASYNC=0 tools/smoke.sh 2700 --rules=classic --map=rampart
 
 echo "check: OK"

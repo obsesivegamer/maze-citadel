@@ -101,6 +101,20 @@ const SPECS := {
 		"hit_cooldown": 4.0,
 		"tint": Color(1.0, 0.82, 0.66),
 	},
+	## The Ogre at 1.15×. Untinted by element: views are pooled and their
+	## materials cached per creep type, so one tint per element would mean six
+	## types' worth of both.
+	&"guardian":
+	{
+		"scene": MON + "Yeti.glb",
+		"height": 4.6,
+		"loop": &"Walk",
+		"rate": 1.15,
+		"death": &"Death",
+		"hit": &"HitReact",
+		"hit_cooldown": 4.0,
+		"tint": Color(1.0, 0.82, 0.66),
+	},
 	&"dreadlord":
 	{
 		"scene": MON + "Demon.glb",

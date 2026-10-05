@@ -2,11 +2,12 @@ class_name MapDefs
 extends RefCounted
 ## Map table (docs/maps.md). Every map is the same 20 × 28 plateau in the same
 ## valley; maps differ in where the 2-tile portal and gate open on the north
-## and south edges, and in ruins that block tiles from the start. Tiles are
+## and south edges, in ruins that block tiles from the start, and in whether
+## the player builds the maze or the creeps keep to a fixed lane. Tiles are
 ## (column, row) with row 0 on the portal edge.
 
 const DEFAULT := &"citadel"
-const ORDER: Array[StringName] = [&"citadel", &"rampart"]
+const ORDER: Array[StringName] = [&"citadel", &"rampart", &"causeway"]
 const MAPS := {
 	&"citadel":
 	{
@@ -33,6 +34,54 @@ const MAPS := {
 		## Boulder heaps, 2 × 2 tiles each, by their north-west tile.
 		"boulders": [Vector2i(12, 5), Vector2i(6, 19)],
 	},
+	&"causeway":
+	{
+		"name": "Winding Causeway",
+		"short": "Causeway",
+		"blurb":
+		(
+			"A cobbled road winds from portal to gate and creeps never leave it. Build on"
+			+ " the grass beside it, best where it doubles back."
+		),
+		"portal_col": 9,
+		"gate_col": 9,
+		## Under classic ranges a tower reaches several stretches of the road from
+		## almost anywhere, so there would be no spots to choose between.
+		"rules": [&"eletd"],
+		## Creep HP multiplier on wave 1 and wave 40 (MapDefs.hp_mult). The road
+		## is 240 m long from wave 1, while a maze reaches its length late, so
+		## the map is easiest early and hardest late. At a flat 1.4 the wave-10
+		## Ogre never got through and the Dreadlord always did, and Hard lost
+		## every game on waves 38 to 40 (docs/balance.md).
+		"hp": 1.8,
+		"hp_40": 1.15,
+		## The lane's corners, portal to gate, each pair joined along a row or a
+		## column, one tile wide. Two tiles of grass lie between most stretches;
+		## the hairpin on rows 5 and 7 leaves one, every tile of which reaches both.
+		"lane":
+		[
+			Vector2i(9, 0),
+			Vector2i(9, 2),
+			Vector2i(3, 2),
+			Vector2i(3, 5),
+			Vector2i(16, 5),
+			Vector2i(16, 7),
+			Vector2i(6, 7),
+			Vector2i(6, 10),
+			Vector2i(16, 10),
+			Vector2i(16, 13),
+			Vector2i(2, 13),
+			Vector2i(2, 24),
+			Vector2i(7, 24),
+			Vector2i(7, 16),
+			Vector2i(12, 16),
+			Vector2i(12, 21),
+			Vector2i(17, 21),
+			Vector2i(17, 25),
+			Vector2i(10, 25),
+			Vector2i(10, 27),
+		],
+	},
 }
 
 
@@ -42,6 +91,20 @@ static func has(id: StringName) -> bool:
 
 static func display_name(id: StringName) -> String:
 	return MAPS[id].name
+
+
+## Creep HP on map `id` on wave `w` under the Element TD rules, as a multiple
+## of what the rules give (1 on the mazing maps); Guardians included. It runs
+## in a straight line from "hp" on wave 1 to "hp_40" on wave 40.
+static func hp_mult(id: StringName, w: int) -> float:
+	var from: float = MAPS[id].get("hp", 1.0)
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	return lerpf(from, MAPS[id].get("hp_40", from), f)
+
+
+## Whether map `id` is played under rule set `rules` (GameSim.RULES).
+static func offered(id: StringName, rules: StringName) -> bool:
+	return not MAPS[id].has("rules") or rules in MAPS[id].rules
 
 
 static func spawn_tiles(id: StringName) -> Array[Vector2i]:
@@ -75,4 +138,21 @@ static func obstacles(id: StringName) -> Dictionary:
 		for dy in 2:
 			for dx in 2:
 				out[b + Vector2i(dx, dy)] = &"boulder"
+	return out
+
+
+## Every tile of the map's fixed lane in walking order, portal to gate; empty
+## on the maps where the player builds the maze.
+static func lane(id: StringName) -> Array[Vector2i]:
+	var corners: Array = MAPS[id].get("lane", [])
+	var out: Array[Vector2i] = []
+	if corners.is_empty():
+		return out
+	out.append(corners[0])
+	for i in range(1, corners.size()):
+		var t: Vector2i = corners[i - 1]
+		var step: Vector2i = (corners[i] - t).sign()
+		while t != corners[i]:
+			t += step
+			out.append(t)
 	return out

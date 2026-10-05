@@ -8,7 +8,12 @@ extends RefCounted
 ## upgrade or fusion that adds the most per gold, saving up when the best one
 ## is out of reach, and builds only on the bot's serpentine plan. So it lines
 ## the straight route first and turns it into the serpentine a step at a time
-## once a longer route pays more than upgrades (_add_step).
+## once a longer route pays more than upgrades (_add_step). On a fixed-lane
+## map there is no serpentine: it weighs every tile beside the lane or the
+## flight line, and a tile beside two stretches of lane is worth more simply
+## because it reaches more of the route. Under element picks it buys only
+## what its elements allow, and weighs its picks once per breather against the
+## wave table (_spend_picks).
 
 ## Weight of the wave being planned for, the one after and the one after that.
 const HORIZON: Array[float] = [1.0, 0.6, 0.35]
@@ -62,9 +67,23 @@ const BRUTE_WEIGHT := 1.0
 const BRUTE_HP := 25.0
 ## Serpentine steps valued together as one purchase, at most.
 const STEPS_AHEAD := 3
+## A pick is valued over this many waves of the public wave table, each
+## counting PICK_FADE times the one before, about as the preview fades
+## (HORIZON): what a level unlocks pays only once the bot buys it, and it
+## buys for the waves in view.
+const PICK_AHEAD := 10
+const PICK_FADE := 0.6
+## Picks kept in hand at most when a breather ends with no Guardian walking.
+const MAX_HELD := 2
+## Elements in one build: levels in a few pay more than a level of each.
+const MAX_ELEMENTS := 4
+## A purchase a pick unlocks counts toward its worth only at this share of the
+## best value per gold open now, or the bot would never get round to it.
+const WORTH_BUYING := 0.5
 
 var sim: GameSim
-## The serpentine plan: every tile the bot may build on.
+## The serpentine plan, or on a fixed-lane map the tiles in reach of the lane
+## or the flight line: every tile the bot may build on.
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many plan tiles were given up for that reason.
 var skip_reasons := {}
@@ -90,6 +109,11 @@ var _ground_by := {}
 var _totals := PackedFloat32Array()
 var _poison_cap := PackedFloat32Array()
 var _actions: Array[Dictionary] = []
+## Element → the purchases one more level of it would unlock, as
+## {tile, gain, cost, ratio}.
+var _wishes := {}
+## The wave whose breather last weighed the picks (0: before wave 1).
+var _picks_weighed := -1
 var _dirty := true
 
 
@@ -106,7 +130,14 @@ func _init(
 	var n := ceili(a.distance_to(b) / Grid.TILE)
 	for i in n + 1:
 		samples.append(a.lerp(b, float(i) / n))
-	for tile in plan:
+	# On a fixed lane nothing is built to shape the route, so every ground tile
+	# that reaches the flight line is worth weighing too, not just the lane's.
+	var tiles := plan.duplicate()
+	if not sim.grid.lane.is_empty():
+		for i in Grid.COLS * Grid.ROWS:
+			if sim.grid.is_ground(Grid.tile_of(i)) and not sim.grid.is_reserved(Grid.tile_of(i)):
+				tiles.append(Grid.tile_of(i))
+	for tile: Vector2i in tiles:
 		var c := Grid.center(tile)
 		var k := 0
 		for p in samples:
@@ -115,16 +146,25 @@ func _init(
 				k += 1
 		if k > 0:
 			_air_contact[tile] = k
+			if not tile in plan:
+				plan.append(tile)
 
 
 func decide() -> void:
+	var breather := sim.phase == GameSim.Phase.BUILD
+	if breather and sim.elements.pending_picks() > 0 and _picks_weighed != sim.wave:
+		_picks_weighed = sim.wave
+		_spend_picks()
+		# The picks were weighed against the wave table: read the preview again.
+		_horizon_wave = -1
 	# The top bar shows the next two waves: while one is still coming in, that
 	# one and the two after it are all in view.
 	var w := clampi(sim.wave + (0 if sim.spawning() else 1), 1, WaveDefs.count())
 	var key := w * 10 + (3 if sim.spawning() else 2)
 	if key != _horizon_wave:
 		_horizon_wave = key
-		_read_waves(w, 3 if sim.spawning() else 2)
+		_read_waves(w, HORIZON.slice(0, 3 if sim.spawning() else 2))
+		_price_towers()
 		_dirty = true
 	if sim.gold < TowerDefs.build_cost(&"archer") and not _dirty:
 		return
@@ -153,6 +193,188 @@ func decide() -> void:
 		_dirty = true
 
 
+# --- Element picks --------------------------------------------------------
+
+
+## Spends a pick the way a player would, once per breather (and once before
+## wave 1), when the next wave is still to come and a Guardian can walk the
+## route alone: the best pick it may take now, if no better one has to wait
+## for a stronger route (_pick_now). A held pick waits for a later breather,
+## but no more than MAX_HELD are kept past one with no Guardian walking: then
+## the one that costs fewest lives goes (Interest costs none), and never a
+## Guardian ahead of a boss wave.
+func _spend_picks() -> void:
+	var options := _pick_options()
+	var choice := _pick_now(options)
+	if choice != &"":
+		sim.elements.pick(sim, choice)
+	options = options.filter(
+		func(o: Dictionary) -> bool:
+			return o.choice != choice and (o.choice == SimElements.INTEREST or _guardian_window())
+	)
+	if sim.elements.pending_picks() > MAX_HELD and not _guardian_walking() and options:
+		options.sort_custom(
+			func(x: Dictionary, y: Dictionary) -> bool:
+				return x.lives < y.lives or (x.lives == y.lives and x.worth > y.worth)
+		)
+		sim.elements.pick(sim, options[0].choice)
+
+
+## The best pick worth taking now, or &"" to hold: an element whose Guardian
+## the route kills on its first pass (the free first pick has none), at a
+## moment fit for one, or Interest when no element is worth more. Once the
+## last pick is in, Interest goes whatever an element is worth: a Guardian
+## the route can't kill only grows with the waves, and holding the pick
+## would carry it to the end of the game.
+func _pick_now(options: Array[Dictionary]) -> StringName:
+	var best := -INF
+	var now: Dictionary = {}
+	for o in options:
+		best = maxf(best, o.worth)
+		var ready: bool = o.lives == 0 and (o.choice == SimElements.INTEREST or _guardian_window())
+		if ready and (now.is_empty() or o.worth > now.worth):
+			now = o
+	var more_coming := _next_pick_wave() < WaveDefs.count()
+	if now.is_empty() or (now.choice == SimElements.INTEREST and best > now.worth and more_coming):
+		return &""
+	return now.choice
+
+
+## Every pick the bot may take, as {choice, worth, lives}, valued against the
+## wave table PICK_AHEAD waves on (_read_waves). An element is worth what the
+## purchases it unlocks add, for as much gold as the bot will have until the
+## next pick (_unlocked): so a level that lets every tower of its element
+## climb a step can beat a new element's best tower. Interest is worth the
+## gold it adds by then, spent at the best rate open now. Lives is what the
+## element's Guardian is expected to cost if summoned now: a lone boss the
+## route must kill, 3 lives each time it gets through.
+func _pick_options() -> Array[Dictionary]:
+	var weights: Array[float] = []
+	for k in PICK_AHEAD:
+		weights.append(pow(PICK_FADE, k))
+	_read_waves(sim.wave + 1, weights)
+	var held := Damage.WHEEL.filter(func(e: StringName) -> bool: return sim.elements.taken(e) > 0)
+	var elements: Array[StringName] = []
+	for e: StringName in Damage.WHEEL:
+		if sim.elements.can_pick(e) and (sim.elements.taken(e) > 0 or held.size() < MAX_ELEMENTS):
+			elements.append(e)
+	var first_guardian := _foes.size()
+	for e in elements:
+		_foes.append(_guardian_foe(e))
+	_price_towers()
+	_evaluate()
+	_dirty = true
+	var next := _next_pick_wave()
+	var budget := sim.gold + _income(sim.wave + 1, next)
+	var open: float = _actions[0].ratio if not _actions.is_empty() else 0.0
+	var out: Array[Dictionary] = []
+	for i in elements.size():
+		var lives := 0
+		if sim.elements.summons():
+			lives = _guardian_leaks(first_guardian + i) * EletdRules.GUARDIAN_LIVES
+		var worth := _unlocked(_wishes.get(elements[i], []), budget, open * WORTH_BUYING)
+		out.append({"choice": elements[i], "worth": worth, "lives": lives})
+	if sim.elements.can_pick(SimElements.INTEREST):
+		var worth := _interest_gold(next - sim.wave) * open
+		out.append({"choice": SimElements.INTEREST, "worth": worth, "lives": 0})
+	return out
+
+
+## What the purchases `buys` add, best per gold first and one per tile, until
+## they cost `budget`. Each is valued alone against the board as it stands,
+## which flatters an element with many cheap ones, so only those worth `bar`
+## per gold count: ones the bot would get round to buying.
+func _unlocked(buys: Array, budget: float, bar: float) -> float:
+	buys.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.ratio > y.ratio)
+	var tiles := {}
+	var worth := 0.0
+	for b: Dictionary in buys:
+		if budget <= 0.0 or b.ratio < bar:
+			break
+		if not tiles.has(b.tile):
+			tiles[b.tile] = true
+			worth += b.gain * minf(1.0, budget / b.cost)
+			budget -= b.cost
+	return worth
+
+
+## A Guardian enters only between waves, ahead of a wave with no boss (it
+## walks into the next wave, and would take the fire the boss needs), and
+## only one at a time: towers shoot the creep nearest the gate, so a second
+## would walk past while they shoot the first.
+func _guardian_window() -> bool:
+	return (
+		sim.phase == GameSim.Phase.BUILD
+		and not WaveDefs.has_boss(sim.wave + 1)
+		and not _guardian_walking()
+	)
+
+
+func _guardian_walking() -> bool:
+	return Damage.WHEEL.any(func(e: StringName) -> bool: return sim.elements.pending_level(e) > 0)
+
+
+## The Guardian a pick of `e` would summon now, as a foe of no weight: only
+## the damage it takes on one pass is read (_guardian_leaks).
+func _guardian_foe(e: StringName) -> Dictionary:
+	var def: Dictionary = CreepDefs.CREEPS[&"guardian"]
+	var lvl := sim.elements.taken(e) + 1
+	return {
+		"w": 0.0,
+		"hp":
+		(
+			EletdRules.guardian_hp(lvl, maxi(sim.wave, 1), sim.difficulty)
+			* MapDefs.hp_mult(sim.grid.map, maxi(sim.wave, 1))
+		),
+		"speed": def.speed,
+		"air": false,
+		"cap": INF,
+		"class": def.class,
+		"element": e,
+		"armor": float(def.armor),
+	}
+
+
+## How often foe `f`, a Guardian, gets through before it dies: it walks again
+## with the HP it has left, and the route must deal MARGIN times its HP on a
+## pass to count as a kill, as with every creep the bot plans for.
+func _guardian_leaks(f: int) -> int:
+	var dealt := _dealt(_totals, f)
+	if dealt <= 0.0:
+		return 99
+	return ceili(_foes[f].hp * MARGIN / dealt) - 1
+
+
+## The wave after which the next pick comes, or the last wave.
+func _next_pick_wave() -> int:
+	for w in EletdRules.PICK_WAVES:
+		if w > sim.wave:
+			return w
+	return WaveDefs.count()
+
+
+## The bounty of waves w0 to w1, from the wave table.
+func _income(w0: int, w1: int) -> float:
+	var gold := 0.0
+	for w in range(w0, mini(w1, WaveDefs.count()) + 1):
+		for entry in WaveDefs.spawn_list(w, sim.rules):
+			gold += entry[3]
+	return gold
+
+
+## The gold an Interest pick adds over the next `waves` waves at the bot's
+## pace so far, on the gold it holds now. The bot spends as it earns, so this
+## is small unless it is saving up.
+func _interest_gold(waves: int) -> float:
+	var rate := sim.elements.interest_rate()
+	var cap := sim.elements.interest_cap()
+	var more := minf(
+		sim.gold * (rate + EletdRules.INTEREST_PICK_RATE), cap + EletdRules.INTEREST_PICK_CAP
+	)
+	var ticks := waves * sim.time / maxi(sim.wave, 1) / GameSim.INTEREST_PERIOD
+	return (more - minf(sim.gold * rate, cap)) * ticks
+
+
 ## The best action per gold if affordable; else the best affordable one worth
 ## nearly as much; else nothing, saving up.
 func _choose(blocked_now: Dictionary) -> Dictionary:
@@ -172,38 +394,41 @@ func _choose(blocked_now: Dictionary) -> Dictionary:
 # --- Reading the waves ----------------------------------------------------
 
 
-func _read_waves(w0: int, seen: int) -> void:
+## The creeps of waves w0 on, wave k weighted weights[k], and the yardsticks.
+func _read_waves(w0: int, weights: Array[float]) -> void:
 	_foes.clear()
 	_add_yardsticks(w0)
-	for k in seen:
+	for k in weights.size():
 		var w := w0 + k
 		if w > WaveDefs.count():
 			break
-		var list := WaveDefs.spawn_list(w)
+		var list := WaveDefs.spawn_list(w, sim.rules)
 		var heals := list.any(func(e: Array) -> bool: return e[0] == &"priestess")
 		var groups := {}
+		var shares := {}
 		for e in list:
 			var key: String = "%s/%s" % [e[0], e[1]]
 			groups[key] = groups.get(key, 0) + 1
+			shares[key] = WaveDefs.hp_share(e)
 		for key: String in groups:
 			var parts := key.split("/")
 			var type := StringName(parts[0])
 			var def: Dictionary = CreepDefs.CREEPS[type]
-			var hp := CreepDefs.max_hp(type, w, _hp_mult(type, w))
+			var hp: float = CreepDefs.max_hp(type, w, _hp_mult(type, w)) * shares[key]
 			if type == &"steam_tank" or type == &"ghoul":
 				hp *= 4.0 / 3.0
 			if heals:
 				hp *= 1.1
 			var n: int = groups[key]
 			var stake := BOSS_STAKE if CreepDefs.is_boss(type) else 1.0
-			var spacing := (
-				GameSim.FAST_SPAWN_INTERVAL if def.speed >= 4.5 else GameSim.SPAWN_INTERVAL
-			)
+			if WaveDefs.bulky(w, sim.rules):
+				stake = EletdRules.BULKY_LIVES
+			var spacing := WaveDefs.spawn_interval(type, sim.rules)
 			(
 				_foes
 				. append(
 					{
-						"w": HORIZON[k] * n * stake / float(list.size()),
+						"w": weights[k] * n * stake / float(list.size()),
 						"hp": hp,
 						"speed": def.speed,
 						"air": def.get("flying", false),
@@ -214,6 +439,10 @@ func _read_waves(w0: int, seen: int) -> void:
 					}
 				)
 			)
+
+
+## Each tower's damage per second against each foe, at every level.
+func _price_towers() -> void:
 	_dps.clear()
 	for id: StringName in TowerDefs.TOWERS:
 		var levels: Array[PackedFloat32Array] = []
@@ -231,13 +460,13 @@ func _read_waves(w0: int, seen: int) -> void:
 ## stops. A plain creep and such a brute FUTURE_AHEAD waves on, of no element.
 func _add_yardsticks(w0: int) -> void:
 	var w := w0 + FUTURE_AHEAD
-	var hp := CreepDefs.max_hp(&"grunt", w, EletdRules.hp_mult(&"grunt", w, sim.hard))
+	var hp := CreepDefs.max_hp(&"grunt", w, _hp_mult(&"grunt", w))
 	var plain := {
 		"w": FUTURE_WEIGHT,
 		"hp": hp,
 		"speed": 3.0,
 		"air": false,
-		"cap": GameSim.SPAWN_INTERVAL * STREAM_SHARE,
+		"cap": WaveDefs.spawn_interval(&"grunt", sim.rules) * STREAM_SHARE,
 		"class": &"light",
 		"element": &"",
 		"armor": 2.0,
@@ -253,9 +482,9 @@ func _add_yardsticks(w0: int) -> void:
 	_foes.append(brute)
 
 
-## The creep HP multiplier GameSim.spawn_creep applies (mode and rule set).
+## The creep HP multiplier GameSim.spawn_creep applies (mode, rule set, map).
 func _hp_mult(type: StringName, w: int) -> float:
-	return EletdRules.hp_mult(type, w, sim.hard)
+	return EletdRules.hp_mult(type, w, sim.difficulty) * MapDefs.hp_mult(sim.grid.map, w)
 
 
 ## Damage per second a tower deals one foe while it is in reach, counting
@@ -265,8 +494,9 @@ func _tower_dps(id: StringName, lvl: int, foe: Dictionary) -> float:
 	if def.kind == &"aura" or (foe.air and not def.get("air", false)):
 		return 0.0
 	var attack: StringName = def.attack
+	var element := sim.elements.attack_element(id)
 	var mult: float = (
-		Damage.class_mult(attack, foe.class) * Damage.element_mult(def.element, foe.element)
+		Damage.class_mult(attack, foe.class) * Damage.element_mult(element, foe.element)
 	)
 	if attack != &"poison":
 		mult *= Damage.armor_factor(foe.armor)
@@ -285,7 +515,7 @@ func _tower_dps(id: StringName, lvl: int, foe: Dictionary) -> float:
 		base = base * KIND_BONUS.get(id, 1.0) + crater * 1.5
 	if id == &"runesmith" and foe.class in SHRED_CLASSES:
 		base *= 1.4
-	return base * mult
+	return base * mult * sim.elements.power(id, lvl)
 
 
 # --- Valuing the board ----------------------------------------------------
@@ -329,9 +559,13 @@ func _value(totals: PackedFloat32Array) -> float:
 	var v := 0.0
 	for f in _foes.size():
 		var foe := _foes[f]
-		var dmg := totals[f] + minf(totals[_foes.size() + f], _poison_cap[f])
-		v += foe.w * (1.0 - exp(-dmg / (foe.hp * MARGIN)))
+		v += foe.w * (1.0 - exp(-_dealt(totals, f) / (foe.hp * MARGIN)))
 	return v
+
+
+## The damage one creep of foe `f` takes on its way, poison capped.
+func _dealt(totals: PackedFloat32Array, f: int) -> float:
+	return totals[f] + minf(totals[_foes.size() + f], _poison_cap[f])
 
 
 ## `totals` plus `raw` × `k`, as a new array.
@@ -423,6 +657,7 @@ func _totals_on(route: Dictionary) -> PackedFloat32Array:
 func _evaluate() -> void:
 	_dirty = false
 	_actions.clear()
+	_wishes.clear()
 	_read_board()
 	var now := _value(_totals)
 	for tile: Vector2i in sim.towers:
@@ -483,6 +718,13 @@ func _push(kind: StringName, tile: Vector2i, id: StringName, cost: int, gain: fl
 		return
 	if _rng:
 		gain *= _rng.randf_range(0.9, 1.1)
+	var lvl := 1 if kind == &"build" else sim.tower_at(tile).level + 1
+	if sim.elements.needs(id, lvl) != "":
+		var e := SimElements.element_of(id)
+		if not _wishes.has(e):
+			_wishes[e] = []
+		_wishes[e].append({"tile": tile, "gain": gain, "cost": cost, "ratio": gain / cost})
+		return
 	_actions.append({"kind": kind, "tile": tile, "id": id, "cost": cost, "ratio": gain / cost})
 
 
@@ -586,7 +828,7 @@ func _best_build(tile: Vector2i, route: Dictionary, base: PackedFloat32Array) ->
 	var pick: StringName = &"archer"
 	var best := -INF
 	for id in BUILDS:
-		if id == &"bard":
+		if id == &"bard" or sim.elements.needs(id) != "":
 			continue
 		var gain := _value(_plus(base, _raw(id, 1, g, a), 1.0 + aura)) - before
 		if gain / TowerDefs.build_cost(id) > best:

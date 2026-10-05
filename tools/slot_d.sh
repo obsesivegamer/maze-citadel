@@ -10,21 +10,22 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 out="docs/perf/slot-d-$(date +%m%d)"
 mkdir -p "$out"
-# Benches the Citadel Plateau, not the player's last map pick.
+# Benches the Citadel Plateau under classic rules, as docs/perf.md measured
+# them, not the player's last map and rules.
 battle=(--autoplay --warp-wave=24 --warp-into=18)
 
 bench() { # preset, seconds, name
   "$GODOT" --path . -m -t --disable-vsync -- --bench="$2" --bench-out="$PWD/$out/$3.json" \
-    --quality="$1" --map=citadel "${battle[@]}" >/dev/null 2>&1
+    --quality="$1" --map=citadel --rules=classic "${battle[@]}" >/dev/null 2>&1
 }
 
 for i in 1 2 3; do
-  "$GODOT" --path . -m -- --first-frame-out="$PWD/$out/first-dev-$i.json" >/dev/null 2>&1
+  "$GODOT" --path . -m -- --first-frame-out="$PWD/$out/first-dev-$i.json" --rules=classic >/dev/null 2>&1
 done
 tools/export.sh | tee "$out/export.log"
 app="dist/MazeCitadel.app/Contents/MacOS/Maze Citadel"
 for i in 1 2 3; do
-  "$app" -m -- --first-frame-out="$PWD/$out/first-app-$i.json" >/dev/null 2>&1
+  "$app" -m -- --first-frame-out="$PWD/$out/first-app-$i.json" --rules=classic >/dev/null 2>&1
 done
 for i in 1 2 3; do
   bench cinematic 20 "cinematic-battle-$i"

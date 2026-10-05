@@ -16,6 +16,8 @@ var _game: Game
 ## Notes only for creeps appearing for the first time (the tutorial's pace).
 var _first_notes := false
 var _twist: StringName = &""
+## The towers the chips may name (SimElements.unlocked_towers).
+var _open: Array[StringName] = []
 var _icons := WaveIcons.new(ICON_PX, 13)
 var _lines: RichTextLabel
 var _caption := UiKit.label("BUILD", &"Caption")
@@ -39,23 +41,26 @@ func _init(game: Game, width: float, first_notes := false) -> void:
 	add_child(_picks)
 
 
-## Shows wave `w` (0 hides everything); rebuilt only when the wave or its
-## twist changes.
+## Shows wave `w` (0 hides everything); rebuilt only when the wave, its
+## twist or the towers the player can build change.
 func show_wave(w: int, twist: StringName = &"") -> void:
-	if w == wave and twist == _twist:
+	var open := _game.sim.elements.unlocked_towers()
+	if w == wave and twist == _twist and open == _open:
 		return
 	wave = w
 	_twist = twist
+	_open = open
 	for c in _picks.get_children():
 		_picks.remove_child(c)
 		c.queue_free()
-	_icons.show_wave(w, twist)
+	var rules := _game.sim.rules
+	_icons.show_wave(w, twist, rules)
 	_caption.visible = w > 0
 	if w <= 0:
 		_lines.text = ""
 		return
 	var parts := PackedStringArray()
-	parts.append_array(Counsel.element_lines(w))
+	parts.append_array(Counsel.element_lines(w, rules))
 	parts.append_array(Counsel.armor_lines(w))
 	if twist != &"":
 		parts.append(
@@ -68,18 +73,25 @@ func show_wave(w: int, twist: StringName = &"") -> void:
 				]
 			)
 		)
+	if WaveDefs.bulky(w, rules):
+		parts.append(
+			(
+				"[color=#%s][b]Bulky[/b]. %s[/color]"
+				% [UiTheme.hex(UiGlyphs.BULKY), TowerInfo.bulky_text()]
+			)
+		)
 	for note in Counsel.creep_notes(w, _first_notes):
 		parts.append("[color=#%s]%s[/color]" % [UiTheme.hex(UiTheme.TEXT_DIM), note])
 	_lines.text = "\n".join(parts)
-	for p in Counsel.picks(w):
+	for p in Counsel.picks(w, rules, 2, open):
 		_picks.add_child(_chip(p))
 
 
-## Towers the chips name, best first.
+## Towers the chips name, best first: only ones the player can build now.
 func picks() -> Array[StringName]:
 	var out: Array[StringName] = []
 	if wave > 0:
-		out = Counsel.best_towers(wave)
+		out = Counsel.best_towers(wave, _game.sim.rules, 2, _open)
 	return out
 
 
@@ -106,7 +118,7 @@ func _chip(p: Dictionary) -> Control:
 		% [
 			TowerInfo.full_name(id),
 			TowerDefs.hotkey(id),
-			Counsel.plain(Counsel.tower_vs_wave(id, wave))
+			Counsel.plain(Counsel.tower_vs_wave(id, wave, _game.sim.rules))
 		]
 	)
 	hit.pressed.connect(_pick.bind(id))

@@ -2,7 +2,8 @@
 # Frame-pacing benchmark per quality preset, maximized window, vsync off.
 # Usage: tools/bench.sh [seconds=20] [presets="cinematic balanced performance"] [extra args...]
 # Writes docs/perf/<preset>.json (one JSON report per preset). Benches the
-# Citadel Plateau, not the player's last map, unless extra args say --map=...
+# Citadel Plateau under classic rules (docs/perf.md measured them so), not the
+# player's last map and rules, unless extra args say --map= or --rules=.
 set -euo pipefail
 # Opens a game window (bench also takes focus). Jeremy uses this Mac, so only
 # run inside an agreed screen-time slot.
@@ -17,7 +18,7 @@ for p in $presets; do
   out="$PWD/docs/perf/$p${BENCH_TAG:+-$BENCH_TAG}.json"
   label="$p${BENCH_TAG:+ $BENCH_TAG}"
   "$GODOT" --path . -m -t --disable-vsync -- --bench="$secs" --bench-out="$out" --quality="$p" \
-    --map=citadel "$@" \
+    --map=citadel --rules=classic "$@" \
     >/dev/null 2>&1
   python3 -c "import json,sys; r=json.load(open(sys.argv[1])); print(f\"{sys.argv[2]:28} avg {r['avg_fps']:6} fps  1%low {r['low_1pct_fps']:6}  cpu {r['avg_cpu_ms']} ms focus={r['focused']}  {r['window_px']} x{r['render_scale']}\")" "$out" "$label"
 done

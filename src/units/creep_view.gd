@@ -54,6 +54,8 @@ var stamp := 0
 var _rig: CreepModels.Rig
 var _spec: Dictionary
 var _boss := false
+## Model scale: a Bulky creep (eletd) is drawn larger.
+var _size := 1.0
 var _fly := 0.0
 var _age := 0.0
 var _yaw := 0.0
@@ -167,6 +169,8 @@ func activate(c: SimCreep, alpha: float) -> void:
 	for mi in _rig.meshes:
 		mi.transparency = 0.0
 	_rig.root.position = Vector3.ZERO
+	_size = EletdRules.BULKY_SCALE if c.bulky else 1.0
+	_rig.root.scale = Vector3.ONE * _size
 	_yaw = atan2(c.heading.x, c.heading.y)
 	_rig.root.rotation.y = _yaw
 	if _ring:
@@ -409,7 +413,7 @@ func _update_bar(c: SimCreep, cam_right: Vector3) -> void:
 	if not show:
 		return
 	var size := BOSS_BAR_SIZE if _boss else BAR_SIZE
-	var center := Vector3(0, _rig.height + BAR_GAP, 0)
+	var center := Vector3(0, _rig.height * _size + BAR_GAP, 0)
 	_bar_bg.position = center
 	_bar_fill.position = center - cam_right * size.x * 0.5
 	_bar_fill.scale = Vector3(maxf(frac, 0.001), 1, 1)

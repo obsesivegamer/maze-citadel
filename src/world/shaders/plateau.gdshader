@@ -1,7 +1,8 @@
 // The buildable plateau (GDD §1): bright grass with faint 2 m tile lines and a
 // subtle checker inside the 40 × 56 m grid, a darker dirt-and-grass rim
-// outside it, cobbles on the unbuildable portal and gate tiles, trodden dirt
-// under the map's ruins, and scorched earth around the portal.
+// outside it, cobbles on the unbuildable portal and gate tiles and along a
+// fixed-lane map's road, trodden dirt under the map's ruins, and scorched
+// earth around the portal.
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
@@ -24,6 +25,9 @@ uniform vec4 paved_south = vec4(-2.0, 26.0, 2.0, 40.0);
 // Ruin tiles (one texel per tile, white = ruin); black when the map has none.
 uniform sampler2D ruins : hint_default_black, filter_linear, repeat_disable;
 uniform vec3 ruin_tint : source_color = vec3(0.72, 0.66, 0.58);
+// Lane tiles of a fixed-lane map, the same way; black on the other maps.
+uniform sampler2D lane : hint_default_black, filter_linear, repeat_disable;
+uniform vec3 kerb_tint : source_color = vec3(0.62, 0.58, 0.5);
 uniform vec2 blight_center = vec2(0.0, -34.0);
 uniform float blight_radius = 9.0;
 uniform vec3 blight_tint : source_color = vec3(0.45, 0.2, 0.17);
@@ -75,9 +79,15 @@ void fragment() {
 	vec3 rubble = mix(d, d * ruin_tint, smoothstep(0.3, 0.7, m2));
 	col = mix(col, rubble, ruin * 0.85);
 
-	float pave = max(rect_mask(p, paved_north), rect_mask(p, paved_south));
+	// The filtered mask is 0.5 on a lane tile's edge: cobbles inside it, and a
+	// darker kerb along the edge so the road reads against the grass.
+	float lane_k = texture(lane, ruin_uv).r * in_grid;
+	float road = smoothstep(0.42, 0.58, lane_k);
+	float kerb = smoothstep(0.3, 0.45, lane_k) * (1.0 - smoothstep(0.55, 0.7, lane_k));
+	float pave = max(max(rect_mask(p, paved_north), rect_mask(p, paved_south)), road);
 	vec3 cob = texture(cobble, p * 0.3).rgb * cobble_tint;
 	col = mix(col, cob, pave);
+	col = mix(col, col * kerb_tint, kerb);
 
 	float b = 1.0 - smoothstep(blight_radius * 0.25, blight_radius, distance(p, blight_center));
 	col = mix(col, col * blight_tint * 1.6, b * (1.0 - in_grid * 0.7));

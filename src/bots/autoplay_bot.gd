@@ -1,8 +1,9 @@
 class_name AutoplayBot
 extends RefCounted
 ## Plays a GameSim headless with a fixed strategy, the way a player would:
-## a serpentine maze of 1-tile walls built from the portal side, then
-## upgrades and fusions. Used by the balance runs and by --autoplay.
+## a serpentine maze of 1-tile walls built from the portal side (on a
+## fixed-lane map, towers along the lane: lane_plan), then upgrades and
+## fusions. Used by the balance runs and by --autoplay.
 
 ## The serpentine per map as [row, gap columns, centre], built in order and
 ## each wall from its centre column outwards (default the board's middle).
@@ -80,6 +81,16 @@ const PATTERNS := {
 	&"no_air": [&"cannon", &"cannon", &"roots", &"cannon", &"shadow"],
 	&"novice": [&"archer", &"archer", &"cannon", &"archer", &"frost"],
 }
+## Element picks under the eletd rules (SimElements), spent as soon as they
+## come: the first choice in the list not yet taken as often as it is listed.
+## The smart strategy's RouteLiner picks for itself.
+const PICKS := {
+	&"archers": [&"interest", &"interest", &"interest"],
+	&"no_air":
+	[&"dark", &"verdant", &"dark", &"verdant", &"dark", &"verdant", &"interest", &"interest"],
+	&"novice":
+	[&"aqua", &"light", &"dark", &"flame", &"stone", &"verdant", &"interest", &"interest"],
+}
 ## Seconds between decisions, for strategies slower than DECIDE_EVERY.
 const DECIDE_SLOWLY := {&"novice": 4.0}
 const ELEMENT_COUNTER := {
@@ -141,7 +152,9 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 		_timer = _rng.randf() * DECIDE_EVERY
 	var grid := sim.grid
 	var walls: Dictionary = WALLS_ELETD if sim.adjacent_reach() else WALLS
-	for wall: Array in walls[grid.map]:
+	if not grid.lane.is_empty():
+		plan = lane_plan(grid)
+	for wall: Array in walls.get(grid.map, []):
 		# Build each wall from the middle outwards: the opening towers sit on the
 		# straight route, and the wall bends the path as it grows.
 		var mid: float = wall[2] if wall.size() > 2 else WALL_CENTER
@@ -152,8 +165,21 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 			if not col in wall[1] and not grid.is_blocked(tile) and not grid.is_reserved(tile):
 				plan.append(tile)
 	if strategy == &"smart" and sim.adjacent_reach():
-		_liner = RouteLiner.new(sim, plan, walls[grid.map], _rng)
+		_liner = RouteLiner.new(sim, plan, walls.get(grid.map, []), _rng)
 		skip_reasons = _liner.skip_reasons
+
+
+## On a fixed-lane map there is no maze to build: the plan is every tile
+## beside the lane, in the order the creeps pass them, each tile's sides
+## before its corners.
+static func lane_plan(grid: Grid) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for t in grid.lane:
+		for dir in FlowField.DIRS:
+			var n := t + dir
+			if grid.is_ground(n) and not grid.is_reserved(n) and not n in out:
+				out.append(n)
+	return out
 
 
 func step() -> void:
@@ -169,6 +195,7 @@ func _decide() -> void:
 	if _liner:
 		_liner.decide()
 		return
+	_spend_picks()
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
 	# A novice adds one tower per decision, so its maze grows late.
 	var builds_left := 1 if strategy == &"novice" else plan.size()
@@ -225,7 +252,12 @@ func _pattern_at(slot: int) -> StringName:
 	if strategy == &"smart":
 		return _counter_pick(slot)
 	var p: Array = PATTERNS[strategy]
-	return p[slot % p.size()]
+	var id: StringName = p[slot % p.size()]
+	# Under eletd, a tower whose element isn't picked yet gives way to the
+	# pattern's first one that needs none.
+	if sim.elements.needs(id) != "":
+		id = p.filter(func(x: StringName) -> bool: return sim.elements.needs(x) == "")[0]
+	return id
 
 
 ## Reads the upcoming wave like a player reading the preview: alternate the
@@ -235,7 +267,7 @@ func _counter_pick(slot: int) -> StringName:
 	# Once the current wave is all on the field, the towers it meets are
 	# mostly built; plan for the one after.
 	var w := clampi(sim.wave + (0 if sim.spawning() else 1), 1, 40)
-	var entries := WaveDefs.spawn_list(w)
+	var entries := WaveDefs.spawn_list(w, sim.rules)
 	var element: StringName = entries[0][1]
 	var classes := {}
 	for e in entries:
@@ -249,7 +281,8 @@ func _counter_pick(slot: int) -> StringName:
 	var options: Array
 	match slot % 4:
 		0:
-			options = ELEMENT_COUNTER[element]
+			# Composite armor (eletd) has no element counter: answer its armor.
+			options = ELEMENT_COUNTER.get(element, CLASS_COUNTER[main_class])
 		1:
 			options = CLASS_COUNTER[main_class]
 		2:
@@ -263,9 +296,9 @@ func _counter_pick(slot: int) -> StringName:
 	# almost nothing that answers it buys the answer first, saving up if need be.
 	# Under eletd the top bar also shows the wave after next, so a player sees
 	# two waves ahead even while the current one is still coming in.
-	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40))
+	var seen := entries + WaveDefs.spawn_list(mini(w + 1, 40), sim.rules)
 	if sim.adjacent_reach() and sim.spawning():
-		seen += WaveDefs.spawn_list(mini(w + 2, 40))
+		seen += WaveDefs.spawn_list(mini(w + 2, 40), sim.rules)
 	var threats := {}
 	for e in seen:
 		threats[CreepDefs.CREEPS[e[0]].class] = true
@@ -306,9 +339,19 @@ func _upgrade_one(reserve: int) -> void:
 			var t := sim.tower_at(tile)
 			if t == null or t.id != id or t.level >= t.max_level():
 				continue
+			if sim.elements.needs(t.id, t.level + 1) != "":
+				continue
 			if sim.gold >= TowerDefs.upgrade_cost(t.id, t.level) + reserve:
 				sim.upgrade(tile)
 				return
+
+
+func _spend_picks() -> void:
+	var counts := {}
+	for choice: StringName in PICKS.get(strategy, []):
+		counts[choice] = counts.get(choice, 0) + 1
+		if sim.elements.taken(choice) < counts[choice] and sim.elements.pick(sim, choice):
+			return
 
 
 ## Fuses between waves only, and only with gold to rebuild the freed wall

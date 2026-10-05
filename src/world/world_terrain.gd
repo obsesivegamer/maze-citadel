@@ -48,7 +48,8 @@ const CLIFF_ROCK_SPACING := 3.3
 const BRIDGE_SCALE := 6.5
 const WATER_HALF_WIDTH := 6.3
 
-## The board being drawn; its ruins darken the plateau under them.
+## The board being drawn; its ruins darken the plateau under them, and a
+## fixed lane is cobbled like the portal apron.
 var grid: Grid
 
 var _macro: NoiseTexture2D
@@ -277,9 +278,13 @@ func _build_plateau() -> void:
 	m.set_shader_parameter(&"paved_north", Vector4(px - 2.0, -40.0, px + 2.0, -26.0))
 	m.set_shader_parameter(&"paved_south", Vector4(gx - 2.0, 26.0, gx + 2.0, 40.0))
 	if not grid.obstacles.is_empty():
-		m.set_shader_parameter(&"ruins", _ruin_mask())
+		m.set_shader_parameter(&"ruins", _tile_mask(grid.obstacles.keys()))
 		if _cheap > 0:
 			m.set_shader_parameter(&"has_ruins", true)
+	if not grid.lane.is_empty():
+		m.set_shader_parameter(&"lane", _tile_mask(grid.lane))
+		if _cheap > 0:
+			m.set_shader_parameter(&"has_lane", true)
 	st.set_material(m)
 	var mi := MeshInstance3D.new()
 	mi.name = "Plateau"
@@ -288,11 +293,12 @@ func _build_plateau() -> void:
 	add_child(mi)
 
 
-## One texel per tile, white under ruins; the plateau shader samples it with
-## linear filtering so the trodden dirt fades out around each ruin.
-func _ruin_mask() -> ImageTexture:
+## One texel per tile, white on `tiles` (ruins, or a fixed lane); the plateau
+## shader samples it with linear filtering so the trodden dirt fades out
+## around each ruin and the road's corners round off.
+func _tile_mask(tiles: Array) -> ImageTexture:
 	var img := Image.create(Grid.COLS, Grid.ROWS, false, Image.FORMAT_L8)
-	for t: Vector2i in grid.obstacles:
+	for t: Vector2i in tiles:
 		img.set_pixelv(t, Color.WHITE)
 	return ImageTexture.create_from_image(img)
 

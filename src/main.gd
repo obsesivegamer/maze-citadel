@@ -3,14 +3,20 @@ extends Node3D
 ##
 ## User args (after `--`):
 ##   --scene=spike                              M1 render spike instead of the game
-##   --map=citadel|rampart                       board (default: the last pick)
+##   --map=citadel|rampart|causeway              board (default: the last pick;
+##                                              causeway needs eletd rules)
 ##   --quality=cinematic|balanced|performance   presentation preset
 ##   --<setting>=<value>                        override one preset setting
 ##   --autoplay [--strategy=smart] [--speed=3]  the balance bot plays
 ##   --twists [--seed=<n>]                      Twists mode, optionally a fixed schedule
-##   --rules=classic|eletd                      rule set (default: classic)
+##   --rules=eletd|classic                      rule set (default: the last pick, else eletd)
+##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
+##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
+##   --select=<x,y|tower id>                    select a tower (the first of that kind)
+##   --open=pick|guide|elements                 open the pick panel (eletd), the Field Guide
+##                                              or its Elements and picks page (eletd)
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
@@ -46,7 +52,7 @@ func _ready() -> void:
 		game.choose_build(&"")
 	if Cli.has("twists"):
 		game.sim.twist_seed = int(Cli.get_str("seed", "0"))
-		game.set_mode(game.sim.hard, game.sim.infinite, true)
+		game.set_mode(game.sim.difficulty, game.sim.infinite, true)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
 	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).
@@ -60,6 +66,10 @@ func _ready() -> void:
 			node.visible = false
 	if Cli.has("warp-wave"):
 		game.warp_to_wave(int(Cli.get_str("warp-wave")), Cli.get_float("warp-into", 0.0))
+	if Cli.has("select"):
+		game.select(_tile_to_select(game, Cli.get_str("select")))
+	if Cli.has("open"):
+		game.hud.open_panel(Cli.get_str("open"))
 	_attach_tools(
 		func(view: String) -> void: game.camera.preset(StringName(view), true),
 		game.quality_settings,
@@ -109,6 +119,17 @@ func _attach_tools(set_view: Callable, settings: Dictionary, context := Callable
 		bench.context = context
 		bench.settings = settings
 		add_child(bench)
+
+
+## --select=x,y is that tile; --select=<tower id> the first tower of that kind.
+static func _tile_to_select(game: Game, what: String) -> Vector2i:
+	var xy := what.split(",")
+	if xy.size() == 2:
+		return Vector2i(int(xy[0]), int(xy[1]))
+	for t: SimTower in game.sim.towers.values():
+		if t.id == StringName(what):
+			return t.tile
+	return Game.NONE
 
 
 static func _context(game: Game) -> Dictionary:

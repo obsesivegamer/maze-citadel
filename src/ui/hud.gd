@@ -11,6 +11,10 @@ const CARD_BOTTOM := 10.0
 const TIP_GAP := 10.0
 const HINT_MARGIN := Vector2(12, 12)
 const ANNOUNCE_LEAD := 3.0
+## The line above the cards (eletd): gap over the cards, seconds held, fade.
+const SAY_GAP := 46.0
+const SAY_HOLD := 2.2
+const SAY_FADE := 0.6
 
 var _game: Game
 var _root := Control.new()
@@ -25,6 +29,11 @@ var _tutorial := Tutorial.new()
 var _guide := FieldGuide.new()
 var _settings := SettingsPanel.new()
 var _end := EndScreen.new()
+## eletd only: the element pick panel and a line of text above the cards
+## for refusals and Guardian leaks.
+var _picks: PickPanel
+var _say_line: Label
+var _say_tween: Tween
 var _announced := 0
 var _best_before := 0
 var _gold := -1
@@ -55,6 +64,8 @@ func setup(game: Game) -> void:
 	_root.add_child(_hints)
 	_root.add_child(_tutorial)
 	_tutorial.setup(game, _cards)
+	if game.sim.elements.enabled:
+		_build_elements()
 	_root.add_child(_guide)
 	_guide.setup(game)
 	_tutorial.guide_requested.connect(_guide.open)
@@ -92,6 +103,60 @@ func _build_cards() -> void:
 	_refresh_cards()
 
 
+func _build_elements() -> void:
+	_picks = PickPanel.new()
+	_root.add_child(_picks)
+	_picks.setup(_game)
+	_top.picks_pressed.connect(_picks.toggle)
+	_say_line = UiKit.label("", &"", UiTheme.SIZE_LARGE)
+	_say_line.add_theme_font_override("font", UiTheme.bold())
+	_say_line.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT)
+	_say_line.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_say_line.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_say_line.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_say_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_say_line.offset_bottom = -(TowerCard.SIZE.y + CARD_BOTTOM + SAY_GAP)
+	_say_line.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.02))
+	_say_line.add_theme_constant_override("outline_size", 6)
+	_say_line.visible = false
+	_root.add_child(_say_line)
+
+
+## Shows `text` above the cards for a moment, like a Warcraft III error line.
+func _say(text: String) -> void:
+	if _say_line == null:
+		return
+	_say_line.text = text
+	_say_line.visible = true
+	_say_line.modulate.a = 1.0
+	if _say_tween != null:
+		_say_tween.kill()
+	_say_tween = _say_line.create_tween()
+	_say_tween.tween_interval(SAY_HOLD)
+	_say_tween.tween_property(_say_line, "modulate:a", 0.0, SAY_FADE)
+	_say_tween.tween_callback(_say_line.hide)
+
+
+## Guardians, element levels and element refusals (eletd's events).
+func _on_element_event(e: Dictionary) -> void:
+	match e.type:
+		&"guardian_spawned":
+			var detail := ElementPicks.guardian_detail(e.element, e.level)
+			_banner.notice(ElementPicks.guardian_title(e.element), detail, e.element)
+		&"element_gained":
+			var text := ElementPicks.unlocks(e.element, e.level)
+			_banner.notice(ElementPicks.gained_title(e.element, e.level), text, e.element, true)
+		&"upgrade_refused":
+			_say(e.needs)
+		&"build_refused":
+			if e.reason == Placement.Result.LOCKED:
+				_say(ElementPicks.locked_reason(_game.sim, e.get("id", _game.build_choice)))
+		&"leaked":
+			for c in _game.sim.creeps:
+				if c.id == e.id and c.type == &"guardian":
+					_say(ElementPicks.guardian_leaked(c.element, e.cost))
+
+
 func _on_card(id: StringName) -> void:
 	if id in TowerDefs.EPICS:
 		var t := _game.sim.tower_at(_game.selected)
@@ -120,9 +185,12 @@ func _refresh_cards() -> void:
 			card.lit = TowerInfo.can_fuse(sim, id)
 		else:
 			card.affordable = sim.gold >= TowerDefs.build_cost(id)
+			card.locked = sim.elements.needs(id) != ""
 
 
 func _on_sim_event(e: Dictionary) -> void:
+	if _picks != null:
+		_on_element_event(e)
 	match e.type:
 		&"wave_started":
 			if e.wave == 1:
@@ -138,14 +206,14 @@ func _on_sim_event(e: Dictionary) -> void:
 		&"victory", &"defeat":
 			_tooltip.visible = false
 			_end.show_result(e.type == &"victory", _best_before)
-		&"built", &"sold", &"upgraded", &"fused":
+		&"built", &"sold", &"upgraded", &"fused", &"element_gained":
 			_refresh_cards()
 			_plaque.refresh()
 
 
 func _announce(wave: int) -> void:
 	_announced = wave
-	_banner.announce(wave, _game.sim.twist_for(wave))
+	_banner.announce(wave, _game.sim.twist_for(wave), _game.sim.rules)
 
 
 func _process(delta: float) -> void:
@@ -176,12 +244,26 @@ func _start_tutorial() -> void:
 		_tutorial.start()
 
 
+## Opens a panel for a screenshot (main.gd's --open): "pick" (eletd),
+## "guide", or "elements" (the Field Guide's eletd page).
+func open_panel(which: String) -> void:
+	match which:
+		"pick":
+			if _picks != null:
+				_picks.open()
+		"guide", "elements":
+			_guide.open()
+			_guide.show_page(which == "elements")
+
+
 ## The HUD gets input before the builder and camera, so keys stop here while
-## a modal is up.
+## a modal is up; under eletd E and the pick panel's keys stop here too.
 func _unhandled_input(event: InputEvent) -> void:
 	var action := modal_action(event, _guide.visible, _tutorial.welcome_visible())
 	match action:
 		&"":
+			if _picks != null and _picks.handle_key(event):
+				get_viewport().set_input_as_handled()
 			return
 		&"close_guide":
 			_guide.close_modal()

@@ -166,6 +166,11 @@ func _build_welcome() -> void:
 		+ " blue gate. The road can never be sealed.\n[b]Every wave has an element and an armor"
 		+ " class[/b], and towers that counter both hit far harder."
 	)
+	if _game.sim.adjacent_reach():
+		intro.text += (
+			"\n[b]A tower reaches only the eight tiles around it[/b], so build the maze along the"
+			+ " road: every tile the creeps walk beside a tower is time under fire."
+		)
 	box.add_child(intro)
 	var row := UiKit.hbox(18)
 	var wheel := ElementWheel.new(WHEEL_PX, false)
@@ -191,6 +196,15 @@ func _build_welcome() -> void:
 		)
 		% Counsel.TUTORIAL_WAVES
 	)
+	if _game.sim.elements.enabled:
+		outro.text += (
+			(
+				"\n[b]Locked towers need their element first.[/b] Press %s to spend an element"
+				+ " pick: you start with one and earn more as the waves go by. The card names"
+				+ " only towers you can build."
+			)
+			% ElementPicks.KEY
+		)
 	box.add_child(outro)
 	var buttons := UiKit.hbox(12)
 	var go := UiKit.text_button(_game, "Begin")
@@ -317,6 +331,11 @@ func _on_sim_event(e: Dictionary) -> void:
 		&"hit":
 			if step == Step.COUNSEL and TIPS.has(e.counter):
 				_show_tip(e.counter)
+		&"element_gained":
+			# A new element can open a better counter than the card names.
+			if step == Step.COUNSEL and _card.visible:
+				_counsel.show_wave(_counsel.wave, _game.sim.twist_for(_counsel.wave))
+				_mark(_counsel.picks())
 		&"victory", &"defeat":
 			_card.visible = false
 			_mark(_empty())

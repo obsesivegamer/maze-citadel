@@ -8,17 +8,28 @@ For that, use these instead:
 - What has shipped: the [release notes](https://github.com/obsesivegamer/maze-citadel/releases).
 - The rules and numbers as they are now: [GDD.md](GDD.md).
 
-## Where things stand (2026-10-03)
+## Where things stand (2026-10-04)
 
-Version 0.2.0 is out. It has the full game described below, plus things that were added along the way: a second map, all four Epics, Twists mode, the tutorial and Field Guide, and the [website](https://obsesivegamer.github.io/maze-citadel/). The performance work for the default Balanced preset is done, and it now runs at 60 fps in heavy battles on the M3 MacBook Air ([perf.md](perf.md)).
+Version 0.2.0 had the full game described below, plus things that were added along the way: a second map, all four Epics, Twists mode, the tutorial and Field Guide, and the [website](https://obsesivegamer.github.io/maze-citadel/). The performance work for the default Balanced preset is done, and it runs at 60 fps in heavy battles on the M3 MacBook Air ([perf.md](perf.md)). Version 0.3.0 added Windows and Linux builds, and 0.3.1 fixed a flicker on PCs.
 
-Some details changed after the plan was written. The repository is public now, not private. The download is `MazeCitadel-<version>.dmg` from the website, not a file in `dist/`.
+Version 0.4.0 changes how the game plays. The game was too easy: the smart bot kept 19 of 20 lives and creeps died within sight of the portal. The Element TD rules, built and tuned beside the released game, are now the default ([GDD.md](GDD.md#50-rule-sets), [balance.md](balance.md)):
+
+- Towers reach only the 3 × 3 tiles around them, and elemental towers hit harder to make up for the range they lost.
+- Elements are earned: three starter towers need none, and eight element picks unlock the rest a level at a time. Every pick after the first summons a Guardian that has to die before the level arrives.
+- Waves come as longer, tighter streams, with composite-armor and Bulky waves, 30 seconds apart. A leak locks interest until the field is clear.
+- Four difficulties, from Easy to Very Hard, and 400 starting gold.
+- A third map, the Winding Causeway, with a fixed road to build beside.
+
+The classic rules, the game as it was in 0.3.1, are one click away and play exactly as they did.
+
+Some details changed after the plan was written. The repository is public now, not private. The download is `MazeCitadel-<version>.dmg` from the website, not a file in `dist/`, and the game runs on Windows and Linux too, not only on this Mac.
 
 Still open:
 
 1. Long sessions of late waves on a warm MacBook Air average about 57 fps on Balanced. The next step is to render the 3D view at the display's own resolution ([perf.md](perf.md#next)).
 2. The plan's last milestones: M7, the final pass on effects and sound, and M9, the 1.0 release.
 3. Removing the performance experiment switches that weren't adopted. Some of them, such as `--pf-hud-lite`, are still in the code.
+4. Aqua, Stone and Verdant are weak element picks under the Element TD rules: their towers pay too little per gold, so the smart bot builds around Dark, Flame and Light ([balance.md](balance.md#targets)).
 
 Not every checkbox below was kept up to date, so an unticked box doesn't always mean the work is missing. The board in M3 and the quality presets in M8 are unticked, for example, and both are in the game.
 

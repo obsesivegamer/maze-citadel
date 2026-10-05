@@ -1,6 +1,8 @@
 # Balance log
 
-This is the record of how Maze Citadel's numbers were tuned. Three bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. The rules and numbers as they are now are in [GDD.md](GDD.md).
+This is the record of how Maze Citadel's numbers were tuned. Four bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
+
+The game has two rule sets. The Element TD rules (`eletd` in the code) are the default a player gets, and every section headed "Element TD rules" tuned them. The classic rules are the game as released in 0.3.1; the sections without that heading tuned them, and they no longer change. Every change under the Element TD rules is checked against the classic game, which must still play exactly as released: the smart bot on Normal, seed 0, wins with 20 lives, 2 close calls and 12,110 gold at 34:09.
 
 ## Running the bots
 
@@ -8,23 +10,24 @@ This is the record of how Maze Citadel's numbers were tuned. Three bots play ful
 godot --headless --path . --script res://tests/bots/run_balance.gd
 ```
 
-A full run plays 4 seeds of every row and takes about 8 minutes on one core. Options go after a `--`:
+It plays the Element TD rules, the game's default, on the Citadel Plateau. Every table on this page that isn't under an "Element TD rules" heading was measured on the classic rules, and `-- --rules=classic` reproduces it. A full run plays 4 seeds of every row. On the classic rules that takes about 8 minutes on one core; an Element TD game takes 40 to 70 seconds, so the full Element TD table is best run as a few processes side by side, each with its own `--only`. Options go after a `--`:
 
 | Option | What it does |
 |---|---|
-| `--only=smart:hard` | Runs a single row |
+| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic`. The rows the latest tables use are `smart:normal,smart:hard,smart:easy,smart:very_hard,archers:normal,no_air:normal,novice:normal,novice:easy` |
 | `--seeds=N` | Sets how many games each row plays |
 | `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
-| `--map=rampart` | Plays on Fallen Rampart |
-| `--rules=eletd` | Plays the Element TD rule set instead of the classic one |
+| `--map=rampart` | Plays on Fallen Rampart; `--map=causeway` plays on the Winding Causeway, under the Element TD rules only |
+| `--rules=classic` | Plays the classic rule set instead of the Element TD one |
+| `--picks=aqua,dark,dark,interest` | Under the Element TD rules, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
 
 ## The bots
 
 | Bot | Plays like |
 |---|---|
 | smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics of all four families between waves, only with gold to rebuild the freed wall tile; ignores twists |
-| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)) |
+| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)). Weighs its element picks once per breather against the wave table, and summons a Guardian only when its route can kill it ([below](#element-td-rules-the-smart-bot-plays-its-picks-2026-10-04)) |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
@@ -36,7 +39,30 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 - **Walked, non-boss median:** the middle value of how far each non-boss wave got.
 - **Boss walked:** how far the boss got on each boss wave, averaged; 100% means it leaked.
 
-## Targets (PLAN M6 gate)
+## Targets
+
+### Element TD rules
+
+The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of the [retune after element picks](#element-td-rules-retune-after-element-picks-2026-10-04), 4 seeds per row on the Citadel Plateau and the Fallen Rampart.
+
+| Target | Status |
+|---|---|
+| The smart bot wins Normal with about 12 lives, losing them across the game rather than all at once | Met: 4/4 on both maps, 12.0 lives on the Citadel and 13.0 on the Rampart (12–14), lost to the Ogre waves 10, 20 and 30 and once to wave 29; the Dreadlord dies on its first pass in every game |
+| Hard is beatable but tight | Met: 2/4 on each map, with 4.0 and 3.2 lives; the lost games end on waves 39 and 40 |
+| Very Hard: a good player reaches wave 30, and the last ten waves are the wall | Met: 0/4 on both maps, every game lost on waves 38 to 40 after the whole game has been played |
+| Easy is comfortable | Met: 4/4 on both maps, 15.2 and 18.5 lives |
+| The picks matter: elemental towers do most of the damage | Met: they deal 55% to 65% of all damage in the smart bot's Normal games, which end with three or four elements |
+| Guardians are a fair price for a level | Met: none of the 32 smart games' Guardians got through |
+| The novice, with no thought for the next wave, loses on Normal but can win on Easy | Met: it loses on wave 30 on both maps on Normal; on Easy it wins on the Citadel with 14.2 lives and loses on wave 40 on the Rampart |
+| The archers-only bot fails without counters | Met: it loses on wave 35 on the Citadel and 28 on the Rampart |
+| The ground-only bot dies at the Harpy waves | Met: it loses on wave 5 on both maps |
+| The Winding Causeway plays about as hard as the Citadel on Normal | Met: 4/4 with 11.2 lives (9–14), lost in every third of the game, set by its own creep HP multiplier ([re-set after the retune](#re-set-after-the-retune)). Hard is easier there (4/4, 4.2 lives) and Easy keeps 19.5 lives |
+
+**Known gap: weak elements.** Aqua, Stone and Verdant are weak picks. Their towers, the Frost Spire, the Runesmith Forge and the Ancient of Roots, pay about a third of a Ballista's damage per gold or less, and their slows, shred and roots, which the smart bot's price model counts only as a flat bonus, don't make up the difference. So the smart bot builds every game around Dark, Flame and Light, takes Aqua at most as a late extra pick and never takes Stone or Verdant. A later release addresses it.
+
+### Classic rules (PLAN M6 gate)
+
+These were the targets of the game as released, and the classic rules still meet them.
 
 | Target | Status |
 |---|---|
@@ -240,6 +266,325 @@ Tried on the way, with the smart bot on Normal unless a row says otherwise (mean
 | 0.15 → 0.6, 0.7 | 10: 1.6, 40: 0.4 | 1.03 → 1.12 | 4 | 8.5 / 8.2; wave 35 costs up to 7 lives; Hard 2/4 and 3/4 |
 | 0.15 → 0.6, 0.62 | 10: 1.7, 40: 0.4 | 1.03 → 1.12 | 4 | 11.8 / 10.0 with one Rampart game lost on wave 40; Hard 3/4 on both |
 | **0.15 → 0.6, 0.62** | **10: 1.7, 40: 0.33** | **1.03 → 1.12** | 4 | **The settings above** |
+
+## Element TD rules: the interest lock and four difficulties (2026-10-04)
+
+Two Element TD rules arrived together. A leak now stops interest until the field is clear, and there are four difficulties instead of two: Easy (creeps at 75% HP), Normal, Hard (the ramp above) and Very Hard (1.12 on wave 1 rising to 1.3 on wave 40, a first guess). Neither was tuned here.
+
+The lock costs the smart bot almost nothing, because it spends its gold as it comes and earns very little interest. Its Normal games on the Citadel went from 11.5 lives (11 and 12) to 11.0 (10 and 12) over the same two seeds, with the same waves leaking.
+
+Citadel, 2 seeds per row:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | easy | 2/2 | 20.0, 20–20 | 3.0 | 22% | 34% | 98% / 90% / 94% / 37% | – |
+| smart | normal | 2/2 | 11.0, 10–12 | 7.0 | 21% | 41% | 100% / 100% / 100% / 56% | – |
+| smart | hard | 1/2 | 5.0, 0–10 | 9.0 | 21% | 40% | 100% / 100% / 100% / 72% | w33 |
+| smart | very_hard | 0/2 | 0.0, 0–0 | 8.5 | 19% | 40% | 100% / 100% / 100% / 92% | w38, w40 |
+
+Lives lost per wave, both seeds: hard {10: 4, 20: 4, 23: 2, 29: 3, 30: 12, 33: 4, 40: 1} · very_hard {10: 4, 20: 4, 30: 10, 33: 2, 35: 8, 36: 1, 38: 7, 40: 4}
+
+Easy never leaks, and Very Hard is lost late in both games, on the armored waves 35 and 38 and the Dreadlord. Both are where a later retune starts.
+
+## Element TD rules: wave shapes (2026-10-04)
+
+Element TD sends long, tight streams, so how much of the lane a maze covers matters more than any one tower. Under `eletd` every group except a boss now has one and a half times the creeps, 0.6 s apart instead of 0.9 (fast creeps 0.35 s instead of 0.5). Each creep carries the matching share of the HP and the bounty, so a wave's total HP and gold are unchanged. Waves 14, 27 and 34 are now composite (every element deals 90%), and waves 12, 18, 25 and 37 are Bulky (half the creeps, each with 2.5 times the HP and twice the bounty, 2 lives a leak). None of this was tuned here.
+
+It barely moves the smart bot on Normal. Over the same two Citadel seeds it went from 11.0 lives (10 and 12) to 12.0 (12 in both), with 9.0 close calls a game against 7.0 before. It still loses lives only to the wave-10, 20 and 30 bosses: {10: 4, 20: 4, 30: 8}. The composite and Bulky waves cost it nothing, even though a Bulky wave carries about a quarter more HP than the wave it replaces. They are left for the retune.
+
+## Element TD rules: element picks and Guardians (2026-10-04)
+
+Under `eletd` a tower now needs its element: one pick at the start and one after each of waves 5, 10, 15, 20, 25, 30 and 35, spent on an element level or on Interest. The first element pick is granted at once; every later one summons a Guardian, a boss that grants the level only when it dies and costs 3 lives a leak. The Archer and the Cannon need no element and now deal composite damage, the same to every element. The rules are in [GDD.md](GDD.md#50-rule-sets). Nothing was tuned here: the Guardian's HP is a first guess.
+
+The bots spend each pick as soon as they have it. The archers-only bot takes Interest three times. The ground-only bot takes Dark, then Verdant, then levels both, and builds Cannons where its pattern wants a tower it can't have yet. The novice takes Aqua, then Light, Dark, Flame, Stone and Verdant at level 1, then Interest. The smart bot only buys what its elements allow, and gives each pick to the element of the best purchase it is locked out of. Playing the picks well is left for later.
+
+Citadel, 2 seeds per row:
+
+| Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|
+| smart | normal | 1/2 | 3.0, 0–6 | 9.5 | 31% | 43% | 100% / 100% / 100% / 98% | w40 |
+| smart | hard | 1/2 | 0.5, 0–1 | 7.0 | 30% | 43% | 100% / 100% / 100% / 99% | w40 |
+| archers | normal | 0/2 | 0.0, 0–0 | 8.0 | 26% | 26% | 100% / 100% / 100% / – | w38, w38 |
+| no_air | normal | 0/2 | 0.0, 0–0 | 2.0 | 51% | 23% | – / – / – / – | w5, w5 |
+| novice | normal | 0/2 | 0.0, 0–0 | 2.0 | 34% | 22% | – / – / – / – | w6, w6 |
+
+Lives lost per wave, both seeds: smart/normal {10: 4, 20: 4, 25: 4, 30: 7, 35: 3, 40: 12} · smart/hard {10: 4, 20: 4, 25: 4, 30: 9, 35: 6, 40: 12} · archers {10: 4, 20: 4, 25: 4, 30: 4, 35: 11, 38: 13} · no_air {2: 9, 5: 31} · novice {3: 22, 5: 6, 6: 12}
+
+What it shows:
+
+- The smart bot on Normal fell from 12.0 lives (12 in both games, the section above) to 3.0, and lost one game on the Dreadlord. It spent its picks on Light, Dark and Flame, and once on Aqua, never on Interest. It now loses lives on the Bulky wave 25 and, in one game, to the wave-35 Guardian, and the Dreadlord takes 3 to 9.
+- The novice now dies on wave 6, where it used to live to wave 20 or later. Its Cannons no longer deal double to the Verdant Footmen of wave 3, nor its Archers to the Dark Ghouls of wave 6, and its first Guardian leaks.
+- The archers-only bot lives longer, to wave 38 against 33: composite arrows lose nothing to the Stone waves that used to halve them, and three Interest picks pay more.
+- The ground-only bot still dies on wave 5, the first Harpies.
+
+## Element TD rules: the smart bot plays its picks (2026-10-04)
+
+The smart bot spent each pick the moment it had it, on the element of the best purchase it was locked out of, and summoned every Guardian as soon as the pick came. About one Guardian in seven got through, at 3 lives each. It now plays its picks the way a player who knows the wave table would, so that it stays a fair yardstick for these rules. Nothing in the game's numbers changed.
+
+Once in each breather, and once before wave 1, it weighs every pick against the creeps of the next ten waves, reading further waves for less. Those are the waves the Field Guide lists for anyone to read. An element is worth what the purchases it unlocks add for the gold the bot will have before the next pick, counting only purchases worth at least half as much per gold as the best one open now, since it would never get round to the rest. A level that lets every Plague Cauldron climb a step can be worth more than a new element's best tower. Interest is worth the gold it would add by the next pick, and it wins only when no element is worth more.
+
+A Guardian is treated as a lone boss the route must kill, and its damage is summed the way the bot already sums it for its lone brute. The bot summons one only when its route would deal one and a half times the Guardian's HP in one pass. It also waits for a breather that comes before a wave without a boss, and never summons a second Guardian while one is walking. Otherwise it keeps the pick in hand, but it never takes more than two picks into a wave with no Guardian walking. A third goes on whatever costs the fewest lives, which is Interest when that is still open. It builds from at most four elements. The balance runner now prints each game's picks (`picks: dark@0, dark@5, ...`, the wave being the last one started) and how many Guardians were summoned, got through and cost lives.
+
+Smart bot, 4 seeds per row, before (the bot of the section above) and after:
+
+| Map | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Citadel | before | normal | 3/4 | 3.8, 0–8 | 8.8 | 31% | 43% | 100% / 100% / 100% / 98% | w40 |
+| Citadel | after | normal | 4/4 | 6.2, 3–8 | 8.8 | 37% | 44% | 100% / 100% / 100% / 96% | – |
+| Citadel | before | hard | 1/4 | 0.2, 0–1 | 6.8 | 31% | 41% | 100% / 100% / 100% / 99% | w40, w30, w36 |
+| Citadel | after | hard | 1/4 | 1.0, 0–4 | 7.5 | 36% | 42% | 100% / 100% / 100% / 96% | w40, w40, w30 |
+| Rampart | before | normal | 2/4 | 1.5, 0–4 | 9.8 | 28% | 41% | 100% / 100% / 100% / 93% | w36, w36 |
+| Rampart | after | normal | 3/4 | 5.0, 0–9 | 8.8 | 25% | 40% | 100% / 100% / 100% / 92% | w40 |
+| Rampart | before | hard | 0/4 | 0.0, 0–0 | 9.0 | 28% | 39% | 100% / 100% / 100% / 96% | w36, w40, w40, w35 |
+| Rampart | after | hard | 0/4 | 0.0, 0–0 | 9.8 | 26% | 39% | 100% / 100% / 100% / 97% | w40, w40, w40, w30 |
+
+Guardians, all 4 seeds: before, 16 of 109 got through (3 to 5 in each row) and cost 48 lives; after, none of 73 did. Lives lost per wave after: Citadel normal {10: 8, 20: 8, 25: 6, 30: 10, 40: 23}, hard {10: 8, 20: 8, 25: 20, 28: 1, 29: 1, 30: 15, 35: 6, 40: 18}; Rampart normal {10: 8, 20: 8, 25: 16, 29: 2, 30: 10, 40: 16}, hard {10: 8, 20: 8, 23: 5, 25: 26, 29: 2, 30: 12, 35: 6, 39: 1, 40: 13}.
+
+Three games, read as a player would:
+
+- **Citadel, Normal, seed 0** (won, 8 lives): `dark@0, dark@5, dark@10, interest@15, flame@20, interest@25, flame@30, interest@36`. Dark first because the Plague Cauldron's poison ignores armor, reaches flyers and does double to Aqua creeps, and the first ten waves bring armored Footmen and Tanks on 3, 7 and 9, Harpies on 5 and Aqua on 4 and 9. The next two Dark levels let all its Cauldrons climb a step (in the games traced it had about fifteen by wave 5). At wave 15 nothing a new element unlocks is worth half as much per gold as the best purchase open, so it takes Interest. Flame comes at 20, for Demolishers to use siege on the armored stretch of waves 21 to 25. It holds the wave-35 pick for one breather, because no Guardian it could summon would die on its first pass. Then it takes Interest, since too few waves are left for a level to pay.
+- **Fallen Rampart, Normal, seed 1** (won, 9 lives): `dark@0, dark@5, dark@10, flame@15, light@20, light@25, flame@30, interest@38`. It goes three deep in Dark as above and ends with 26 level-3 Cauldrons. Then come Flame for the armored waves, Light at 20 and 25 for Ballistas (Light does double to the Dark creeps of waves 25 and 32, and the Ballista hits Harpies), and a second Flame level at 30 for the armored waves 33, 35 and 38. It holds the wave-35 pick through three breathers, because no Guardian it could summon then would die on its first pass, and at wave 38 it takes the gold.
+- **Fallen Rampart, Normal, seed 2** (won, 5 lives): `dark@0, dark@5, dark@10, interest@15, flame@20, interest@25, light@30, flame@35`. It is the same build, with Interest where no element paid, and every Guardian, including the one summoned at 35, died on its first pass.
+
+What it shows:
+
+- Mean lives rise on both maps on Normal (3.8 to 6.2 on the Citadel, 1.5 to 5.0 on the Rampart) and on the Citadel on Hard. Rampart Hard stays at 0, though three of its four games now last until wave 40. The gain is about what the Guardians used to cost, 2 to 4 lives a game.
+- Every game builds the same core: Dark to level 3 by wave 10, then Flame, and Light in most games. That is three or four elements, with Interest when nothing else pays.
+- A new element's towers come slowly. The Demolishers from a wave-15 or wave-20 Flame pick first appear around wave 30, because Archer upgrades stay cheaper per gold until then. That comes from the composite starters' strength and the per-gold buyer, not from the picks, and is left for the retune.
+- The losses are where they were: the Bulky wave 25, the boss waves and the Dreadlord.
+
+Tried on the way (mean lives, Citadel Normal / Citadel Hard / Rampart Normal / Rampart Hard, 4 seeds unless a row says otherwise):
+
+| Pick valuation | Result |
+|---|---|
+| Best purchase an element unlocks, against the best one open | Took Interest with the free first pick, because the starters are the best value per gold early on. Scaled by the coming bounty instead, it took Dark first but lost both Citadel Normal games it played. Dropped |
+| Unlocked purchases within the budget, all counted, ten waves fading by 0.85 | 4.8 / 0.8 / 1.8 / 1.2. Picks sat unused for 10 to 15 waves: Aqua at 25 and no Frost Spire ever built |
+| The same, at most three elements | 3.5 / 0.0 / 4.5 / 1.2 |
+| Unlocked purchases counted only for what they add over the last purchase the budget buys anyway | Took Interest with the free first pick in 3 of 4 games; 5.5 on Citadel Normal with one game lost. Dropped |
+| **Ten waves fading by 0.6, purchases counted at half the best one's value per gold or more** | **6.2 / 1.0 / 5.0 / 0.0, the bot above** |
+
+## Element TD rules: the smart bot's last picks (2026-10-04)
+
+The bot used to hold a pick for as long as an element it could not yet summon safely was worth more than Interest. A Guardian's HP grows with the wave, so that element often never became safe, and after wave 35 no third pick ever arrived to force the held one out. The bot now takes Interest at once when the wave-35 pick is in. It also never lets a forced third pick summon a Guardian just before a boss wave; Interest goes then instead.
+
+Smart bot, Normal, Citadel, 2 seeds: the results are unchanged (won with 8 and 6 lives). The last Interest pick now comes at wave 35 instead of 36 or 38, which adds 18 gold to one game. On Fallen Rampart, Very Hard, seed 1 still loses on wave 35 holding the picks of waves 25 and 30. Before wave 35 is cleared, the bot keeps up to two picks in hand by design.
+
+## Element TD rules: retune after element picks (2026-10-04)
+
+Element picks, Guardians, the interest lock, four difficulties and the new wave shapes all arrived untuned. Before this retune the smart bot won every Normal game on the Citadel with 6.2 lives, 3 of 4 on the Rampart with 5.0, 1 of 4 and 0 of 4 on Hard, kept all 20 lives on Easy and lost both Very Hard games. It took Dark three times, then Interest wherever nothing else paid, built its new element's towers late and leaned on upgraded Archers. This section makes the elemental towers the better buy once their element is picked, then retunes the HP numbers around that. Every change is under `eletd` only; classic play is unchanged, and the classic check still ends with 20 lives, 2 close calls and 12,110 gold at 34:09.
+
+The balance runner now prints a line per `eletd` game with the share of all damage dealt by towers that need an element and by Epics, and each tower type's share, from the towers' own damage counters (sold and fused-away towers included): `elemental damage 60% (archer 40%, plague 30%, demolisher 22%, ballista 7%)`. Before the retune it read 42% and 48% on the Citadel and 30% and 37% on the Rampart (2 seeds each), with Archers dealing 49% to 63% of all damage.
+
+### Why the bot preferred upgraded Archers
+
+The smart bot buys whatever adds the most damage per gold to the creeps in the preview, and an element is worth a pick only if the purchases it unlocks come within half of the best buy open now. So the question is damage per gold per second under adjacent reach. The table is what the bot reckons for a creep in a stream (splash, pierce and slows counted by its `KIND_BONUS`), against each wave's creeps weighted by their HP, averaged over each third of the wave table. "Added" is what the level adds per gold of its own cost.
+
+| Tower, level | Before: per gold, waves 1–13 / 14–26 / 27–40 | Before: added | After: per gold | After: added |
+|---|---|---|---|---|
+| Archer 1 | 0.72 / 0.58 / 0.56 | – | 0.72 / 0.58 / 0.56 | – |
+| Archer 2 | 0.82 / 0.66 / 0.63 | **0.98 / 0.79 / 0.76** | 0.70 / 0.56 / 0.54 | 0.65 / 0.53 / 0.51 |
+| Archer 3 | 0.77 / 0.62 / 0.60 | 0.71 / 0.57 / 0.55 | 0.61 / 0.50 / 0.48 | 0.52 / 0.42 / 0.40 |
+| Cannon 3 | 0.50 / 0.56 / 0.57 | 0.55 / 0.61 / 0.62 | unchanged | unchanged |
+| Plague Cauldron 2 | 0.58 / 0.48 / 0.48 | 0.63 / 0.53 / 0.52 | unchanged | unchanged |
+| Ballista 1 | 1.12 / 0.79 / 0.72 | – | 1.56 / 1.11 / 1.00 | – |
+| Demolisher 1 | 0.56 / 0.66 / 0.72 | – | 0.78 / 0.92 / 1.01 | – |
+| Demolisher 3 | 0.66 / 0.78 / 0.85 | 0.78 / 0.91 / 1.00 | 0.93 / 1.09 / 1.19 | 1.09 / 1.28 / 1.40 |
+| Frost Spire 1 | 0.27 / 0.24 / 0.23 | – | 0.37 / 0.34 / 0.33 | – |
+| Shadow Obelisk 1 | 0.30 / 0.26 / 0.27 | – | 0.42 / 0.36 / 0.38 | – |
+| Runesmith Forge 1 | 0.18 / 0.19 / 0.19 | – | 0.25 / 0.27 / 0.26 | – |
+| Ancient of Roots 1 | 0.09 / 0.11 / 0.11 | – | 0.12 / 0.15 / 0.16 | – |
+
+The Archer's level 2, +67% damage for 15 gold, added more per gold than any other tower level but the Ballista's and, from wave 14 on, the Demolisher's level 3 (Epic fusions aside), and it is open from wave 1 with no pick and no Guardian. The elemental towers were priced for range: the Ballista and Demolisher reached 12 and 15 m against the Archer's 9, and under adjacent reach every tower sees the same 3×3 tiles. A Demolisher, the bot's Flame tower, paid less per gold than an Archer's level-2 upgrade in every third of the game. Tracing the bot's picks showed the rest: at waves 15 and 25 the best open buy was usually a serpentine step or an Archer upgrade, no unlocked purchase came within half of it, every element was worth nothing and Interest won by default.
+
+### What changed, and why
+
+| Number | Was | Now | Why |
+|---|---|---|---|
+| Archer damage per level (`ARCHER_POWER`) | 100% | 100% / 85% / 80% | Level 2 and 3 Archers stop being the best buy per gold; level 1 is untouched, so the opening and the novice's maze are the same |
+| Elemental tower damage (`ELEMENTAL_POWER`) | 100% | 140%, every tower that needs an element but the Plague Cauldron, clouds and craters included | Gives back what adjacent reach took from the long-range towers. The Cauldron keeps 100%: its poison works on after the creep walks on, and it was already the bot's first pick. Epics keep theirs |
+| Guardian HP, level 1 | 0.5 of a lone Ogre | 0.35 | A level-1 Guardian of a new element walks into a maze built for the others: a Light Guardian takes half damage from a Dark maze. At 0.5 the bot often never dared summon its third element's Guardian and spent the pick on Interest |
+| Creep HP line (`HP_FROM` → `HP_TO`) | 0.15 → 0.6 | 0.10 → 0.68 | With composite starters the novice has no counters in the opening and lost on wave 6 at 0.15 and at 0.11; 0.10 takes it to wave 30. The stronger elemental towers need a steeper end: at 0.6 the smart bot kept 18 lives on the Rampart |
+| Armored HP to | 0.62 | 0.7 | Kept a little above the line, so armored creeps are never the easier ones at the end |
+| Wave-10 Ogre | 1.7× | 2.1× | At 1.7 it got through on the Citadel but seldom on the Rampart, which then kept 15 lives on Normal; 2.1 also makes up for the lower line |
+| Dreadlord | 0.33× | 0.3× | It took 9 lives and the game in one Normal game at 0.33. At 0.3 it dies on its first pass in every game of the final table, though it took 10 and 11 lives in two Normal games on the way there |
+| Bulky HP (`BULKY_HP`) | 2.5× | 2.0× | A Bulky wave now carries the HP of the wave it replaces, in half the creeps. Wave 25 cost up to 6 lives on Normal at 2.5, and at 2.2 up to 10 on Very Hard, ending games before wave 30 |
+| Easy | 0.75× | 0.7× | At 0.75 the wave-10 Ogre still got through on the Citadel, which kept 14.8 lives on Easy |
+| Hard | 1.03 → 1.12 | 1.06 → 1.28 | To 1.12 Hard won as often as Normal once the elemental towers hit harder; to 1.3 it won 1 game in 4 on each map |
+| Very Hard | 1.12 → 1.3, straight | 1.1 → 1.55, squared | On straight lines from 1.05 to 1.12 up to 1.5 to 1.65, some games ended on waves 28 to 30 at the Bulky wave 25 or the Tanks of wave 28. On the squared curve it stays close to Hard until about wave 25 and climbs steeply after, so wave 39 is the wall. It stays above Hard at every wave |
+
+The bot's price model reads the new damage (`SimElements.power`) the way it already read composite damage, so it prices towers as the rules play them; nothing else in the bots changed. The tower cards, tooltips and upgrade preview show the damage these rules deal ("Dmg 9 → 12.75" for an Archer's level 2).
+
+### Final results
+
+4 seeds per row. The archers, ground-only and novice bots play the same game on every seed.
+
+| Map | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Citadel | smart | easy | 4/4 | 15.2, 14–16 | 3.5 | 30% | 43% | 100% / 100% / 93% / 68% | – |
+| Citadel | smart | normal | 4/4 | 12.0, 12–12 | 6.2 | 26% | 46% | 100% / 100% / 100% / 69% | – |
+| Citadel | smart | hard | 2/4 | 4.0, 0–9 | 6.8 | 27% | 48% | 100% / 100% / 100% / 90% | w39, w40 |
+| Citadel | smart | very_hard | 0/4 | 0.0, 0–0 | 7.5 | 27% | 50% | 100% / 100% / 100% / – | w39, w38, w39, w39 |
+| Citadel | archers | normal | 0/4 | 0.0, 0–0 | 7.5 | 32% | 25% | 100% / 100% / 100% / – | w35, w35, w35, w35 |
+| Citadel | no_air | normal | 0/4 | 0.0, 0–0 | 2.0 | 51% | 23% | – / – / – / – | w5, w5, w5, w5 |
+| Citadel | novice | normal | 0/4 | 0.0, 0–0 | 4.0 | 35% | 24% | 100% / 100% / 100% / – | w30, w30, w30, w30 |
+| Citadel | novice | easy | 4/4 | 14.2, 14–15 | 3.0 | 19% | 23% | 44% / 79% / 70% / 87% | – |
+| Rampart | smart | easy | 4/4 | 18.5, 16–20 | 5.0 | 21% | 37% | 93% / 99% / 89% / 52% | – |
+| Rampart | smart | normal | 4/4 | 13.0, 12–14 | 6.8 | 22% | 43% | 100% / 100% / 100% / 72% | – |
+| Rampart | smart | hard | 2/4 | 3.2, 0–11 | 10.2 | 22% | 49% | 100% / 100% / 100% / 84% | w40, w39 |
+| Rampart | smart | very_hard | 0/4 | 0.0, 0–0 | 8.8 | 22% | 46% | 100% / 100% / 100% / 99% | w39, w40, w39, w39 |
+| Rampart | archers | normal | 0/4 | 0.0, 0–0 | 4.0 | 26% | 26% | 100% / 100% / – / – | w28, w28, w28, w28 |
+| Rampart | no_air | normal | 0/4 | 0.0, 0–0 | 2.0 | 51% | 20% | – / – / – / – | w5, w5, w5, w5 |
+| Rampart | novice | normal | 0/4 | 0.0, 0–0 | 5.0 | 50% | 31% | 100% / 100% / 100% / – | w30, w30, w30, w30 |
+| Rampart | novice | easy | 0/4 | 0.0, 0–0 | 4.0 | 34% | 26% | 50% / 100% / 91% / 99% | w40, w40, w40, w40 |
+
+Lives lost per wave, all 4 seeds:
+
+| Row | Citadel | Rampart |
+|---|---|---|
+| smart, easy | {10: 4, 20: 8, 30: 4, 40: 3} | {20: 4, 30: 2} |
+| smart, normal | {10: 8, 20: 8, 30: 16} | {10: 8, 20: 8, 29: 1, 30: 11} |
+| smart, hard | {10: 8, 20: 16, 25: 2, 30: 16, 39: 15, 40: 7} | {10: 8, 20: 8, 30: 16, 33: 1, 38: 1, 39: 32, 40: 1} |
+| smart, very hard | {10: 8, 20: 16, 23: 4, 25: 4, 29: 1, 30: 18, 38: 4, 39: 25} | {10: 8, 20: 10, 25: 16, 28: 4, 29: 2, 30: 24, 36: 1, 39: 13, 40: 2} |
+| archers | {2: 6, 10: 8, 20: 8, 30: 12, 33: 20, 35: 26} | {10: 8, 20: 8, 25: 16, 28: 48} |
+| no_air | {2: 20, 5: 60} | {2: 16, 5: 64} |
+| novice, normal | {3: 36, 5: 12, 10: 8, 20: 8, 30: 16} | {2: 36, 3: 5, 5: 12, 10: 8, 20: 8, 30: 14} |
+| novice, easy | {39: 19, 40: 4} | {2: 36, 5: 12, 20: 8, 40: 24} |
+
+Smart bot on Normal, game by game:
+
+| Map, seed | Lives | Picks | Elements at the end | Elemental damage | Guardians |
+|---|---|---|---|---|---|
+| Citadel 0 | 12 | `dark@0, dark@5, dark@10, flame@15, light@20, flame@25, interest@35, interest@36` | Light 1, Dark 3, Flame 2 | 60% (archer 40%, plague 30%, demolisher 22%, ballista 7%) | 5 summoned, none got through |
+| Citadel 1 | 12 | the same | the same | 59% (archer 41%, plague 29%, demolisher 19%, ballista 11%) | 5, none |
+| Citadel 2 | 12 | the same | the same | 57% (archer 43%, plague 33%, demolisher 13%, ballista 11%) | 5, none |
+| Citadel 3 | 12 | the same | the same | 55% (archer 45%, plague 31%, demolisher 14%, ballista 10%) | 5, none |
+| Rampart 0 | 14 | the same | the same | 64% (plague 35%, archer 30%, demolisher 21%, ballista 8%, cannon 5%) | 5, none |
+| Rampart 1 | 12 | `dark@0, dark@5, dark@10, light@15, flame@20, flame@25, interest@35, interest@36` | Light 1, Dark 3, Flame 2 | 58% (archer 31%, plague 31%, demolisher 15%, ballista 12%, cannon 10%) | 5, none |
+| Rampart 2 | 12 | `dark@0, dark@5, dark@10, flame@15, light@20, flame@25, aqua@32, interest@35` | Light 1, Dark 3, Aqua 1, Flame 2 | 62% (archer 38%, plague 29%, demolisher 25%, ballista 8%) | 6, none |
+| Rampart 3 | 14 | as seed 0 | Light 1, Dark 3, Flame 2 | 65% (archer 35%, plague 31%, demolisher 24%, ballista 10%) | 5, none |
+
+What it shows:
+
+- **Normal** is won in every game with 12 to 14 lives, against 6.2 and 5.0 before. Lives go to the three Ogre waves, 2 to 4 each, and once to wave 29; no other wave costs a life. The Dreadlord dies on its first pass in all eight games.
+- **The picks matter now.** Every Normal game takes 6 or 7 element picks and ends with three or four elements: Dark to level 3 by wave 10, Flame at 15 and 25 for Demolishers, Light at 20 for Ballistas, then Interest when only Guardians too strong to summon are left. Elemental towers deal 55% to 65% of all damage, against 30% to 48% before; Archers fall to 30% to 45%. No Guardian got through in any of the 32 smart games in the table.
+- **Hard** wins 2 of 4 on each map, and is lost on waves 39 (the Light Harpies, which the Dark Cauldrons hit for half) and 40. **Easy** keeps 14 to 20 lives, though two of the four Rampart games keep all 20. **Very Hard** is lost in every game, all of them on waves 38 to 40, after the bot has played the whole game.
+- **The novice** loses on wave 30 on both maps and survives to wave 40 on Easy (winning on the Citadel). **The archers-only bot** loses on wave 35 on the Citadel and 28 on the Rampart, and **the ground-only bot** on wave 5, the first Harpies, on both.
+- The Frost Spire, Runesmith Forge, Shadow Obelisk and Ancient of Roots still pay about a third of a Ballista's damage per gold or less, so the bot takes Aqua only as a late extra pick and never Stone or Verdant. They are utility towers whose slows and shred its price model counts only as a flat bonus.
+
+Tried on the way, with the smart bot on Normal unless a row says otherwise (mean lives Citadel / Rampart; each row adds to the one above):
+
+| Change | Seeds | Result |
+|---|---|---|
+| None: the bot of the section above, measured | 2 | 7.5 / 7.0; elemental damage 45% / 34% |
+| Archer damage 100% / 85% / 80% alone | 2 | 12.5 / 9.5; elemental damage 41% / 48%. Three Interest picks in 3 of 4 games and 2.25 elements a game: nothing else got cheaper |
+| Elemental towers at 140%, the Cauldron excepted | 4 | 8.5 (one game lost to the Dreadlord) / 13.5; Hard 4/4 on both maps; 2.75 / 3.25 elements; elemental damage 48% / 60%. On 2 seeds, Easy 17.0 / 20.0, Very Hard won 2/2 on both, the novice lost on wave 6 |
+| HP line from 0.11, Bulky 2.2, Dreadlord 0.3, Hard 1.06 → 1.22, Very Hard 1.15 → 1.45, Easy 0.85 | 2 | 14.0 / 18.0; Hard won all four; Easy 13.0 / 17.0; Very Hard 1/2 and 2/2 |
+| HP line to 0.66, armored 0.68, Hard to 1.3, Very Hard 1.12 → 1.65, Easy 0.8 | 4 | 10.0 / 12.0; Hard 2/4 and 3/4; one Rampart game without Light lost 7 lives to wave 39. Easy 14.5 / 16.5; Very Hard 0/4, but Rampart games ended on waves 28 to 30 |
+| Very Hard 1.1 → 1.55, Easy 0.75 | 4 | Easy 15.5 / 18.5; Very Hard 0/4, every game to wave 30 |
+| Guardian level 1 at 0.35 | 4 | 12.5 / 14.5; every game took Light, 3.25 / 3.0 elements, no wave but a boss over 3 lives |
+| HP line to 0.68, armored 0.7 | 4 | 12.0 / 15.2; Hard 1/4 on both maps; a Very Hard Rampart game lost on wave 28 |
+| Wave-10 Ogre 2.0, Bulky 2.0, Hard to 1.26, Very Hard from 1.05 | 4 | 9.2 / 13.5; Hard 3/4 and 4/4; Easy 14.8 / 18.0; Very Hard 0/4, games ending on waves 30 to 39 |
+| Easy 0.7, Hard to 1.28 | 4 | Hard 3/4 on both; Easy 15.5 / 19.0 |
+| The same, novice and the other bots | 4 | Novice lost on wave 6 on both maps, 8 lives to the wave-6 Ghouls |
+| HP line from 0.10, wave-10 Ogre 2.1 | 4 | Novice to wave 30; Normal, Hard and Easy as in the final table; Very Hard (1.05 → 1.55) lost a Citadel game on wave 28 |
+| Very Hard 1.07 → 1.5 | 4 | Won 1 of 4 on the Citadel; a Rampart game lost on wave 29 |
+| Very Hard 1.07 → 1.55, squared | 4 | 0/4, every game to wave 35 or later, but below Hard around wave 10 |
+| **Very Hard 1.1 → 1.55, squared** | 4 | **The final table** |
+
+### Shots land as the tower that fired them
+
+Measuring the retune turned up a bug older than it. A shot's damage came from the level its tower had when it fired, but everything else was read when it landed: the tower's id, its attack and element, and, with these rules, its power. An arrow loosed at level 1 that landed after an upgrade was scaled as a level-2 arrow, and a shell, bolt or arrow in flight when its tower fused into an Epic landed with the Epic's damage at the old tower's level, its crater burned as the Epic's, and a Cauldron stack laid just before a fusion spread as a Necropolis stack. Now every shot, and the poison stacks, craters and clouds it leaves, keeps the id and level of its tower when it fired (GDD §7). Under classic, where the tower's power is always 1, only a fusion with shots in flight plays differently, and the classic check still ends with 20 lives, 2 close calls and 12,110 gold at 34:09.
+
+All sixteen rows of the final table were run again with 4 seeds, on top of the default-rules switch and the fixed-lane map below and with the fix. Every row matches the table to the life, the per-wave losses and the Normal games' picks and elemental damage included. The one difference is a Rampart Easy game (seed 2) that fuses a Sunfire Ballista: with shots in flight at the fusion landing as the tower that fired them, it ends with 6 close calls instead of 8 and 3 gold less, so the row reads 4.5 close calls and the wave-30 boss walks 91% of the maze instead of 89%. Its lives and picks are the same. Without the fix the row matches the table exactly.
+
+## Element TD rules: the fixed-lane map (2026-10-04)
+
+The Winding Causeway ([maps.md](maps.md#winding-causeway)) gives the creeps a fixed road of 119 tiles, about 240 m, from wave 1. Nothing can block or lengthen it, so the bots spend nothing on walls. The smart bot weighs every tile in reach of the road or the flyers' line; the other bots build beside the road in the order the creeps pass it. At the rules' HP the map played much easier than the Citadel for the smart bot: on Normal it lost lives only to the wave-40 Dreadlord, and the median wave got a fifth of the way along the road. No global number changed. The map has HP numbers of its own instead: its creeps, Guardians included, get more HP than the rules and the difficulty give them. That was first a flat 1.4 times; after the retune above it is 1.8 times on wave 1, falling in a straight line to 1.15 times on wave 40 (`hp` and `hp_40` in its `MapDefs` entry), for the reasons [below](#re-set-after-the-retune).
+
+4 seeds per row, measured before the retune above, at its HP numbers then:
+
+| Map | Creep HP | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Citadel | rules | smart | normal | 4/4 | 7.0, 6–8 | 8.8 | 37% | 44% | 100% / 100% / 100% / 94% | – |
+| Citadel | rules | smart | hard | 1/4 | 0.8, 0–3 | 7.5 | 36% | 42% | 100% / 100% / 100% / 95% | w40, w40, w30 |
+| Citadel | rules | novice | normal | 0/4 | 0.0, 0–0 | 2.0 | 35% | 22% | – / – / – / – | w6, w6, w6, w6 |
+| Citadel | rules | archers | normal | 0/4 | 0.0, 0–0 | 8.5 | 32% | 26% | 100% / 100% / 100% / – | w38, w38, w38, w38 |
+| Causeway | × 1 | smart | normal | 4/4 | 11.5, 11–12 | 1.8 | 19% | 20% | 36% / 83% / 56% / 100% | – |
+| Causeway | × 1 | smart | hard | 4/4 | 8.8, 5–11 | 3.0 | 22% | 18% | 35% / 95% / 87% / 100% | – |
+| Causeway | × 1.3 | smart | normal | 4/4 | 8.5, 3–11 | 3.5 | 18% | 25% | 67% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | smart | normal | 4/4 | 5.8, 3–9 | 3.8 | 17% | 20% | 76% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | smart | hard | 4/4 | 4.0, 2–6 | 5.8 | 21% | 24% | 84% / 100% / 100% / 100% | – |
+| Causeway | **× 1.4** | novice | normal | 0/4 | 0.0, 0–0 | 5.5 | 1% | 4% | 100% / 100% / 100% / – | w30, w30, w38, w28 |
+| Causeway | **× 1.4** | archers | normal | 0/4 | 0.0, 0–0 | 5.0 | 1% | 7% | 100% / 100% / – / – | w25, w25, w25, w25 |
+
+Lives lost per wave at × 1.4, all seeds: smart normal {20: 8, 30: 14, 40: 35}, hard {20: 8, 30: 16, 35: 1, 38: 2, 40: 37}. On the Citadel: smart normal {10: 8, 20: 8, 25: 6, 30: 10, 40: 20}, hard {10: 8, 20: 8, 25: 20, 28: 1, 29: 1, 30: 15, 35: 6, 40: 19}.
+
+What it shows:
+
+- At × 1.4 the smart bot on Normal ends with about as many lives as on the Citadel (5.8 against 7.0, the ranges overlapping), which was the aim. × 1.3 left it 1.5 lives better off.
+- The pressure comes differently. On the Causeway the ordinary waves die early (the median wave walks a fifth of the road, against 44% of the Citadel's maze), and nearly every life is lost to the bosses of waves 20, 30 and 40. On the Citadel the maze is short early and the losses spread over the boss waves and the Bulky wave 25.
+- Hard is gentler here than on the Citadel: 4/4 wins with 4.0 lives, against 1/4 with 0.8. The single map number was set for Normal; making Hard match too would need a second one, and Hard is the other team's to retune.
+- The novice, who builds one tower every four seconds, does far better: it reaches waves 28 to 38 instead of dying on wave 6, since the road is long from the start and needs no maze. The archers-only bot does worse (wave 25 against 38), since a single row of Archers beside a 240 m road meets less of each wave than the Citadel's 500 m maze, where every tower borders two corridors.
+- By wave 8 the smart bot has filled the hairpin row, the tiles that reach two stretches of road, with Plague Cauldrons and Archers, and has only a handful of towers anywhere else.
+
+### Re-set after the retune
+
+The retune above made the elemental towers stronger and reshaped the HP curve, the bosses and the difficulties, so the flat 1.4 was measured against numbers that no longer exist. Played again on the retuned rules, it left the smart bot on Normal with 10.0 lives (2 seeds), in the Citadel's band, but in the wrong shape. The wave-10 Ogre never got through (it walked 89% of the road), so nothing was lost in the first third of the game, while the Dreadlord leaked in both games for 5 lives each. Hard lost both games, on waves 38 and 40, against 2 of 4 won on the Citadel.
+
+The cause is the map itself, not the number. On the mazing maps the maze is short early and grows to 440–510 m by the late game, so the creeps meet more towers as the game goes on. The Causeway's road is 240 m from wave 1 and never longer, so it is the easier map early and the harder one late, and no single multiplier fixes both ends: one high enough to make the wave-10 Ogre a test leaves the Dreadlord unbeatable, and one low enough for the Dreadlord makes the first twenty waves free. So the map's HP now runs in a straight line, from `hp` on wave 1 to `hp_40` on wave 40. That is the one number added, and it has a plain meaning for a player: the Causeway starts harder than the mazing maps and ends easier, because its road is long from the start.
+
+Tried on the way, 2 seeds, smart bot (lives, Normal / Hard):
+
+| Causeway HP, wave 1 → wave 40 | Normal | Hard |
+|---|---|---|
+| 1.4, flat | 2/2, 10.0; {20: 4, 30: 6, 40: 10} | 0/2, lost on wave 40 both times; {20: 4, 23: 1, 30: 8, 38: 20, 40: 8} |
+| 1.6 → 1.2 | 2/2, 16.0; {20: 4, 30: 4} | 2/2, 5.5 |
+| 1.8 → 1.25 | 2/2, 5.0; the Dreadlord took 6 and 8 lives | 2/2, 3.5 |
+| **1.8 → 1.15** | 2/2, 11.5 | 2/2, 4.0 |
+
+The Dreadlord is the knife edge: between 1.15 and 1.25 at wave 40 it goes from dying on its first pass in most games to taking 6 to 8 lives in every one.
+
+All eight rows, 4 seeds each, at 1.8 → 1.15. The Citadel and Rampart rows were run alongside and match the [retune's final table](#final-results) to the life.
+
+| Map | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Causeway | smart | easy | 4/4 | 19.5, 18–20 | 1.2 | 18% | 22% | 72% / 91% / 48% / 51% | – |
+| Causeway | smart | normal | 4/4 | 11.2, 9–14 | 4.8 | 14% | 22% | 100% / 100% / 100% / 98% | – |
+| Causeway | smart | hard | 4/4 | 4.2, 2–7 | 5.2 | 16% | 28% | 100% / 100% / 100% / 100% | – |
+| Causeway | smart | very_hard | 0/4 | 0.0, 0–0 | 5.8 | 14% | 28% | 100% / 100% / 100% / 100% | w40, w40, w40, w38 |
+| Causeway | archers | normal | 0/4 | 0.0, 0–0 | 4.0 | 1% | 6% | 100% / 100% / – / – | w23, w23, w23, w23 |
+| Causeway | no_air | normal | 0/4 | 0.0, 0–0 | 1.0 | 22% | 2% | – / – / – / – | w5, w5, w5, w5 |
+| Causeway | novice | normal | 0/4 | 0.0, 0–0 | 5.0 | 1% | 8% | 100% / 100% / 100% / – | w36, w34, w34, w36 |
+| Causeway | novice | easy | 0/4 | 0.0, 0–0 | 5.2 | 1% | 8% | 100% / 100% / 100% / 100% | w40, w40, w40, w40 |
+
+Lives lost per wave, all 4 seeds:
+
+| Row | Causeway |
+|---|---|
+| smart, easy | {20: 2} |
+| smart, normal | {10: 8, 20: 8, 23: 1, 30: 10, 40: 8} |
+| smart, hard | {10: 8, 20: 8, 30: 16, 35: 1, 38: 4, 40: 26} |
+| smart, very hard | {10: 8, 20: 8, 30: 16, 35: 8, 38: 18, 40: 22} |
+| archers | {10: 16, 20: 24, 21: 20, 23: 20} |
+| no_air | {5: 80} |
+| novice, normal | {10: 14, 20: 16, 28: 7, 30: 32, 34: 6, 36: 5} |
+| novice, easy | {10: 8, 20: 8, 30: 16, 40: 49} |
+
+Smart bot on Normal, game by game:
+
+| Seed | Lives | Picks | Elements at the end | Elemental damage | Guardians |
+|---|---|---|---|---|---|
+| 0 | 9 | `dark@0, dark@5, light@10, flame@15, dark@20, light@25, flame@30, interest@35` | Light 2, Dark 3, Flame 2 | 86% (ballista 39%, plague 38%, archer 14%, demolisher 10%) | 6 summoned, none got through |
+| 1 | 14 | `dark@0, dark@5, light@10, flame@15, dark@20, flame@25, interest@35, interest@36` | Light 1, Dark 3, Flame 2 | 83% (demolisher 37%, plague 25%, ballista 21%, archer 17%) | 5, none |
+| 2 | 10 | the same | the same | 84% (demolisher 35%, plague 28%, ballista 21%, archer 16%) | 5, none |
+| 3 | 12 | the same | the same | 89% (demolisher 38%, ballista 29%, plague 22%, archer 11%) | 5, none |
+
+What it shows:
+
+- **Normal** is won in every game with 9 to 14 lives, against 12 to 14 on the mazing maps, and lives now go in every third of the game: the Ogres of waves 10, 20 and 30 take 2 to 4 each, and the Dreadlord gets through in three games of four for 1 to 5. The one ordinary wave to cost a life is wave 23, once. The bot takes Light at wave 10 here, against 15 or 20 on the mazing maps, and its elemental towers deal 83% to 89% of all damage, against 55% to 65% there: with no walls to buy, its gold goes on Cauldrons, Ballistas and Demolishers along the road.
+- **Hard** wins all four games with 2 to 7 lives, against 2 of 4 on each mazing map, so it misses its target of 2 or 3 wins. Its lives are no higher than the Citadel's (4.2 against 4.0); the difference is that on the Causeway it loses them in the same places in every game, the bosses and the Dreadlord, without the late collapse that ends half the Hard games on the mazing maps on waves 39 and 40. A second map number for Hard alone would close the gap, but the map's two numbers are already spent on the shape of the curve, so Hard is left where it falls.
+- **Easy** keeps 18 to 20 lives, three games of four keeping all 20, half a life above its target band of 15 to 19. **Very Hard** is lost in every game, on waves 38 and 40, after the whole game has been played.
+- **The novice** does better here than on the mazing maps, as before the re-set: it loses on waves 34 to 36 on Normal and plays all 40 waves on Easy, though it loses on wave 40, where it wins on the Citadel. **The archers-only bot** loses on wave 23, earlier than on the Citadel (35) and the Rampart (28), since a row of Archers beside the road meets less of each wave than a maze does. **The ground-only bot** loses on wave 5, the first Harpies, on every map.
 
 ## Latest run (2026-10-02)
 

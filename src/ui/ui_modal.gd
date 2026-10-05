@@ -1,16 +1,19 @@
 class_name UiModal
 extends Control
 ## A centred stone panel over a dimmed screen that takes every click: the
-## frame shared by the tutorial's welcome card and the Field Guide. Opening it
-## pauses the game; closing resumes only if opening paused it, so a game
-## paused beforehand stays paused. The HUD routes keys to whichever is up
-## (Hud.modal_action()).
+## frame shared by the tutorial's welcome card, the Field Guide and the
+## element picks. Opening it pauses the game (unless `pauses` is off);
+## closing resumes only if opening paused it, so a game paused beforehand
+## stays paused. The HUD routes keys to whichever is up (Hud.modal_action()).
 
 ## A click on the dimmed screen around the panel (not the scroll wheel).
 signal dim_pressed
 
 const DIM := Color(0, 0, 0, 0.45)
 const CLICKS: Array[MouseButton] = [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE]
+
+## False for a panel the game keeps running behind (the element picks).
+var pauses := true
 
 var _game: Game
 var _paused_here := false
@@ -46,7 +49,7 @@ func build_frame(game: Game, title: String, width: float, separation := 10) -> V
 
 func open_modal() -> void:
 	visible = true
-	if not _game.paused:
+	if pauses and not _game.paused:
 		_game.toggle_pause()
 		_paused_here = true
 

@@ -1,7 +1,8 @@
 class_name EndScreen
 extends Control
-## Victory and defeat screens (GDD §3): wave reached, kills, time, gold
-## earned, lives, score and best wave for the mode, then Play again.
+## Victory and defeat screens (GDD §3): the rule set and mode, wave reached,
+## kills, time, gold earned, lives, the elements reached (eletd), score and
+## best wave for the mode, then Play again.
 
 const PANEL_WIDTH := 420.0
 const DIM := Color(0.02, 0.015, 0.01, 0.6)
@@ -61,7 +62,15 @@ func show_result(won: bool, best_before: int) -> void:
 	var sim := _game.sim
 	_title.text = "Victory" if won else "Defeat"
 	_title.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT if won else UiTheme.BAD)
-	_mode.text = TowerInfo.mode_name(sim.hard, sim.infinite, sim.twists).to_upper()
+	# Records are kept per rule set, so the caption names it.
+	_mode.text = (
+		(
+			TowerInfo.rules_name(sim.rules)
+			+ TowerInfo.SEP
+			+ TowerInfo.mode_name(sim.difficulty, sim.infinite, sim.twists)
+		)
+		. to_upper()
+	)
 	for c in _grid.get_children():
 		_grid.remove_child(c)
 		c.queue_free()
@@ -73,6 +82,8 @@ func show_result(won: bool, best_before: int) -> void:
 		["Lives left", str(sim.lives)],
 		["Score", str(sim.score())],
 	]
+	if sim.elements.enabled:
+		rows.insert(5, ["Elements", ElementPicks.reached(sim)])
 	for row in rows:
 		_grid.add_child(UiKit.label(row[0], &"Dim", UiTheme.SIZE_BODY))
 		var v := UiKit.label(row[1], &"Number", UiTheme.SIZE_LARGE)

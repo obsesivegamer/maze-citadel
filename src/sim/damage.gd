@@ -19,7 +19,11 @@ static func class_mult(attack: StringName, armor_class: StringName) -> float:
 	return ATTACK_VS_CLASS[attack].get(armor_class, 1.0)
 
 
+## Composite armor (eletd waves) sits off the wheel: every element on it
+## deals EletdRules.COMPOSITE_DAMAGE.
 static func element_mult(attacker: StringName, defender: StringName) -> float:
+	if defender == &"composite":
+		return EletdRules.COMPOSITE_DAMAGE if attacker in WHEEL else 1.0
 	var i := WHEEL.find(attacker)
 	var j := WHEEL.find(defender)
 	if i == -1 or j == -1:
@@ -40,9 +44,9 @@ static func armor_factor(armor: float) -> float:
 
 static func counter(attacker: StringName, defender: StringName) -> StringName:
 	var m := element_mult(attacker, defender)
-	if m > 1.0:
+	if m >= STRONG:
 		return &"strong"
-	if m < 1.0:
+	if m <= WEAK:
 		return &"weak"
 	return &"neutral"
 

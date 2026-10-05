@@ -24,6 +24,7 @@ The details are in the [Butter pass](#butter-pass-2026-10-03), named for the goa
 - Metal's GPU timer query returns 0, so cost is measured by toggling one setting at a time.
 - Vsync-off works: the 2026-10-02 pass ran with `vsync_mode` 0 and averaged 62.6–64.4 fps focused, above the 60 Hz refresh. 1% lows at exactly 60.0 suggest some frames are still paced to the display, so a 60.0 low means "at least 60".
 - Every preset key can be overridden, including `--foliage`, `--crowd` and `--particles`. Before 2026-10-02 those three only reached the renderer's copy of the settings, not the world or units, so runs that changed them measured nothing. Each report now lists the values it ran with under `settings`.
+- Every number on this page was measured under the classic rules, so now that Element TD is the game's default, `tools/bench.sh`, `tools/perf_matrix.sh`, the slot scripts and the probes in `tests/perf/` pin `--rules=classic` (pass `--rules=eletd` to measure the default game instead).
 
 ## M1 render spike, Balanced preset (2026-10-01, preliminary)
 

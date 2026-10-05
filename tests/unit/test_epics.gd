@@ -167,3 +167,19 @@ func test_cauldron_poison_is_not_contagious() -> void:
 	sim.add_poison(dying, cauldron, 3, 0.0)
 	sim.hit(dying, dying.hp + 1.0, cauldron, 0.0)
 	check(near.poison.is_empty(), "no spread from a Cauldron")
+
+
+## A stack spreads as the tower that laid it was then: a Cauldron's stack laid
+## just before the Cauldron fuses into a Necropolis still doesn't spread.
+func test_stack_laid_before_a_fusion_spreads_as_it_was_laid() -> void:
+	var sim := GameSim.new()
+	sim.countdown = -1.0
+	var t := _place(sim, Vector2i(0, 0), &"plague", 3)
+	_place(sim, Vector2i(19, 26), &"plague", 3)
+	var dying := _parked(sim, &"grunt", Vector2i(12, 20))
+	var near := _parked(sim, &"grunt", Vector2i(13, 20))
+	sim.add_poison(dying, t, 3, 0.0)
+	check(sim.fuse(Vector2i(0, 0), Vector2i(19, 26)), "fused")
+	sim.hit(dying, dying.hp + 1.0, t, 0.0)
+	check(not dying.alive, "carrier died")
+	check(near.poison.is_empty(), "the Cauldron's stack stays put")

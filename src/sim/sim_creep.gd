@@ -17,6 +17,8 @@ var element: StringName
 var flying := false
 var boss := false
 var bounty := 0
+## A Bulky wave's creep (eletd): it costs a boss's lives on a leak.
+var bulky := false
 ## Set on the first leak: the creep loops back to the portal and pays nothing.
 var leaked := false
 var alive := true
@@ -26,8 +28,10 @@ var progress := INF
 var slow := 0.0
 var slow_time := 0.0
 var root_time := 0.0
-## Poison stacks: x = damage per second after multipliers, y = seconds left.
-var poison: Array[Vector2] = []
+## Poison stacks: x = damage per second after multipliers, y = seconds left,
+## z = the contagion radius it spreads over when the creep dies (0: none),
+## fixed when it lands so a stack spreads only if its tower did then.
+var poison: Array[Vector3] = []
 ## The tower behind each poison stack, for damage and kill credit.
 var poison_src: Array[SimTower] = []
 var shred := 0.0
@@ -45,6 +49,24 @@ var aura_armor := 0.0
 var aura_haste := 0.0
 var dot_accum := 0.0
 var dot_timer := 0.0
+
+
+## Element TD's wave shapes (EletdWaves): the share of its table HP this
+## creep has, its bounty and whether it is Bulky.
+func reshape(hp_share: float, p_bounty: int, p_bulky: bool) -> void:
+	max_hp *= hp_share
+	hp = max_hp
+	bounty = p_bounty
+	bulky = p_bulky
+
+
+## Lives a leak costs.
+func leak_cost() -> int:
+	if type == &"guardian":
+		return EletdRules.GUARDIAN_LIVES
+	if bulky:
+		return EletdRules.BULKY_LIVES
+	return 2 if boss else 1
 
 
 func targetable() -> bool:

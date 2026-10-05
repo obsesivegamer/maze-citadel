@@ -71,16 +71,24 @@ static func count() -> int:
 	return WAVES.size()
 
 
-## The table row for any wave number, including infinite waves past 40.
-static func row(wave: int) -> Dictionary:
+## The table wave any wave number plays, including infinite waves past 40.
+static func table_wave(wave: int) -> int:
 	if wave <= WAVES.size():
-		return WAVES[wave - 1]
+		return wave
 	var span := INFINITE_TO - INFINITE_FROM + 1
-	return WAVES[INFINITE_FROM - 1 + (wave - WAVES.size() - 1) % span]
+	return INFINITE_FROM + (wave - WAVES.size() - 1) % span
 
 
-## [type, element] pairs in spawn order.
-static func spawn_list(wave: int) -> Array:
+static func row(wave: int) -> Dictionary:
+	return WAVES[table_wave(wave) - 1]
+
+
+## [type, element] pairs in spawn order. Under &"eletd" rules the waves take
+## Element TD's shapes and each entry says more (EletdWaves.spawn_list). The
+## sim, the HUD, the Counsel and the bots all read a wave from here.
+static func spawn_list(wave: int, rules: StringName = &"classic") -> Array:
+	if rules == &"eletd":
+		return EletdWaves.spawn_list(wave)
 	var r := row(wave)
 	var out := []
 	for group in r.groups:
@@ -90,9 +98,27 @@ static func spawn_list(wave: int) -> Array:
 	return out
 
 
-static func elements(wave: int) -> Array[StringName]:
+## The share of its table HP (CreepDefs.max_hp) a spawn_list() entry has.
+static func hp_share(entry: Array) -> float:
+	return entry[2] if entry.size() > 2 else 1.0
+
+
+## Seconds until the creep after one of `type` enters. Spacing follows the
+## creep type, not a Swift creep's boosted speed.
+static func spawn_interval(type: StringName, rules: StringName = &"classic") -> float:
+	var fast: bool = CreepDefs.CREEPS[type].speed >= 4.5
+	if rules == &"eletd":
+		return EletdRules.FAST_SPAWN_INTERVAL if fast else EletdRules.SPAWN_INTERVAL
+	return GameSim.FAST_SPAWN_INTERVAL if fast else GameSim.SPAWN_INTERVAL
+
+
+static func bulky(wave: int, rules: StringName = &"classic") -> bool:
+	return rules == &"eletd" and table_wave(wave) in EletdRules.BULKY_WAVES
+
+
+static func elements(wave: int, rules: StringName = &"classic") -> Array[StringName]:
 	var out: Array[StringName] = []
-	for entry in spawn_list(wave):
+	for entry in spawn_list(wave, rules):
 		if not entry[1] in out:
 			out.append(entry[1])
 	return out

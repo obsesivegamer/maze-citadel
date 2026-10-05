@@ -2,8 +2,9 @@ class_name WaveBanner
 extends Control
 ## The pre-wave announcement (GDD §3): 3 s before a wave spawns, a band across
 ## the top with the wave number, creep icons and counts, element, armor class,
-## a skull for bosses and the wave's twist (Twists mode) on its own line. Also
-## shows a short "wave cleared" note.
+## a skull for bosses, and the wave's twist (Twists mode) and Bulky shape
+## (eletd) on lines of their own. Also shows a short "wave cleared" note, and
+## under eletd the Guardian and element-level notices.
 
 ## Sits below the portal (fraction of screen height) so spawning creeps stay
 ## visible, as a centred plate rather than a full-width band.
@@ -17,8 +18,11 @@ const CLEARED_HOLD := 1.4
 const FADE_OUT := 0.7
 const SLIDE := 14.0
 const ICON_PX := 30.0
-## Extra band height for the twist line.
+## Extra band height per twist or Bulky line.
 const TWIST_HEIGHT := 28.0
+## Height and hold of a small notice (an element level gained).
+const NOTICE_HEIGHT := 80.0
+const NOTICE_HOLD := 2.2
 
 var _title := UiKit.label("", &"Title", UiTheme.SIZE_BANNER)
 var _skull_l := UiIcon.new(&"skull", 38.0)
@@ -40,6 +44,7 @@ func _init() -> void:
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(box)
+	_icons.tags = false
 	var row := UiKit.hbox(14)
 	row.add_child(_skull_l)
 	_title.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.02))
@@ -59,16 +64,17 @@ func _init() -> void:
 	box.add_child(_twist)
 
 
-func announce(wave: int, twist: StringName = &"") -> void:
+func announce(wave: int, twist: StringName = &"", rules: StringName = &"classic") -> void:
 	var boss := WaveDefs.has_boss(wave)
+	_unnotice()
 	_title.text = "Wave %d" % wave
 	_title.add_theme_color_override("font_color", UiTheme.BAD if boss else UiTheme.GOLD_BRIGHT)
 	_skull_l.visible = boss
 	_skull_r.visible = boss
 	_icons.visible = true
-	_icons.show_wave(wave)
+	_icons.show_wave(wave, &"", rules)
 	var parts := PackedStringArray()
-	for e in WaveDefs.elements(wave):
+	for e in WaveDefs.elements(wave, rules):
 		var c := UiTheme.element_color(e)
 		parts.append("[color=#%s]%s[/color]" % [UiTheme.hex(c), TowerInfo.ELEMENT_NAMES[e]])
 	var classes := PackedStringArray()
@@ -79,17 +85,60 @@ func announce(wave: int, twist: StringName = &"") -> void:
 		text += "   ·   [color=#%s]BOSS — leaks cost 2 lives[/color]" % UiTheme.hex(UiTheme.BAD)
 	_detail.text = "[center]%s[/center]" % text
 	_detail.visible = true
-	_twist.visible = twist != &""
-	if _twist.visible:
-		_twist.text = (
-			"[center][color=#%s]Twist: [b]%s[/b]. %s[/color][/center]"
-			% [UiTheme.hex(UiGlyphs.TWIST), WaveTwists.display_name(twist), WaveTwists.text(twist)]
+	var lines := PackedStringArray()
+	if twist != &"":
+		lines.append(
+			(
+				"[color=#%s]Twist: [b]%s[/b]. %s[/color]"
+				% [
+					UiTheme.hex(UiGlyphs.TWIST),
+					WaveTwists.display_name(twist),
+					WaveTwists.text(twist)
+				]
+			)
 		)
-	size = Vector2(WIDTH, HEIGHT + (TWIST_HEIGHT if _twist.visible else 0.0))
+	if WaveDefs.bulky(wave, rules):
+		lines.append(
+			(
+				"[color=#%s][b]Bulky[/b]. %s[/color]"
+				% [UiTheme.hex(UiGlyphs.BULKY), TowerInfo.bulky_text()]
+			)
+		)
+	_twist.visible = not lines.is_empty()
+	_twist.text = "[center]%s[/center]" % "\n".join(lines)
+	size = Vector2(WIDTH, HEIGHT + TWIST_HEIGHT * lines.size())
 	_play(HOLD)
 
 
+## A short notice in the banner's place (eletd's Guardians and element
+## levels): the title in the element's colour between two of its glyphs and
+## a line under it. `small` makes it a smaller, shorter one.
+func notice(title: String, detail: String, element: StringName, small := false) -> void:
+	_title.text = title
+	_title.add_theme_color_override("font_color", UiTheme.element_color(element))
+	_title.add_theme_font_size_override(
+		"font_size", UiTheme.SIZE_TITLE if small else UiTheme.SIZE_BANNER
+	)
+	for s in [_skull_l, _skull_r]:
+		s.glyph = UiGlyphs.element(element)
+		s.visible = true
+	_icons.visible = false
+	_detail.text = "[center]%s[/center]" % detail
+	_detail.visible = true
+	_twist.visible = false
+	size = Vector2(WIDTH, NOTICE_HEIGHT if small else HEIGHT)
+	_play(NOTICE_HOLD if small else HOLD)
+
+
+## Back to the wave look after a notice.
+func _unnotice() -> void:
+	_title.add_theme_font_size_override("font_size", UiTheme.SIZE_BANNER)
+	_skull_l.glyph = &"skull"
+	_skull_r.glyph = &"skull"
+
+
 func cleared(wave: int) -> void:
+	_unnotice()
 	_title.text = "Wave %d cleared" % wave
 	_title.add_theme_color_override("font_color", UiTheme.GOOD)
 	_skull_l.visible = false

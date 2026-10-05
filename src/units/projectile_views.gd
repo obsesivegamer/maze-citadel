@@ -143,8 +143,7 @@ func sync(alpha: float, dt: float) -> void:
 
 
 static func _look_for(p: SimProjectile) -> StringName:
-	var id: StringName = p.tower.id if p.tower else &"archer"
-	return id if LOOKS.has(id) else &"archer"
+	return p.id if LOOKS.has(p.id) else &"archer"
 
 
 func _acquire(look: StringName) -> Flight:
@@ -186,7 +185,7 @@ func _acquire(look: StringName) -> Flight:
 
 
 func _start(s: Flight, p: SimProjectile) -> void:
-	s.muzzle = TowerVisuals.muzzle_height(p.tower.id, p.level) if p.tower else 3.0
+	s.muzzle = TowerVisuals.muzzle_height(p.id, p.level) if p.tower else 3.0
 	s.height = s.muzzle
 	s.fresh = true
 	s.node.visible = true

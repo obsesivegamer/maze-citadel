@@ -1,9 +1,9 @@
 class_name BuildController
 extends Node3D
 ## Mouse and hotkey input for building and selecting (GDD §10). Shows the
-## snapped ghost (green = valid, red = refused) and the range ring for the
-## ghost, the hovered tower or the selected tower only. Under rules where
-## towers reach only the tiles around them, a square marks those tiles instead.
+## snapped ghost (green = valid, red = refused) and the reach of the ghost, the
+## hovered tower or the selected tower only: a square round the tiles it reaches
+## under the default Element TD rules, a range ring under classic.
 
 const GHOST_OK := Color(0.3, 1.0, 0.45, 0.45)
 const GHOST_BAD := Color(1.0, 0.2, 0.15, 0.5)

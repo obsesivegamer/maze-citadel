@@ -475,7 +475,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
     <p class="fact"><b>{{wave_count}}</b><span>waves, ending with<br>the Dreadlord</span></p>
     <p class="fact"><b>{{tower_count}}</b><span>towers, plus {{epic_count}}<br>Epics to fuse</span></p>
     <p class="fact"><b>{{map_count}}</b><span>maps: {{map_names}}</span></p>
-    <p class="fact"><b>4</b><span>modes: Normal, Hard,<br>Infinite and Twists</span></p>
+    <p class="fact"><b>4</b><span>difficulties, plus<br>Infinite and Twists</span></p>
   </div>
 </section>
 
@@ -487,7 +487,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
           <p class="kicker">Build the maze</p>
           <h2 id="maze-title">Every tower is also a wall</h2>
           <div class="prose">
-            <p>Towers block the tile they stand on, so where you build decides the demons' road. Stretch it and every tower gets longer to shoot. On the real <strong>20 × 28 tile plateau</strong> the glowing path redraws with every tower you place.</p>
+            <p>Towers block the tile they stand on, so where you build decides the demons' road. A tower reaches only the eight tiles around it, so run the road past your towers and every one gets longer to shoot. On the real <strong>20 × 28 tile plateau</strong> the glowing path redraws with every tower you place.</p>
             <p>Wall as hard as you like, but never shut the road: a tower that would cut the portal off from the gate won't build. Try it on this practice board.</p>
           </div>
         </div>
@@ -551,7 +551,8 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
         <p class="kicker">Read the wave</p>
         <h2 id="ring-title">Know what's coming, build what counters it</h2>
         <div class="prose">
-          <p>Three seconds before a wave spawns, its banner names what is coming: the creeps, their <strong>armor class</strong> and their <strong>element</strong>. Each element deals double damage to the next one around the ring and half to the one before it.</p>
+          <p>Three seconds before a wave spawns, its banner names what is coming: the creeps, their <strong>armor class</strong> and their <strong>element</strong>. Each element deals double damage to the next one around the ring and half to the one before it. Composite waves shrug off every element alike, and Bulky waves send half the creeps at twice the health.</p>
+          <p>Elements are earned. Eight <strong>element picks</strong> come over the game, one at the start and one every five waves, and each buys a level of one element. The first is yours at once. Every later pick summons a <strong>Guardian</strong> that walks your maze and hands over the level only when it falls.</p>
           <p class="counters"><span><b>Pierce</b> beats Light armor and fliers</span><span><b>Siege</b> beats Armored</span><span><b>Poison</b> ignores armor</span></p>
         </div>
       </div>
@@ -563,7 +564,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
       <p class="kicker">The arsenal</p>
       <h2 id="towers-title">{{tower_count}} towers, {{epic_count}} Epics</h2>
       <div class="prose" style="margin-top: 14px">
-        <p>Pick a tower to see what it does at each level. In the game, keys 1 to 0 build them, and <kbd>G</kbd> fuses two level-3 towers of one faction into an Epic.</p>
+        <p>Pick a tower to see what it does at each level. Every tower but the Archer, the Cannon and the Bard needs its element first, and the picks you earn as the waves go by can never take all six to the top level. In the game, keys 1 to 0 build them, and <kbd>G</kbd> fuses two level-3 towers of one faction into an Epic.</p>
       </div>
       <!--roster-->
     </div>
@@ -583,12 +584,12 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
           <figure>
             <img class="shot" src="img/gate.jpg" width="1600" height="969" loading="lazy"
                  alt="The blue town gate at the south edge of the plateau, flanked by torch-lit towers, before the first wave">
-            <figcaption><strong>The gate.</strong> You start with 20 lives. A leaker costs one, a boss two, and it loops back to the portal for another pass.</figcaption>
+            <figcaption><strong>The gate.</strong> You start with 20 lives. A leaker costs one, a boss or a Bulky creep more, and it loops back to the portal for another pass.</figcaption>
           </figure>
           <figure>
             <img class="shot" src="img/overview.jpg" width="1600" height="969" loading="lazy"
                  alt="The empty walled plateau before wave 1, with the red portal at the top and the tower bar along the bottom">
-            <figcaption><strong>Wave 1.</strong> An empty plateau, 220 gold and the tower bar.</figcaption>
+            <figcaption><strong>Wave 1.</strong> An empty plateau, your starting gold and the tower bar.</figcaption>
           </figure>
         </div>
       </div>
@@ -608,6 +609,8 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
         <div><dt><kbd>F</kbd></dt><dd>Cycle speed ×1, ×2, ×3</dd></div>
         <div><dt><kbd>G</kbd></dt><dd>Fuse two maxed towers into an Epic</dd></div>
         <div><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Pan. Scroll or pinch to zoom, <kbd>Q</kbd> <kbd>E</kbd> to rotate.</dd></div>
+        <div><dt><kbd>E</kbd></dt><dd>Open the element picks while one is waiting</dd></div>
+        <div><dt><kbd>H</kbd></dt><dd>Open the Field Guide</dd></div>
       </dl>
     </div>
   </section>
@@ -811,8 +814,8 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
   var SEAM = 0.04;                      // the dark seam around every tile
   var EDGE = 0.1;                       // gap between a tower and the edge of its tile
   var RING = 0.24;                      // the cream ring on its roof, as a share of a tile
-  var RANGE = 2.4, SPEED = 2.6, EVERY = 0.55, DAMAGE = 5.5;
-  var TOUGH = 7.4, HEALTH = 1;          // a demon's health per starter tower; HEALTH is set with the board's size
+  var REACH = 1.5, SPEED = 2.6, EVERY = 0.55, DAMAGE = 5.5;   // a tower reaches the 8 tiles around it, as in the game
+  var TOUGH = 4.0, HEALTH = 1;          // a demon's health per starter tower; HEALTH is set with the board's size
   var DC = [1, 0, 0, -1], DR = [0, 1, -1, 0];   // east, south, north, west
 
   var C = 0, R = 0, N = 0, PORTAL = 0, GATE = 0;          // the grid
@@ -1053,7 +1056,7 @@ footer .mark { font: 600 1rem/1 var(--display); color: var(--gold); }
       best = null; bestLeft = 1e9;
       for (n = 0; n < creeps.length; n++) {
         cr = creeps[n]; dx = cr.x - t.c - 0.5; dy = cr.y - t.r - 0.5;
-        if (dx * dx + dy * dy > RANGE * RANGE) continue;
+        if (Math.abs(dx) > REACH || Math.abs(dy) > REACH) continue;
         left = dist[cr.next] + 1 - cr.p;
         if (left < bestLeft) { bestLeft = left; best = cr; }
       }

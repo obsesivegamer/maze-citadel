@@ -109,6 +109,8 @@ const CUES := {
 	&"sell": {"db": -6.0, "prio": Prio.KEY, "max_len": 1.2},
 	&"upgrade": {"db": -6.0, "prio": Prio.KEY, "max_len": 1.6},
 	&"fuse": {"db": -4.0, "voices": 1, "prio": Prio.KEY},
+	# eletd: an element level learned, the fusion sound without a place.
+	&"element_chime": {"sound": &"fuse", "db": -6.0, "voices": 1, "prio": Prio.KEY, "at": &"flat"},
 	&"invalid_thunk": {"db": -6.0, "voices": 1, "at": &"flat", "bus": &"UI"},
 	&"coin": {"db": -12.0, "gap": 0.2, "voices": 1, "at": &"flat", "bus": &"UI"},
 	&"ui_click": {"db": -8.0, "jitter": 0.03, "gap": 0.03, "at": &"flat", "bus": &"UI"},
@@ -175,8 +177,11 @@ const DEATH := {
 	&"ogre": &"ogre_death",
 	&"dreadlord": &"dreadlord_death",
 	&"felhound": &"felhound_death",
+	&"guardian": &"ogre_death",
 }
-const ARRIVAL := {&"ogre": &"ogre_roar", &"dreadlord": &"dreadlord_arrives"}
+const ARRIVAL := {
+	&"ogre": &"ogre_roar", &"dreadlord": &"dreadlord_arrives", &"guardian": &"ogre_roar"
+}
 ## Events whose cue doesn't depend on who caused them.
 const EVENT_CUES := {
 	&"nova": &"roots_nova",
@@ -195,6 +200,8 @@ const EVENT_CUES := {
 	&"upgraded": &"upgrade",
 	&"fused": &"fuse",
 	&"build_refused": &"invalid_thunk",
+	&"upgrade_refused": &"invalid_thunk",
+	&"element_gained": &"element_chime",
 	&"interest": &"coin",
 	&"wave_cleared": &"village_cheer",
 	&"victory": &"victory_stinger",

@@ -16,6 +16,8 @@ const CREEPS := {
 	&"ogre": {"name": "Ogre Boss", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
 	&"dreadlord": {"name": "Dreadlord", "class": &"boss", "armor": 12, "speed": 1.8, "hp": 27.0},
 	&"felhound": {"name": "Felhound", "class": &"light", "armor": 2, "speed": 4.0, "hp": 0.6},
+	## Summoned by an element pick under eletd (SimElements), which sets its HP.
+	&"guardian": {"name": "Guardian", "class": &"boss", "armor": 8, "speed": 2.0, "hp": 12.0},
 }
 
 const BASE_HP := 60.0
@@ -33,6 +35,12 @@ static func max_hp(type: StringName, wave: int, mode_mult := 1.0) -> float:
 
 static func bounty(wave: int) -> int:
 	return roundi(6.0 + 16.0 * (clampi(wave, 1, 40) - 1) / 39.0)
+
+
+## A bounty for one creep of `type`: bosses pay ten creeps' worth, the
+## Dreadlord twenty-five.
+static func creep_bounty(type: StringName, wave: int) -> int:
+	return bounty(wave) * (25 if type == &"dreadlord" else (10 if is_boss(type) else 1))
 
 
 static func is_boss(type: StringName) -> bool:

@@ -19,6 +19,9 @@ func _run(sim: GameSim, seconds: float) -> void:
 
 func _place(sim: GameSim, tile: Vector2i, id: StringName, level := 1) -> SimTower:
 	sim.gold = 100000
+	# Under eletd, the tower's element at full level, as --picks would set it.
+	var e := SimElements.element_of(id)
+	sim.elements.apply_picks([e, e, e])
 	sim.build(tile, id)
 	while sim.tower_at(tile).level < level:
 		sim.upgrade(tile)

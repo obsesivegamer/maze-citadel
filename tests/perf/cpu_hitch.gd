@@ -19,7 +19,11 @@ var _total_ms := 0.0
 
 
 func _initialize() -> void:
-	Game._carry = {"map": Cli.get_str("map", MapDefs.DEFAULT)}
+	# The Citadel Plateau under classic rules, as docs/perf.md measured them,
+	# unless --map or --rules says otherwise; never the player's last pick.
+	Game._carry = {
+		"map": Cli.get_str("map", MapDefs.DEFAULT), "rules": Cli.get_str("rules", "classic")
+	}
 	_waves = int(Cli.get_str("waves", "12"))
 	_budget_ms = Cli.get_float("budget-ms", 6.0)
 	game = Game.new()

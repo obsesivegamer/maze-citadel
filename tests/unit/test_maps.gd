@@ -86,9 +86,12 @@ func test_rampart_wave_walks_from_portal_to_gate() -> void:
 	check(leaked > 0, "an unguarded wave reaches the gate")
 
 
+## The serpentine maps; the fixed-lane map's plan is checked on its own below.
 func test_bot_plan_fits_every_map() -> void:
 	for rules in GameSim.RULES:
 		for id in MapDefs.ORDER:
+			if not MapDefs.lane(id).is_empty():
+				continue
 			var sim := GameSim.new(id)
 			sim.rules = rules
 			var bot := Bot.new(sim, &"archers")
@@ -128,13 +131,17 @@ func test_smart_bot_lines_the_route_under_eletd() -> void:
 
 
 func test_records_are_kept_per_map() -> void:
-	check_eq(Save.mode_key(false, false), "normal", "default map keeps its keys")
-	check_eq(Save.mode_key(true, true, false, MapDefs.DEFAULT), "hard_infinite", "default map")
-	check_eq(Save.mode_key(true, false, false, &"rampart"), "rampart_hard", "other maps prefixed")
-	check_eq(Save.mode_key(true, false, true, &"rampart"), "rampart_hard_twists", "map and twists")
+	check_eq(Save.mode_key(&"normal", false), "normal", "default map keeps its keys")
+	check_eq(Save.mode_key(&"hard", true, false, MapDefs.DEFAULT), "hard_infinite", "default map")
+	check_eq(
+		Save.mode_key(&"hard", false, false, &"rampart"), "rampart_hard", "other maps prefixed"
+	)
+	check_eq(
+		Save.mode_key(&"hard", false, true, &"rampart"), "rampart_hard_twists", "map and twists"
+	)
 	var sim := GameSim.new(&"rampart")
 	sim.infinite = true
 	check_eq(Save.sim_key(sim), "rampart_normal_infinite", "from a sim")
 	sim.rules = &"eletd"
 	check_eq(Save.sim_key(sim), "rampart_normal_infinite_eletd", "other rules get their own key")
-	check_eq(Save.mode_key(true, false, false, MapDefs.DEFAULT, &"eletd"), "hard_eletd", "rules")
+	check_eq(Save.mode_key(&"hard", false, false, MapDefs.DEFAULT, &"eletd"), "hard_eletd", "rules")

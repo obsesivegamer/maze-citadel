@@ -31,7 +31,7 @@ tools/verify_pc.sh linux      # on Linux; tools/verify_pc.sh windows on Windows
 
 | Stage | Where | Checks |
 |---|---|---|
-| Gate | Linux | `tools/check.sh`: import, asset licenses, lint, format, unit tests, headless smoke run |
+| Gate | Linux | `tools/check.sh`: import, asset licenses, the benchmark scripts' own tests, lint, format, unit tests, and headless smoke runs with the autoplay bot on the Citadel and the Rampart under both rule sets (the default Element TD rules and classic) and on the Causeway under the Element TD rules. It must end with `check: OK` |
 | Export | macOS 15 | `tools/export.sh` with Godot 4.7.2 and its macOS template, checksummed against Godot's `SHA512-SUMS.txt` |
 | Image | macOS 15 | `hdiutil verify`, compressed UDZO format, mounts read-only, `Maze Citadel.app` and the Applications shortcut at the root |
 | Bundle | macOS 15 | bundle id, app version equals `project.godot`, arm64-only binary, minimum macOS |
@@ -47,7 +47,7 @@ tools/verify_pc.sh linux      # on Linux; tools/verify_pc.sh windows on Windows
 
 The website is live at **[obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/)**, served by GitHub Pages.
 
-`site/index.html` is the page. `tools/build_site.py` fills it in from the newest release (version, size, date, checksum, minimum macOS, and whether the build is notarized) and writes the result to `build/site/`. The tower roster and the tower, Epic, wave and map counts come from the game's own data (`src/data/tower_defs.gd`, `src/data/wave_defs.gd`, `src/data/map_defs.gd` and `src/ui/tower_info.gd`), so a balance change shows up on the website at the next deploy. Preview it with:
+`site/index.html` is the page. `tools/build_site.py` fills it in from the newest release (version, size, date, checksum, minimum macOS, and whether the build is notarized) and writes the result to `build/site/`. The tower roster and the tower, Epic, wave and map counts come from the game's own data (`src/data/tower_defs.gd`, `src/data/wave_defs.gd`, `src/data/map_defs.gd`, `src/data/eletd_rules.gd` and `src/ui/tower_info.gd`), and the roster shows the towers as the default Element TD rules play them, so a balance change shows up on the website at the next deploy. Preview it with:
 
 ```sh
 python3 tools/build_site.py && open build/site/index.html

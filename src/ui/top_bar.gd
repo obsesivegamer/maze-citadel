@@ -1,6 +1,7 @@
 class_name HudTopBar
 extends Control
-## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout.
+## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout,
+## and under eletd the element levels with the Pick chip (ElementStrip).
 ## Centre: wave n/40 and the next-wave chip with its countdown and a call
 ## button. Right: mode chip, speed, pause, camera presets, boss tracking, the
 ## Field Guide and settings. refresh() runs every frame but only touches a node when the value
@@ -8,6 +9,7 @@ extends Control
 
 signal settings_pressed
 signal guide_pressed
+signal picks_pressed
 
 const MARGIN := Vector2(10, 8)
 const ICON_PX := 22.0
@@ -20,9 +22,11 @@ const CAMERA_TIPS := {
 	&"full": "Full board (R)", &"portal": "Portal close-up (C)", &"gate": "Gate defense (C)"
 }
 const CAMERA_GLYPHS := {&"full": &"cam_full", &"portal": &"cam_portal", &"gate": &"cam_gate"}
+const LOCKED_TIP := "Interest is locked until every creep on the board is dead"
 
 var left_panel: PanelContainer
 var center_panel: PanelContainer
+var _right_panel: PanelContainer
 
 var _game: Game
 var _gold := UiKit.label("", &"Number")
@@ -30,6 +34,8 @@ var _lives := UiKit.label("", &"Number")
 var _lives_box := UiKit.hbox(5)
 var _gold_box := UiKit.hbox(5)
 var _ring := InterestRing.new(RING_PX)
+var _interest := UiKit.hbox(5)
+var _interest_tip := ""
 var _payout := UiKit.label("", &"Number", UiTheme.SIZE_LARGE)
 var _wave := UiKit.label("", &"Title")
 var _wave_total := UiKit.label("", &"Dim", UiTheme.SIZE_BODY)
@@ -40,8 +46,8 @@ var _next := WaveIcons.new(NEXT_ICON_PX, 13)
 var _after_caption := UiKit.label("", &"Caption")
 var _after := WaveIcons.new(NEXT_ICON_PX * 0.8, 11)
 var _call: Button
-var _normal: Button
-var _hard: Button
+## Difficulty chip per difficulty the rule set offers.
+var _levels := {}
 var _infinite: Button
 var _twists: Button
 var _lock := UiIcon.new(&"lock", 16.0)
@@ -50,6 +56,8 @@ var _pause: Button
 var _boss: Button
 var _boss_chip := UiKit.panel(&"Chip", false)
 var _boss_text := UiKit.label("", &"", UiTheme.SIZE_SMALL)
+## eletd only: the element levels and the Pick chip.
+var _elements: ElementStrip
 var _shown := {}
 
 
@@ -85,19 +93,29 @@ func _build_left() -> void:
 	row.add_child(_gold_box)
 	_lives_box.add_child(UiIcon.new(&"heart", ICON_PX))
 	_lives_box.add_child(_lives)
-	_lives_box.tooltip_text = "Lives. A leak costs 1 (bosses 2) and the creep runs again."
+	var costly := "bosses and Bulky creeps" if _game.sim.rules == &"eletd" else "bosses"
+	_lives_box.tooltip_text = "Lives. A leak costs 1 (%s 2) and the creep runs again." % costly
 	_lives_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_lives_box)
-	var interest := UiKit.hbox(5)
-	interest.add_child(_ring)
+	_interest.add_child(_ring)
 	_payout.add_theme_color_override("font_color", UiTheme.GOLD_BRIGHT)
-	interest.add_child(_payout)
-	interest.tooltip_text = (
+	_interest.add_child(_payout)
+	_interest.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(_interest)
+	if _game.sim.elements.enabled:
+		row.add_child(UiKit.divider())
+		_elements = ElementStrip.new(_game)
+		_elements.pick_pressed.connect(picks_pressed.emit)
+		row.add_child(_elements)
+
+
+## Interest picks (eletd) raise the rate and the cap the tooltip quotes.
+func _interest_text() -> String:
+	var el := _game.sim.elements
+	return (
 		"Interest: every %d s you earn %d%% of unspent gold (max +%d). Next payout shown."
-		% [GameSim.INTEREST_PERIOD, roundi(GameSim.INTEREST_RATE * 100), GameSim.INTEREST_CAP]
+		% [GameSim.INTEREST_PERIOD, roundi(el.interest_rate() * 100), el.interest_cap()]
 	)
-	interest.mouse_filter = Control.MOUSE_FILTER_PASS
-	row.add_child(interest)
 
 
 func _build_center() -> void:
@@ -133,6 +151,7 @@ func _build_center() -> void:
 
 func _build_right() -> void:
 	var p := UiKit.panel()
+	_right_panel = p
 	p.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	p.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	p.offset_right = -MARGIN.x
@@ -141,8 +160,8 @@ func _build_right() -> void:
 	var row := UiKit.hbox(6)
 	p.add_child(row)
 	var group := ButtonGroup.new()
-	_normal = _segment("Normal", "Normal: base creep HP and bounty", group)
-	_hard = _segment("Hard", "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3", group)
+	for level in EletdRules.difficulties(_game.sim.rules):
+		_levels[level] = _segment(TowerInfo.difficulty_name(level), _level_tip(level), group)
 	_infinite = UiKit.icon_button(
 		_game, &"infinity", "Infinite: waves continue after 40", BUTTON_PX, true
 	)
@@ -159,7 +178,7 @@ func _build_right() -> void:
 			true
 		)
 	)
-	for b in [_normal, _hard, _infinite, _twists]:
+	for b in _levels.values() + [_infinite, _twists]:
 		b.toggled.connect(func(_on: bool) -> void: _apply_mode())
 		row.add_child(b)
 	_lock.tooltip_text = "Mode is locked once wave 1 spawns"
@@ -192,6 +211,29 @@ func _build_right() -> void:
 	var gear := UiKit.icon_button(_game, &"gear", "Settings (F10)", BUTTON_PX)
 	gear.pressed.connect(settings_pressed.emit)
 	row.add_child(gear)
+
+
+## Classic's chips keep their released text; eletd's read its numbers.
+func _level_tip(level: StringName) -> String:
+	if level == &"normal":
+		return "Normal: base creep HP and bounty"
+	if _game.sim.rules != &"eletd":
+		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
+	var score := "score ×%s" % TowerInfo.fmt_num(EletdRules.SCORE_MULT[level])
+	if level == &"easy":
+		return (
+			"Easy: creeps have %d%% less HP, %s" % [roundi(100 - EletdRules.EASY_HP * 100), score]
+		)
+	return (
+		"%s: creeps +%d%% HP rising to +%d%% by wave %d, %s"
+		% [
+			TowerInfo.difficulty_name(level),
+			roundi(EletdRules.difficulty_hp(level, 1) * 100 - 100),
+			roundi(EletdRules.difficulty_hp(level, WaveDefs.count()) * 100 - 100),
+			WaveDefs.count(),
+			score,
+		]
+	)
 
 
 func _segment(text: String, tip: String, group: ButtonGroup) -> Button:
@@ -243,18 +285,22 @@ func _on_boss_tracking(on: bool) -> void:
 
 
 func _apply_mode() -> void:
-	if not _game.set_mode(_hard.button_pressed, _infinite.button_pressed, _twists.button_pressed):
+	var level: StringName = &"normal"
+	for l: StringName in _levels:
+		if _levels[l].button_pressed:
+			level = l
+	if not _game.set_mode(level, _infinite.button_pressed, _twists.button_pressed):
 		_sync_mode()
 
 
 func _sync_mode() -> void:
 	var sim := _game.sim
-	_normal.set_pressed_no_signal(not sim.hard)
-	_hard.set_pressed_no_signal(sim.hard)
+	for level: StringName in _levels:
+		_levels[level].set_pressed_no_signal(level == sim.difficulty)
 	_infinite.set_pressed_no_signal(sim.infinite)
 	_twists.set_pressed_no_signal(sim.twists)
 	var locked := sim.wave > 0
-	for b in [_normal, _hard, _infinite, _twists]:
+	for b in _levels.values() + [_infinite, _twists]:
 		b.disabled = locked
 	_lock.visible = locked
 
@@ -269,10 +315,19 @@ func refresh() -> void:
 		_lives.add_theme_color_override(
 			"font_color", UiTheme.BAD if sim.lives <= 5 else UiTheme.TEXT
 		)
-	var payout := mini(floori(sim.gold * GameSim.INTEREST_RATE), GameSim.INTEREST_CAP)
+	var payout := mini(floori(sim.gold * sim.elements.interest_rate()), sim.elements.interest_cap())
 	if _changed(&"payout", payout):
 		_payout.text = "+%d" % payout
 	_ring.set_progress(1.0 - sim.interest_timer / GameSim.INTEREST_PERIOD)
+	var tip_changed := _changed(&"interest_picks", sim.elements.interest_picks)
+	if tip_changed:
+		_interest_tip = _interest_text()
+	if _changed(&"interest_locked", sim.interest_locked) or tip_changed:
+		_ring.locked = sim.interest_locked
+		_interest.tooltip_text = LOCKED_TIP if sim.interest_locked else _interest_tip
+		_payout.add_theme_color_override(
+			"font_color", UiTheme.TEXT_DIM if sim.interest_locked else UiTheme.GOLD_BRIGHT
+		)
 	var wave_changed := _changed(&"wave", sim.wave)
 	if _changed(&"infinite", sim.infinite) or wave_changed:
 		_wave.text = str(sim.wave) if sim.wave > 0 else "–"
@@ -280,13 +335,37 @@ func refresh() -> void:
 		_wave_inf.visible = sim.infinite
 		_sync_mode()
 	_refresh_next(sim)
+	if _elements != null:
+		_elements.refresh()
+		_fit_center()
 	if _boss_chip.visible:
-		var has_boss := false
-		for c in sim.creeps:
-			has_boss = has_boss or (c.boss and c.alive)
-		if _changed(&"boss", has_boss):
-			_boss_text.text = "Tracking the boss" if has_boss else "Boss tracking: no boss yet"
+		if _changed(&"boss", _tracked(sim)):
+			_boss_text.text = _shown[&"boss"]
 		_boss_chip.offset_top = center_panel.offset_top + center_panel.size.y + BOSS_CHIP_GAP
+
+
+## eletd's wider side panels (element levels, four difficulties) would cover
+## the centred wave panel and its call button, so it sits centred in the gap
+## between them instead.
+func _fit_center() -> void:
+	var left := left_panel.position.x + left_panel.size.x + GROUP_GAP
+	var right := _right_panel.position.x - GROUP_GAP
+	var x := maxf(left, (left + right - center_panel.size.x) / 2.0)
+	if not is_equal_approx(center_panel.position.x, x):
+		center_panel.position.x = x
+	if _boss_chip.visible:
+		_boss_chip.position.x = x + (center_panel.size.x - _boss_chip.size.x) / 2.0
+
+
+## The boss chip's text for the boss the camera follows (CameraRig: the
+## first boss alive), naming an eletd Guardian by its element.
+func _tracked(sim: GameSim) -> String:
+	for c in sim.creeps:
+		if c.boss and c.alive:
+			if c.type == &"guardian":
+				return "Tracking the " + ElementPicks.guardian_title(c.element)
+			return "Tracking the boss"
+	return "Boss tracking: no boss yet"
 
 
 func _refresh_next(sim: GameSim) -> void:
@@ -294,12 +373,14 @@ func _refresh_next(sim: GameSim) -> void:
 	var has_next := next <= sim.last_wave() and not _game.is_over()
 	var secs := ceili(sim.countdown) if sim.countdown >= 0.0 else -1
 	var twist := sim.twist_for(next) if has_next else &""
+	var open := sim.elements.unlocked_towers()
 	var dirty := _changed(&"next", next)
+	dirty = _changed(&"open", open) or dirty
 	dirty = _changed(&"twist", twist) or dirty
 	dirty = _changed(&"has_next", has_next) or dirty
 	dirty = _changed(&"secs", secs) or dirty
 	if dirty:
-		_next.show_wave(next if has_next else 0, twist)
+		_next.show_wave(next if has_next else 0, twist, sim.rules)
 		_call.disabled = not has_next
 		if not has_next:
 			_next_caption.text = "FINAL WAVE" if not _game.is_over() else ""
@@ -307,11 +388,15 @@ func _refresh_next(sim: GameSim) -> void:
 			_next_caption.text = "NEXT · WAVE %d · IN %ds" % [next, secs]
 		else:
 			_next_caption.text = "NEXT · WAVE %d · N TO CALL EARLY" % next
-		var tip := "Wave %d: %s" % [next, TowerInfo.wave_summary(next)] if has_next else ""
+		var tip := (
+			"Wave %d: %s" % [next, TowerInfo.wave_summary(next, sim.rules)] if has_next else ""
+		)
 		if twist != &"":
 			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		if has_next and WaveDefs.bulky(next, sim.rules):
+			tip += "\nBulky: %s" % TowerInfo.bulky_text()
 		if has_next:
-			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next)
+			tip += "\n%s. More in the Field Guide (H)." % Counsel.summary(next, sim.rules, open)
 		_next.get_parent().tooltip_text = tip
 	var after := next + 1
 	var has_after := (
@@ -321,7 +406,7 @@ func _refresh_next(sim: GameSim) -> void:
 	_after_caption.visible = has_after
 	_after.visible = has_after
 	if _changed(&"after", [after if has_after else 0, after_twist]):
-		_after.show_wave(after if has_after else 0, after_twist)
+		_after.show_wave(after if has_after else 0, after_twist, sim.rules)
 		_after_caption.text = "THEN · WAVE %d" % after
 
 

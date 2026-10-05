@@ -12,14 +12,18 @@ Maze Citadel is a single-player tower defense game for Mac, Windows and Linux, m
 
 Demons come out of a red portal at the north end of a plateau and march for the blue town gate at the south end. There are no walls except the ones you build. Every tower blocks the tile it stands on, so where you put your towers decides how far the creeps have to walk, and a good maze doubles back on itself until every creep spends a long time under fire. The one thing you can't do is close the road completely. The game refuses any tower that would cut the portal off from the gate.
 
-The maze is half the game. The other half is reading what's coming. Each wave has an armor class and an element, announced before it arrives. The right towers hit it for double damage and the wrong ones barely scratch it. Hold the gate for forty waves, the last of them led by the Dreadlord, and the citadel is saved.
+The maze is half the game. The other half is reading what's coming. Each wave has an armor class and an element, announced before it arrives. The right towers hit it for double damage and the wrong ones barely scratch it. Every tower reaches only the tiles around it, so the road has to run right past your towers.
+
+You start with three towers that need no element, and you earn the rest. Eight element picks come over the game, one at the start and one every five waves, and each buys one level of an element. The first is yours at once. Every later pick summons a Guardian of that element, a boss that walks the maze and grants the level only when you kill it. Eight picks against eighteen element levels can never take all six elements to the top, so every game is built around a few. Hold the gate for forty waves, the last of them led by the Dreadlord, and the citadel is saved.
 
 What's in it:
 
 - **40 waves** of grunts, wolf riders, shield footmen, priestesses, harpies, ghouls, steam tanks and ogre bosses, ending with the Dreadlord.
 - **10 towers and 4 Epics.** Every tower upgrades twice, and two fully upgraded towers of the same family fuse into that family's Epic.
-- **2 maps.** Citadel Plateau is the open board. Fallen Rampart splits it with a broken wall that funnels every creep through one of three breaches.
-- **Normal and Hard**, plus two extras you can switch on: **Infinite** keeps the waves coming after wave 40, and **Twists** gives later waves a random ability.
+- **Element picks and Guardians.** Six elements to earn a level at a time, with Interest as the other way to spend a pick.
+- **3 maps.** Citadel Plateau is the open board. Fallen Rampart splits it with a broken wall that funnels every creep through one of three breaches. Winding Causeway lays a fixed road and leaves you to choose where to build beside it.
+- **4 difficulties**, Easy, Normal, Hard and Very Hard, plus two extras you can switch on: **Infinite** keeps the waves coming after wave 40, and **Twists** gives later waves a random ability.
+- **Classic rules** one click away: the game as it was in 0.3.1, with long tower ranges and every tower open from the start.
 - **A tutorial and a Field Guide** that teach the counter system over the first ten waves.
 
 The game is playable from the first wave to the last. It's still before version 1.0, and new builds go up on the website and the [Releases page](https://github.com/obsesivegamer/maze-citadel/releases) as they're ready. It was built with Godot 4.7.
@@ -35,7 +39,7 @@ You need a Mac with Apple silicon running macOS 13 Ventura or later.
 1. **Download the game.** Open [obsesivegamer.github.io/maze-citadel](https://obsesivegamer.github.io/maze-citadel/) and click **Download for Mac**. You get a disk image named `MazeCitadel-<version>.dmg`, a little over 100 MB. The same file is on the [Releases page](https://github.com/obsesivegamer/maze-citadel/releases/latest).
 2. **Open the disk image** and drag **Maze Citadel** onto the **Applications** shortcut beside it. You can also run the game straight from the disk image.
 3. **Allow it once.** Maze Citadel isn't notarized by Apple yet, so the first double-click shows "Apple could not verify Maze Citadel is free of malware". That's expected. Click **Done**, open **System Settings → Privacy & Security**, scroll down to **Security** and click **Open Anyway**, then confirm. After that it opens with a normal double-click. On macOS 13 or 14 you can instead Control-click the app and choose **Open**.
-4. **Play.** The first launch spends about 20 seconds on the loading screen while the game prepares its graphics. Later launches take about 4 seconds. There's no title screen or menu. A welcome card explains the basics the first time, and then you're in the citadel with 220 gold and 45 seconds to build before wave 1.
+4. **Play.** The first launch spends about 20 seconds on the loading screen while the game prepares its graphics. Later launches take about 4 seconds. There's no title screen or menu. A welcome card explains the basics the first time, and then you're in the citadel with 400 gold, an element pick to spend and 45 seconds to build before wave 1.
 
 ### Windows
 
@@ -69,17 +73,19 @@ It's the same game on all three systems, with the same saves. The game keeps its
 
 **Build a maze.** Pick a tower from the bar at the bottom of the screen, or press its number key, and click a tile. Hold `Shift` while clicking to keep placing the same tower. A glowing dotted line shows the road the creeps will take, and it redraws every time you build. If the ghost of the tower turns red, that spot would block the road completely and the game won't allow it.
 
+**Pick your elements.** The Archer, the Cannon and the Bard need no element. Every other tower needs its element: one level to build it, and the second and third levels for its upgrades. When a pick is waiting, a pulsing chip on the top bar, or `E`, opens the pick panel, which shows what each element would open and how it fares against the next ten waves. Your first pick is granted at once. Later ones summon a Guardian that has to die before the level is yours, and it costs 3 lives if it gets through. A pick can also go on Interest, which raises the interest you earn on unspent gold.
+
 **Upgrade, sell and fuse.** Click a tower to see its plaque. Every tower has two upgrades. Selling returns 75% of everything you spent on it. Two level-3 towers from the same family fuse into that family's Epic: the Alliance's Sunfire Ballista, the Horde's Doom Cannon, the Elven Frost Wyrm and the Forsaken Plague Necropolis.
 
 **Read the wave.** Every wave has an armor class and an element. The chip on the top bar shows what's next, and a banner repeats it three seconds before the wave arrives. Three rules cover armor: Pierce beats Light armor and flyers, Siege beats Armored, and Poison ignores armor altogether. Elements run in a ring, Light → Dark → Aqua → Flame → Verdant → Stone → Light, and each one deals double damage to the next and half to the one before it. Hover over a tower card and its tooltip rates that tower against the coming wave.
 
-**Hold the gate.** You have 20 lives. A creep that reaches the gate costs one life, a boss costs two, and it loops back to the portal for another run with no bounty for killing it. Clear wave 40 to win.
+**Hold the gate.** You have 20 lives. A creep that reaches the gate costs one life, a boss or a Bulky creep costs two, and it loops back to the portal for another run with no bounty for killing it. While a leaked creep is still alive, interest stops paying. Clear wave 40 to win.
 
-**Set your own pace.** Waves start on a timer, and `N` calls the next one early. `Space` pauses, and you can still build while paused. `F` cycles the speed between ×1, ×2 and ×3.
+**Set your own pace.** Waves start on a timer, 30 seconds apart, and `N` calls the next one early. `Space` pauses, and you can still build while paused. `F` cycles the speed between ×1, ×2 and ×3.
 
 **Learn as you go.** On the first launch a tutorial walks you through waves 1 to 10. Before each wave, a counsel card names what counters it and lights up the towers worth building. `H` opens the Field Guide at any time, with the element ring, the attack and armor chart and advice for the next wave. You can turn the tutorial back on under **Settings → Help**.
 
-**Pick a map and a mode.** Before wave 1, choose a map in the MAP panel and a mode on the top bar. Hard gives the creeps more health, from 10% extra on wave 1 up to 40% extra on wave 40. Infinite keeps going after wave 40. Twists gives most waves from wave 11 a random ability, shown a full wave ahead. Your best wave is saved for each map and mode.
+**Pick a map, a difficulty and the rules.** Before wave 1, choose a map in the panel under the gold counter and a difficulty on the top bar. Easy takes 30% off the creeps' health. Hard adds 6% on wave 1, rising to 28% on wave 40, and Very Hard adds 10% rising to 55%, slowly at first and steeply after wave 25. Infinite keeps going after wave 40. Twists gives most waves from wave 11 a random ability, shown a full wave ahead. The RULES switch in the same panel turns on the classic rules, the game as it was in 0.3.1, with 220 gold, long tower ranges and every tower open. Your best wave is saved for each map, difficulty and rule set.
 
 ### Controls
 
@@ -93,11 +99,12 @@ It's the same game on all three systems, with the same saves. The game keeps its
 | `N` | Start the next wave now |
 | `Space` | Pause or resume |
 | `F` | Cycle the speed: ×1, ×2, ×3 |
+| `E` | Open the element picks, while a pick is waiting |
 | `H` | Open the Field Guide |
 | `Esc` | Deselect or cancel |
 | `W` `A` `S` `D`, arrow keys, or two-finger drag on a Mac trackpad | Move the camera |
 | Mouse wheel, pinch, or two-finger swipe on a PC touchpad | Zoom |
-| `Q` / `E`, middle-drag or `Option`-drag (`Alt`-drag on PC) | Rotate the camera |
+| `Q` / `E`, middle-drag or `Option`-drag (`Alt`-drag on PC) | Rotate the camera (`E` opens the picks instead while one is waiting) |
 | `R` | Reset the camera |
 | `C` | Cycle the full-board, portal and gate views |
 | `B` | Follow the boss |
@@ -131,10 +138,11 @@ godot --headless --path . --import  # first import of the assets
 godot --path .                      # run the game
 ```
 
-Game options go after a `--`. For example, this starts on the second map with the lightest graphics preset:
+Game options go after a `--`. For example, this starts on the second map with the lightest graphics preset, and the second line plays the classic rules on Hard:
 
 ```sh
 godot --path . -- --map=rampart --quality=performance
+godot --path . -- --rules=classic --difficulty=hard
 ```
 
 ### Everyday commands
@@ -142,8 +150,8 @@ godot --path . -- --map=rampart --quality=performance
 | Command | What it does |
 |---|---|
 | `tools/check.sh` | The full check, run before every commit: import, asset licenses, lint, format, unit tests and a headless play-through by the bot |
-| `tools/smoke.sh 18000` | The bot plays about 20 waves with no window |
-| `godot --headless --path . --script res://tests/bots/run_balance.gd` | Bots play full games and print the balance table ([docs/balance.md](docs/balance.md)) |
+| `tools/smoke.sh 18000` | The bot plays for five minutes at ×3 with no window, under the Element TD rules on the Citadel Plateau. Add `--rules=classic` or `--map=causeway` to smoke another rule set or map |
+| `godot --headless --path . --script res://tests/bots/run_balance.gd` | Bots play full games under the Element TD rules and print the balance table ([docs/balance.md](docs/balance.md)). Add `-- --rules=classic` for the classic rules, or `-- --map=causeway` for another map |
 | `tools/export.sh` | Builds `dist/MazeCitadel.app` and the `.dmg` |
 | `tools/verify_dmg.sh` | Mounts the `.dmg`, checks the bundle, version, architecture and signature, and runs the game from it |
 | `tools/export_pc.sh` | Builds the Windows `.zip` and Linux `.tar.gz` into `dist/`. Run it after `tools/export.sh`, which empties `dist/`. |
@@ -159,8 +167,8 @@ The full developer setup, including a way to install the export templates from t
 | Document | What's in it |
 |---|---|
 | [docs/INSTALL.md](docs/INSTALL.md) | Installing, updating and uninstalling the game, system requirements, troubleshooting, and the full developer setup |
-| [docs/GDD.md](docs/GDD.md) | The game design: every rule, tower, creep and wave, with the numbers |
-| [docs/maps.md](docs/maps.md) | The two maps and how a map is defined |
+| [docs/GDD.md](docs/GDD.md) | The game design: every rule, tower, creep and wave, with the numbers, and how the classic rules differ |
+| [docs/maps.md](docs/maps.md) | The three maps and how a map is defined |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is organised |
 | [docs/RELEASING.md](docs/RELEASING.md) | How a release and the website get built and published |
 | [docs/balance.md](docs/balance.md) | What the balance bots found, and why the numbers are what they are |

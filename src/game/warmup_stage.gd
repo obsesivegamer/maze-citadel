@@ -76,7 +76,9 @@ func _stage_towers() -> void:
 ## and death effect plays. Ability timers are shortened so Steam Tank
 ## immunity, Priestess heals and Dreadlord summons all fire in time.
 func _stage_creeps() -> void:
+	# The Guardian is the Ogre drawn larger: the Ogre compiles its shaders.
 	var types: Array = CreepDefs.CREEPS.keys()
+	types.erase(&"guardian")
 	var k := 0
 	for row in CREEP_ROWS:
 		for col in range(2, Grid.COLS - 2, 2):
