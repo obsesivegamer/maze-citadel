@@ -1,5 +1,5 @@
 extends "res://tests/test_case.gd"
-## The pause menu (Esc) and Settings as a modal, on
+## The pause menu (Esc), the end screen's buttons and Settings as a modal, on
 ## a Game that is never added to the tree: its reload and quit are stubbed
 ## and only noted, so a test never restarts or quits the runner.
 
@@ -93,6 +93,24 @@ func test_quit_keeps_the_record() -> void:
 	DirAccess.remove_absolute(Save.path)
 	Save.path = Save.PATH
 	Save._cfg = null
+	game.free()
+
+
+func test_end_screen_buttons() -> void:
+	var game := _game()
+	var end := EndScreen.new()
+	end.setup(game)
+	var buttons := {}
+	for b in end.find_children("*", "Button", true, false):
+		buttons[(b as Button).text] = b
+	check_eq(buttons.keys(), ["Play again", "Change setup", "Quit to desktop"])
+	(buttons["Play again"] as Button).pressed.emit()
+	(buttons["Change setup"] as Button).pressed.emit()
+	check_eq(game.reloads, 2, "Play again and Change setup start a new game")
+	Game._carry = {}
+	(buttons["Quit to desktop"] as Button).pressed.emit()
+	check_eq(game.quits, 1)
+	end.free()
 	game.free()
 
 

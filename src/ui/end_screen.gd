@@ -3,7 +3,8 @@ extends Control
 ## Victory and defeat screens (GDD §3): the rule set and mode, wave reached,
 ## kills, time, gold earned, lives, the elements reached and any picks or idle
 ## gold left unspent (eletd), score and best wave for the mode, whether the
-## game's record was saved (PlayLog), then Play again.
+## game's record was saved (PlayLog), then Play again, Change setup and Quit
+## to desktop.
 
 const PANEL_WIDTH := 420.0
 const DIM := Color(0.02, 0.015, 0.01, 0.6)
@@ -58,6 +59,14 @@ func setup(game: Game) -> void:
 	again.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	again.pressed.connect(game.play_again)
 	box.add_child(again)
+	var row := UiKit.hbox(10)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	for b in [["Change setup", game.change_setup], ["Quit to desktop", game.quit]]:
+		var button := UiKit.text_button(game, b[0])
+		button.custom_minimum_size = Vector2(150, 32)
+		button.pressed.connect(b[1])
+		row.add_child(button)
+	box.add_child(row)
 
 
 ## `best_before` is the mode's best wave from before this run (Save.record

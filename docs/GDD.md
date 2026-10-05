@@ -62,8 +62,8 @@ The first frame is the game. No title screen, no menu, no empty scene.
 | Leak cost | Normal creep −1, boss and Bulky creep (§9.1) −2, Guardian (§7.3) −3. Classic: normal −1, boss −2 |
 | Leak feedback | Gate flashes blue-white, war horn, lives counter pulses. The first leak of a game also puts a line above the cards: "Leaked creeps cost lives and walk the maze again until killed. Interest stops until the board is clear." Classic: no line |
 | After a leak | Creep teleports back to the portal with its current HP and runs again. It no longer pays bounty. Each pass costs lives again. Interest stops until the field is clear (§4). |
-| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, the elements reached, and what was left unspent ("Unspent: 3 picks · 3,453 gold") when a pick was still waiting or the gold had passed the point where interest stops growing (§4). |
-| Victory | Clear wave 40. Screen shows score and stats; gryphons circle the citadel. |
+| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, the elements reached, and what was left unspent ("Unspent: 3 picks · 3,453 gold") when a pick was still waiting or the gold had passed the point where interest stops growing (§4). Its buttons are Play again, Change setup and Quit to desktop. |
+| Victory | Clear wave 40. Screen shows score and stats, with the same buttons as defeat; gryphons circle the citadel. |
 | Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
 | Opening build phase | 45 s countdown. `N` starts wave 1 now. |
 | Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element and boss skull, and a line each for flyers ("FLYING: ignores your maze and flies straight from portal to gate; only wing-icon towers beside the flight line hit it", on every wave that has them), composite armor (§6.5) and the Bulky shape (§9.1). Classic: no flying or composite line |
