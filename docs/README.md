@@ -34,6 +34,7 @@ These three are records. They're written in date order and say what was tried, w
 
 | Document | Read it when |
 |---|---|
+| [playtests.md](playtests.md) | You want to send a playtest, or replay one. The game records every game you play to a file on your computer. |
 | [balance.md](balance.md) | You wonder why a number is what it is. Bots play full games and this is what they found. |
 | [perf.md](perf.md) | You care about frame rates. It has every measurement and the changes that came out of them. |
 | [PLAN.md](PLAN.md) | You want to see the original build plan and the decisions made at the start |

@@ -1,10 +1,11 @@
 class_name SettingsPanel
 extends Control
 ## Settings (GDD §13–§15): quality preset, master/music/effects/ambience
-## volume, camera shake, edge pan and the tutorial. Every change is saved at
-## once through game.set_quality, game.audio.set_volume or Save.set_setting.
+## volume, camera shake, edge pan, the tutorial and the playtest records.
+## Every change is saved at once through game.set_quality,
+## game.audio.set_volume or Save.set_setting.
 
-## A toggle changed (key from TOGGLES or HELP_TOGGLES).
+## A toggle changed (key from TOGGLES, HELP_TOGGLES or RECORD_TOGGLES).
 signal setting_changed(key: String, on: bool)
 
 const PANEL_WIDTH := 400.0
@@ -23,6 +24,14 @@ const HELP_TOGGLES := [
 		"tutorial",
 		"Tutorial",
 		"Counsel cards on the element and armor counters for waves 1 to 10 (H opens the Field Guide)",
+	],
+]
+
+const RECORD_TOGGLES := [
+	[
+		PlayLog.SETTING,
+		"Game records",
+		"Saves each game's moves and wave results to a file on this computer (nothing is sent)",
 	],
 ]
 
@@ -67,6 +76,14 @@ func setup(game: Game) -> void:
 	box.add_child(UiKit.label("HELP", &"Caption"))
 	for t in HELP_TOGGLES:
 		box.add_child(_build_toggle(t[0], t[1], t[2]))
+	box.add_child(UiKit.label("PLAYTEST", &"Caption"))
+	for t in RECORD_TOGGLES:
+		box.add_child(_build_toggle(t[0], t[1], t[2]))
+	var folder := UiKit.text_button(game, "Open the records folder", &"Segment")
+	folder.tooltip_text = ProjectSettings.globalize_path(PlayLog.dir)
+	folder.custom_minimum_size.y = 26
+	folder.pressed.connect(_open_records)
+	box.add_child(folder)
 	var close := UiKit.text_button(game, "Close")
 	close.custom_minimum_size = Vector2(140, 32)
 	close.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -146,7 +163,7 @@ func open() -> void:
 		var s: HSlider = _sliders[v[0]]
 		s.set_value_no_signal(_game.audio.volume(v[0]))
 		_show_value(v[0], s.value)
-	for t in TOGGLES + HELP_TOGGLES:
+	for t in TOGGLES + HELP_TOGGLES + RECORD_TOGGLES:
 		var b: Button = _toggles[t[0]]
 		var on: bool = Save.setting(t[0], true)
 		b.set_pressed_no_signal(on)
@@ -183,6 +200,13 @@ func _on_volume(v: float, bus: StringName) -> void:
 
 func _show_value(bus: StringName, v: float) -> void:
 	(_values[bus] as Label).text = "%d%%" % roundi(v * 100.0)
+
+
+## Shows the folder the game records are written to, with this game's so far.
+func _open_records() -> void:
+	_game.save_play_log()
+	DirAccess.make_dir_recursive_absolute(PlayLog.dir)
+	OS.shell_open(ProjectSettings.globalize_path(PlayLog.dir))
 
 
 func _on_toggle(on: bool, key: String, b: Button) -> void:

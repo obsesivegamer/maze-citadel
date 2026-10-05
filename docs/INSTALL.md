@@ -161,6 +161,7 @@ Everything the game writes goes into its data folder, the one in the table above
 |---|---|
 | `save.cfg` | Your best wave and score for each map and mode, the quality preset, the volume sliders and the other settings |
 | `shader_cache/` | Graphics programs the game compiled for your computer. It's safe to delete. The next launch rebuilds it and takes the longer first-launch time again. |
+| `playtests/` | A record of each game you play: your moves and what each wave did. They help tune the difficulty and are never sent anywhere ([playtests.md](playtests.md)). Turn them off under **Settings → Playtest → Game records**; deleting them is safe. |
 | `logs/` | Text logs from recent runs, which help when tracking down a problem |
 
 ### If something goes wrong
@@ -304,7 +305,7 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--tutorial` | Show the tutorial even if it has been turned off |
 | `--warp-wave=24` | Fast-forward to the start of a wave; `--warp-into=10` goes on that many seconds into it |
 | `--select=archer` | Select a tower, by tile (`--select=9,14`) or the first of a kind |
-| `--open=pick` | Open the pick panel, the Field Guide (`guide`) or its Elements and picks page (`elements`) |
+| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`) or Settings (`settings`) |
 | `--shot=build/shots/m3 --views=full,portal,gate` | Save one screenshot per camera preset and quit, as `build/shots/m3-full.png` and so on. `--shot-frames=n` saves n frames per view and `--shot-freeze` stops game time while it does. `tools/capture.sh` runs a set of these |
 
 For example:

@@ -67,7 +67,7 @@ You need a Mac with Apple silicon running macOS 13 Ventura or later.
 
 Maze Citadel is tested on a MacBook Air 13-inch M3 with 16 GB of memory, where it runs at 60 fps on the default Balanced quality preset. That is the only computer it has been measured on so far, and the Windows and Linux builds haven't been measured yet. If it runs slowly on yours, the Performance preset in Settings is lighter.
 
-It's the same game on all three systems, with the same saves. The game keeps its settings and best waves in `~/Library/Application Support/Maze Citadel` on a Mac, `%APPDATA%\Maze Citadel` on Windows and `~/.local/share/Maze Citadel` on Linux.
+It's the same game on all three systems, with the same saves. The game keeps its settings, best waves and a record of each game ([docs/playtests.md](docs/playtests.md)) in `~/Library/Application Support/Maze Citadel` on a Mac, `%APPDATA%\Maze Citadel` on Windows and `~/.local/share/Maze Citadel` on Linux.
 
 ## How to play
 
@@ -152,6 +152,7 @@ godot --path . -- --rules=classic --difficulty=hard
 | `tools/check.sh` | The full check, run before every commit: import, asset licenses, lint, format, unit tests and a headless play-through by the bot |
 | `tools/smoke.sh 18000` | The bot plays for five minutes at ×3 with no window, under the Element TD rules on the Citadel Plateau. Add `--rules=classic` or `--map=causeway` to smoke another rule set or map |
 | `godot --headless --path . --script res://tests/bots/run_balance.gd` | Bots play full games under the Element TD rules and print the balance table ([docs/balance.md](docs/balance.md)). Add `-- --rules=classic` for the classic rules, or `-- --map=causeway` for another map |
+| `godot --headless --path . --script res://tests/bots/replay.gd -- --file=<record.json>` | Replays a recorded game and prints what each wave did ([docs/playtests.md](docs/playtests.md)) |
 | `tools/export.sh` | Builds `dist/MazeCitadel.app` and the `.dmg` |
 | `tools/verify_dmg.sh` | Mounts the `.dmg`, checks the bundle, version, architecture and signature, and runs the game from it |
 | `tools/export_pc.sh` | Builds the Windows `.zip` and Linux `.tar.gz` into `dist/`. Run it after `tools/export.sh`, which empties `dist/`. |
@@ -171,6 +172,7 @@ The full developer setup, including a way to install the export templates from t
 | [docs/maps.md](docs/maps.md) | The three maps and how a map is defined |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is organised |
 | [docs/RELEASING.md](docs/RELEASING.md) | How a release and the website get built and published |
+| [docs/playtests.md](docs/playtests.md) | The record the game keeps of each game you play, and how to replay one |
 | [docs/balance.md](docs/balance.md) | What the balance bots found, and why the numbers are what they are |
 | [docs/perf.md](docs/perf.md) | Performance measurements and what was done about them |
 | [docs/PLAN.md](docs/PLAN.md) | The original build plan, kept for the record |

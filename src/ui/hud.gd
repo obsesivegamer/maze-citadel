@@ -254,6 +254,8 @@ func open_panel(which: String) -> void:
 		"guide", "elements":
 			_guide.open()
 			_guide.show_page(which == "elements")
+		"settings":
+			_settings.open()
 
 
 ## The HUD gets input before the builder and camera, so keys stop here while
