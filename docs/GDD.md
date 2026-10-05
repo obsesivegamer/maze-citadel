@@ -334,7 +334,7 @@ Infinite's replays of waves 34 and 37 keep their composite and Bulky shapes. Cla
 | Right-click | Cancel the build ghost; on a selected tower, sell |
 | `1`–`0` | Pick a tower card (spec's `1`–`6` cover Archer, Cannon, Frost, Poison, Bard, Runesmith) |
 | `U` / `X` / `G` | Upgrade / sell / fuse the selected tower |
-| `Esc` | Deselect or cancel |
+| `Esc` | Close the topmost panel; else deselect or cancel; else open the pause menu (§11) |
 | `Space` / `F` | Pause / cycle speed ×1 ×2 ×3 |
 | `N` | Start or call the next wave |
 | `R` | Hero view (reset to the default 3/4 camera) |
@@ -354,6 +354,7 @@ A tower's reach shows only for the hovered or selected tower (and for the ghost 
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
+- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (a second click confirms; the map, rules and mode stay), New game setup (for now the same as Restart), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Settings and the Field Guide open over it and `Esc` returns to it.
 
 ### 11.1 Teaching the counters
 
@@ -367,7 +368,7 @@ In the spirit of a Warcraft III map's quest log and timed hints. All advice is c
 | Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
 | Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
 
-The welcome card and the Field Guide are modal: no key reaches the game behind them, `Esc` closes the topmost, and `Space` or `Enter` also begin from the welcome. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
+The welcome card, the Field Guide, Settings, the pause menu and the end screen are modal: no key reaches the game behind them, `Esc` closes the topmost (`H` and `F10` close their own panels), and `Space` or `Enter` also begin from the welcome. All but the end screen pause the game while open. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
 
 ### 11.2 Element picks on the HUD
 

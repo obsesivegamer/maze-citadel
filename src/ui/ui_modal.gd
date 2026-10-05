@@ -1,8 +1,8 @@
 class_name UiModal
 extends Control
 ## A centred stone panel over a dimmed screen that takes every click: the
-## frame shared by the tutorial's welcome card, the Field Guide and the
-## element picks. Opening it pauses the game (unless `pauses` is off);
+## frame shared by the tutorial's welcome card, the Field Guide, Settings,
+## the pause menu and the element picks. Opening it pauses the game (unless `pauses` is off);
 ## closing resumes only if opening paused it, so a game paused beforehand
 ## stays paused. The HUD routes keys to whichever is up (Hud.modal_action()).
 

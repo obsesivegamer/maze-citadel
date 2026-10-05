@@ -488,4 +488,5 @@ static func hints(state: StringName) -> Array:
 		["R/C", "Camera"],
 		["B", "Boss"],
 		["H", "Field Guide"],
+		["Esc", "Menu"],
 	]

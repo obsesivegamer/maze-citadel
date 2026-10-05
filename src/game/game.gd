@@ -496,6 +496,22 @@ func play_again() -> void:
 	restart()
 
 
+## A new match from the board setup (the pause menu's New game setup and the
+## end screen's Change setup). Until the setup screen exists it plays again.
+func change_setup() -> void:
+	play_again()
+
+
+## Quit to desktop (the pause menu and the end screen), keeping the record.
+func quit() -> void:
+	save_play_log()
+	_quit_tree()
+
+
+func _quit_tree() -> void:
+	get_tree().quit()
+
+
 ## This match's map, rules and mode with `changes`, for the next _init.
 func _carry_with(changes: Dictionary) -> Dictionary:
 	var carry := {

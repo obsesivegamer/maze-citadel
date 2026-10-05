@@ -305,7 +305,7 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--tutorial` | Show the tutorial even if it has been turned off |
 | `--warp-wave=24` | Fast-forward to the start of a wave; `--warp-into=10` goes on that many seconds into it |
 | `--select=archer` | Select a tower, by tile (`--select=9,14`) or the first of a kind |
-| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`) or Settings (`settings`) |
+| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`), Settings (`settings`) or the pause menu (`menu`) |
 | `--shot=build/shots/m3 --views=full,portal,gate` | Save one screenshot per camera preset and quit, as `build/shots/m3-full.png` and so on. `--shot-frames=n` saves n frames per view and `--shot-freeze` stops game time while it does. `tools/capture.sh` runs a set of these |
 
 For example:

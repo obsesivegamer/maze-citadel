@@ -94,22 +94,38 @@ func test_modals_keep_keys_from_the_game() -> void:
 	var n := _key(KEY_N)
 	var one := _key(KEY_1)
 	var f10 := _key(KEY_F10)
-	check_eq(Hud.modal_action(n, false, false), &"", "no modal: keys reach the game")
-	check_eq(Hud.modal_action(f10, false, false), &"settings", "F10, as the gear's tooltip says")
-	check_eq(Hud.modal_action(esc, false, false), &"", "Esc still deselects")
-	check_eq(Hud.modal_action(h, false, false), &"open_guide")
-	for k in [space, n, one, f10]:
-		check_eq(Hud.modal_action(k, true, false), &"swallow", "guide blocks %s" % k.as_text())
-		check_eq(Hud.modal_action(k, true, true), &"swallow", "guide over welcome")
-	check_eq(Hud.modal_action(esc, true, false), &"close_guide")
-	check_eq(Hud.modal_action(h, true, false), &"close_guide")
-	check_eq(Hud.modal_action(esc, true, true), &"close_guide", "topmost first")
+	check_eq(Hud.modal_action(n, &"", true), &"", "no modal: keys reach the game")
+	check_eq(Hud.modal_action(f10, &"", true), &"settings", "F10, as the gear's tooltip says")
+	check_eq(Hud.modal_action(esc, &"", false), &"", "Esc still deselects or cancels first")
+	check_eq(Hud.modal_action(esc, &"", true), &"open_menu", "then opens the pause menu")
+	check_eq(Hud.modal_action(h, &"", true), &"open_guide")
+	for top in [&"guide", &"settings", &"menu", &"welcome", &"end"]:
+		for k in [space, n, one]:
+			if top != &"welcome" or k != space:
+				check_eq(
+					Hud.modal_action(k, top, true), &"swallow", "%s blocks %s" % [top, k.as_text()]
+				)
+	for top in [&"guide", &"settings", &"menu"]:
+		check_eq(Hud.modal_action(esc, top, true), &"close", "Esc closes the %s" % top)
+	check_eq(Hud.modal_action(h, &"guide", true), &"close", "H closes the guide")
+	check_eq(Hud.modal_action(f10, &"guide", true), &"swallow", "no Settings over the guide")
+	check_eq(Hud.modal_action(f10, &"settings", true), &"close", "F10 closes Settings")
+	check_eq(Hud.modal_action(h, &"settings", true), &"swallow", "no guide over Settings")
+	check_eq(Hud.modal_action(h, &"menu", true), &"open_guide", "the menu opens the guide")
+	check_eq(Hud.modal_action(f10, &"menu", true), &"settings", "and Settings")
 	for k in [esc, space, enter]:
-		check_eq(Hud.modal_action(k, false, true), &"begin", "%s begins" % k.as_text())
-	check_eq(Hud.modal_action(h, false, true), &"open_guide", "guide over the welcome")
-	check_eq(Hud.modal_action(n, false, true), &"swallow", "no early wave")
-	check_eq(Hud.modal_action(one, false, true), &"swallow", "no build pick")
-	check_eq(Hud.modal_action(f10, false, true), &"swallow", "no Settings over the welcome")
+		check_eq(Hud.modal_action(k, &"welcome", true), &"begin", "%s begins" % k.as_text())
+	check_eq(Hud.modal_action(h, &"welcome", true), &"open_guide", "guide over the welcome")
+	check_eq(Hud.modal_action(f10, &"welcome", true), &"swallow", "no Settings over the welcome")
+	for k in [esc, h, f10]:
+		check_eq(
+			Hud.modal_action(k, &"end", true), &"swallow", "the end screen keeps %s" % k.as_text()
+		)
+	check_eq(Hud.topmost({}), &"", "nothing open")
+	check_eq(Hud.topmost({&"guide": true, &"welcome": true}), &"guide", "guide over welcome")
+	check_eq(Hud.topmost({&"menu": true, &"settings": true}), &"settings", "Settings over menu")
+	check_eq(Hud.topmost({&"menu": true, &"guide": true}), &"guide", "guide over the menu")
+	check_eq(Hud.topmost({&"menu": true, &"guide": false}), &"menu", "closing returns to it")
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:

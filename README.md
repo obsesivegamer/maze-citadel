@@ -102,7 +102,7 @@ It's the same game on all three systems, with the same saves. The game keeps its
 | `E` | Open the element picks, while a pick is waiting |
 | `H` | Open the Field Guide |
 | `F10` | Open or close Settings |
-| `Esc` | Deselect or cancel |
+| `Esc` | Close the open panel, or deselect or cancel. With nothing to cancel, open the menu: resume, restart, settings, the Field Guide or quit to the desktop |
 | `W` `A` `S` `D`, arrow keys, or two-finger drag on a Mac trackpad | Move the camera |
 | Mouse wheel, pinch, or two-finger swipe on a PC touchpad | Zoom |
 | `Q` / `E`, middle-drag or `Option`-drag (`Alt`-drag on PC) | Rotate the camera (`E` opens the picks instead while one is waiting) |
