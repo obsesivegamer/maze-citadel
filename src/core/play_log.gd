@@ -26,9 +26,13 @@ var picks: Array[String] = []
 var started := Time.get_datetime_string_from_system()
 
 var _rows := {}
-## Per creep: its wave, the route length when it set off, the share walked.
+## Per creep on its first walk: the route length when first seen, the share
+## walked.
 var _creeps := {}
+## Creeps that leaked and walk again.
+var _leaked := {}
 var _death_walk := {}
+var _path := ""
 
 
 ## The sim step an action taken now falls on: it happens before that step.
@@ -59,19 +63,29 @@ func observe(sim: GameSim, events: Array[Dictionary], step := step_of(sim)) -> v
 					if row.cleared_t == null:
 						row.cleared_t = snappedf(sim.time, 0.01)
 			&"leaked":
-				var c := sim.creep(e.id)
-				var row := _row(sim, c.wave)
+				var row := _row(sim, e.wave)
 				row.leaks += 1
 				row.lives_lost += e.cost
-				if c.type != &"guardian":
+				if e.creep != &"guardian":
 					row.walked = 1.0
+				_creeps.erase(e.id)
+				_leaked[e.id] = true
 			&"died":
-				if _creeps.has(e.id):
-					var seen: Array = _creeps[e.id]
-					_row(sim, seen[0]).deaths += 1
-					_death_walk[seen[0]] = _death_walk.get(seen[0], 0.0) + seen[2]
-					_creeps.erase(e.id)
+				_died(sim, e)
 	_watch_creeps(sim)
+
+
+## A death counts for its wave unless the creep is a Guardian or had already
+## leaked (that one is under `leaks`). The events carry the wave: a creep
+## that died this step is already gone from the sim, and one killed on the
+## step it entered was never watched, so it died at 0.
+func _died(sim: GameSim, e: Dictionary) -> void:
+	if _leaked.erase(e.id) or e.creep == &"guardian":
+		return
+	var walked: float = _creeps[e.id][1] if _creeps.has(e.id) else 0.0
+	_creeps.erase(e.id)
+	_row(sim, e.wave).deaths += 1
+	_death_walk[e.wave] = _death_walk.get(e.wave, 0.0) + walked
 
 
 ## The player called the next wave before its countdown ran out. Not an event
@@ -140,7 +154,9 @@ func file_path(sim: GameSim) -> String:
 
 
 ## Writes the record so far over this game's file; returns its path, or ""
-## when nothing has happened yet or the file can't be written.
+## when nothing has happened yet or the file can't be written. A game whose
+## difficulty changed since the last save (before wave 1) moves to its new
+## name.
 func save(sim: GameSim) -> String:
 	if is_empty():
 		return ""
@@ -150,6 +166,9 @@ func save(sim: GameSim) -> String:
 	if f == null:
 		return ""
 	f.store_string(JSON.stringify(to_dict(sim), "  ", false))
+	if _path != "" and _path != path:
+		DirAccess.remove_absolute(_path)
+	_path = path
 	return path
 
 
@@ -185,20 +204,23 @@ func _row(sim: GameSim, w: int) -> Dictionary:
 
 
 ## How far each creep has got along its route, 0 at the portal to 1 at the
-## gate, measured against the route as it stood when the creep set off (the
-## balance tool's measure). A Guardian is no part of its wave.
+## gate, measured against the whole route as it stood when the creep was
+## first seen (so a Felhound summoned halfway starts halfway). A Guardian is
+## no part of its wave.
 func _watch_creeps(sim: GameSim) -> void:
 	for c in sim.creeps:
 		if c.leaked or c.progress <= 0.0 or is_inf(c.progress) or c.type == &"guardian":
 			continue
 		if not _creeps.has(c.id):
-			var fly := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
-			_creeps[c.id] = [c.wave, fly if c.flying else maxf(c.progress, 1.0), 0.0]
-			continue
+			var route := sim.grid.spawn_point.distance_to(sim.grid.gate_point)
+			if not c.flying:
+				var entry := sim.field.distance(sim.field.entry_tile()) * Grid.TILE + Grid.TILE
+				route = maxf(maxf(entry, c.progress), 1.0)
+			_creeps[c.id] = [route, 0.0]
 		var seen: Array = _creeps[c.id]
-		seen[2] = maxf(seen[2], clampf(1.0 - c.progress / seen[1], 0.0, 1.0))
+		seen[1] = maxf(seen[1], clampf(1.0 - c.progress / seen[0], 0.0, 1.0))
 		var row := _row(sim, c.wave)
-		row.walked = maxf(row.walked, seen[2])
+		row.walked = maxf(row.walked, seen[1])
 
 
 static func _xy(tile: Vector2i) -> Array[int]:

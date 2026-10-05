@@ -7,7 +7,7 @@ extends SceneTree
 ## Usage: godot --headless --path . --script res://tests/bots/replay.gd
 ##        -- --file=<a.json>[,<b.json>] [--difficulty=very_hard]
 ## --difficulty replays the same actions on another difficulty.
-## Exits 1 when a file can't be read.
+## Exits 1 when a file can't be read or the rules don't offer the difficulty.
 
 
 func _initialize() -> void:
@@ -26,7 +26,12 @@ func _replay(path: String) -> bool:
 		return false
 	var changed := Cli.has("difficulty")
 	if changed:
-		record.setup.difficulty = Cli.get_str("difficulty")
+		var level := StringName(Cli.get_str("difficulty"))
+		var offered := EletdRules.difficulties(StringName(record.setup.rules))
+		if not level in offered:
+			printerr("%s rules offer %s, not %s" % [record.setup.rules, ", ".join(offered), level])
+			return false
+		record.setup.difficulty = String(level)
 	var player := Replayer.new(record)
 	player.run()
 	var out := player.result()
@@ -38,7 +43,7 @@ func _replay(path: String) -> bool:
 			% [setup.map, setup.rules, setup.difficulty, record.get("game_version", "?")]
 		)
 	)
-	print("| Wave | Gold | Towers | Walked | Died at | Leaks | Lives lost | Cleared in |")
+	print("| Wave | Gold | Towers | Walked | Died at | Leaks | Lives lost | Field clear in |")
 	print("|---|---|---|---|---|---|---|---|")
 	for row: Dictionary in out.waves:
 		print(

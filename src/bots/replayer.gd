@@ -6,6 +6,15 @@ extends RefCounted
 ## choices would have fared. `log` records the replay the way the game
 ## recorded the original, so the two compare row for row.
 
+## What each kind of action must carry besides its step.
+const NEEDS := {
+	"build": ["tile", "id"],
+	"sell": ["tile"],
+	"upgrade": ["tile"],
+	"fuse": ["tile", "with"],
+	"pick": ["choice"],
+}
+
 var sim: GameSim
 var log := PlayLog.new()
 ## Actions the sim turned down on replay (short of gold, tile taken, ...).
@@ -27,7 +36,27 @@ static func load_file(path: String) -> Dictionary:
 			"%s is format %s, this build reads %d" % [path, data.get("format"), PlayLog.FORMAT]
 		)
 		return {}
+	if not _well_formed(data):
+		printerr("%s is damaged: its setup or an action is incomplete" % path)
+		return {}
 	return data
+
+
+static func _well_formed(data: Dictionary) -> bool:
+	var setup: Variant = data.setup
+	var keys := ["map", "rules", "difficulty", "infinite", "twists", "twist_seed", "picks"]
+	if not setup is Dictionary or not setup.has_all(keys) or not setup.picks is Array:
+		return false
+	if not MapDefs.has(StringName(setup.map)) or not StringName(setup.rules) in GameSim.RULES:
+		return false
+	if not data.actions is Array:
+		return false
+	for a: Variant in data.actions:
+		if not a is Dictionary or not a.has_all(["step", "do"]):
+			return false
+		if not a.has_all(NEEDS.get(a.do, [])):
+			return false
+	return true
 
 
 func _init(record: Dictionary) -> void:
@@ -49,6 +78,23 @@ func _init(record: Dictionary) -> void:
 
 ## Takes the actions due before this step, then steps the sim.
 func step() -> void:
+	_take_due()
+	sim.step()
+	log.observe(sim, sim.drain_events())
+
+
+## Plays to the step the record ends on, or to the end of the game, then
+## takes the actions of that last step: a player can build while paused and
+## quit, or sell on the end screen.
+func run() -> void:
+	var steps := int(_record.get("result", {}).get("steps", 0))
+	while not over() and PlayLog.step_of(sim) < steps:
+		step()
+	if PlayLog.step_of(sim) == steps:
+		_take_due()
+
+
+func _take_due() -> void:
 	var now := PlayLog.step_of(sim)
 	var actions: Array = _record.actions
 	while _next < actions.size() and int(actions[_next].step) <= now:
@@ -56,15 +102,6 @@ func step() -> void:
 			refused.append(actions[_next])
 		_next += 1
 		log.observe(sim, sim.drain_events())
-	sim.step()
-	log.observe(sim, sim.drain_events())
-
-
-## Plays to the step the record ends on, or to the end of the game.
-func run() -> void:
-	var steps := int(_record.get("result", {}).get("steps", 0))
-	while not over() and PlayLog.step_of(sim) < steps:
-		step()
 
 
 func over() -> bool:

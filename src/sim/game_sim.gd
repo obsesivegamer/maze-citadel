@@ -546,7 +546,8 @@ func _leak(c: SimCreep) -> void:
 	c.leaked = true
 	c.pos = grid.spawn_point
 	c.prev_pos = c.pos
-	events.append({"type": &"leaked", "id": c.id, "cost": cost, "lives": lives})
+	var e := {"type": &"leaked", "id": c.id, "cost": cost, "lives": lives, "wave": c.wave}
+	events.append(e.merged({"creep": c.type}))
 	InterestLock.on_leak(self)
 	if lives == 0:
 		phase = Phase.DEFEAT
@@ -574,6 +575,7 @@ func kill(c: SimCreep, by: SimTower = null) -> void:
 				"bounty": paid,
 				"pos": c.pos,
 				"creep": c.type,
+				"wave": c.wave,
 				"boss": c.boss,
 			}
 		)

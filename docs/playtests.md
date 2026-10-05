@@ -30,10 +30,10 @@ The file is JSON with four parts.
 |---|---|
 | `setup` | Map, rule set, difficulty, Infinite and Twists modes, the Twists seed, and any `--picks` given on the command line |
 | `actions` | Every build, upgrade, sale, fusion, element pick and early wave call, in order. Each has the sim step it happened on (`step`, 30 per second of game time), the game time `t`, the wave at that moment and the gold left afterwards. Moves the game refused aren't listed |
-| `waves` | One row per wave started: the time, gold, lives, tower count and gold invested when it began; `walked`, how far along the route its furthest creep got (0 at the portal, 1 at the gate); `died_at`, the average of that for the creeps that died; kills, leaks and lives lost; and when the wave was cleared. A Guardian's leaks count toward the wave it walked in, but it isn't part of `walked` |
+| `waves` | One row per wave started: the time, gold, lives, tower count and gold invested when it began; `earned_before`, the gold earned in the game up to then; `walked`, how far along the route its furthest creep got (0 at the portal, 1 at the gate); `deaths`, its creeps killed before reaching the gate, and `died_at`, the average of how far those had walked; `leaks`, one each time a creep reached the gate, and `lives_lost`; and `cleared_t`, when the field next stood empty, which for a wave called early or with a Guardian still walking is later than its own last creep. A creep that leaks walks again and is counted as a leak, not a death, when it is finally killed. A Guardian's leaks count toward the wave it walked in, but it is no part of `walked` or `deaths` |
 | `result` | How it ended (`victory`, `defeat` or `unfinished`), the step and time, wave, lives, gold, kills, score, and every tower left on the board |
 
-`walked` and `died_at` are the numbers that show whether creeps die at the portal. They are measured the way the balance tool measures its "Walked" columns.
+`walked` and `died_at` are the numbers that show whether creeps die at the portal. Both are measured against the whole route from the portal as it stood when the creep was first seen, so a Felhound a Dreadlord summons halfway along starts at one half.
 
 ## Replaying a record
 
@@ -45,6 +45,6 @@ godot --headless --path . --script res://tests/bots/replay.gd -- --file=path/to/
 
 Give several files separated by commas to replay them in turn. Under the numbers the game was recorded with, the tool ends with "Same game as recorded." Under changed numbers it shows how the same player's choices would have fared: the first place the two games part, and how many of the recorded moves the game turned down (for example an upgrade the player could no longer afford). `--difficulty=very_hard` replays the same moves on another difficulty.
 
-A replay stops at the step the record ends on. A record made by a different version of the game can part from its replay for the plain reason that the numbers changed in between; the `game_version` in the file says which version made it.
+A replay stops at the step the record ends on. Records are expected to replay the same on another operating system; if one ever parts from its replay under unchanged numbers, the tool names the first wave where it does. A record made by a different version of the game can part from its replay for the plain reason that the numbers changed in between; the `game_version` in the file says which version made it.
 
 The unit tests in `tests/unit/test_play_log.gd` hold the promise: a bot's game under each rule set, and a player's game sent through the same calls the HUD makes, replay to the same waves, the same end and the same board.

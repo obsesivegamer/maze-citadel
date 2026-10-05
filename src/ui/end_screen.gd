@@ -101,7 +101,9 @@ func show_result(won: bool, best_before: int) -> void:
 		_best.text = "Best wave: %d" % Save.best_wave(mode)
 		_best.add_theme_color_override("font_color", UiTheme.GOLD)
 	var recorded := _game.save_play_log() != ""
-	_record.text = "This game's record is saved (Settings opens the folder)" if recorded else ""
+	_record.text = (
+		"This game's record is saved (Settings → Playtest shows the folder)" if recorded else ""
+	)
 	_record.visible = recorded
 	visible = true
 	modulate.a = 0.0

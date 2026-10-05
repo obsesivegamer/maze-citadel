@@ -212,3 +212,90 @@ func _restore() -> void:
 	Save.path = Save.PATH
 	Save._cfg = null
 	PlayLog.dir = PlayLog.DIR
+
+
+## A player can build while paused and quit, or sell on the end screen: those
+## actions fall on the record's last step.
+func test_actions_on_the_last_step_are_replayed() -> void:
+	var sim := GameSim.new()
+	var play := PlayLog.new()
+	for i in 60:
+		sim.step()
+		play.observe(sim, sim.drain_events())
+	sim.build(Vector2i(4, 6), &"archer")
+	play.observe(sim, sim.drain_events())
+	var record := _through_json(play.to_dict(sim))
+	var replay := Replayer.new(record)
+	replay.run()
+	check_eq(replay.difference(), "", "replay")
+	check_eq(_through_json(replay.result()).result, record.result, "the tower is on the board")
+
+
+## Roots beside the portal: a creep that leaks is sent back there and can die
+## before the step is over, when the sim has already let go of it.
+func test_a_creep_that_leaks_and_dies_on_one_step_is_a_leak() -> void:
+	var sim := GameSim.new()
+	var play := PlayLog.new()
+	sim.gold = 1000
+	sim.build(Vector2i(8, 0), &"roots")
+	sim.start_next_wave()
+	sim._spawn_queue.clear()
+	var c := sim.spawn_creep(&"grunt", &"", 1, sim.grid.gate_point - Vector2(0, 0.06))
+	c.hp = 0.001
+	for i in 90:
+		sim.step()
+		play.observe(sim, sim.drain_events())
+	var row: Dictionary = play.to_dict(sim).waves[0]
+	check_eq([row.leaks, row.lives_lost], [1, 1], "the leak is counted")
+	check_eq(row.deaths, 0, "and its death on a later walk is no kill before the gate")
+	check_eq(row.died_at, null, "so nothing died anywhere")
+	check_eq(sim.creeps.size(), 0, "the creep did die")
+
+
+func test_a_creep_killed_as_it_enters_died_at_the_portal() -> void:
+	var sim := GameSim.new()
+	var play := PlayLog.new()
+	sim.start_next_wave()
+	sim._spawn_queue.clear()
+	var c := sim.spawn_creep(&"grunt", &"", 1, sim.grid.spawn_point)
+	sim.kill(c)
+	sim.step()
+	play.observe(sim, sim.drain_events())
+	var row: Dictionary = play.to_dict(sim).waves[0]
+	check_eq(row.deaths, 1, "counted though never seen walking")
+	check_near(row.died_at, 0.0, 1e-4, "at the portal")
+
+
+func test_quitting_before_wave_one_keeps_the_record() -> void:
+	PlayLog.dir = "user://test_playtests"
+	Save.path = "user://test_play_log.cfg"
+	Save._cfg = ConfigFile.new()
+	Game._carry = {"rules": &"eletd"}
+	var game := Game.new()
+	game.play_log = PlayLog.new()
+	game.build_choice = &"archer"
+	game.build_at(Vector2i(4, 6))
+	var path := game.play_log.file_path(game.sim)
+	check(not FileAccess.file_exists(path), "nothing written before a wave or a quit")
+	game._notification(Node.NOTIFICATION_WM_CLOSE_REQUEST)
+	check_eq(Replayer.load_file(path).get("actions", []).size(), 1, "the quit wrote the build")
+	check(game.set_mode(&"hard", false), "the difficulty changes before wave 1")
+	game._notification(Node.NOTIFICATION_EXIT_TREE)
+	var renamed := game.play_log.file_path(game.sim)
+	check(renamed != path and FileAccess.file_exists(renamed), "saved under the new difficulty")
+	check(not FileAccess.file_exists(path), "and the old file is gone, not left as a second game")
+	DirAccess.remove_absolute(renamed)
+	game.free()
+	_restore()
+
+
+func test_a_damaged_record_is_turned_down() -> void:
+	var record := _bot_game(&"eletd", &"normal", 1)
+	check(Replayer._well_formed(record), "a real record")
+	var no_tile: Dictionary = record.duplicate(true)
+	var builds: Array = no_tile.actions.filter(func(a: Dictionary) -> bool: return a.do == "build")
+	builds[0].erase("tile")
+	check(not Replayer._well_formed(no_tile), "an action without its tile")
+	var no_map: Dictionary = record.duplicate(true)
+	no_map.setup.map = "atlantis"
+	check(not Replayer._well_formed(no_map), "a map the game doesn't have")
