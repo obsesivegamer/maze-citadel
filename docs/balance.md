@@ -1,6 +1,6 @@
 # Balance log
 
-This is the record of how Maze Citadel's numbers were tuned. Four bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
+This is the record of how Maze Citadel's numbers were tuned. Six bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
 
 The game has two rule sets. The Element TD rules (`eletd` in the code) are the default a player gets, and every section headed "Element TD rules" tuned them. The classic rules are the game as released in 0.3.1; the sections without that heading tuned them, and they no longer change. Every change under the Element TD rules is checked against the classic game, which must still play exactly as released: the smart bot on Normal, seed 0, wins with 20 lives, 2 close calls and 12,110 gold at 34:09.
 
@@ -16,7 +16,7 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 |---|---|
 | `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic`. The rows the latest tables use are `smart:normal,smart:hard,smart:easy,smart:very_hard,archers:normal,no_air:normal,novice:normal,novice:easy` |
 | `--seeds=N` | Sets how many games each row plays |
-| `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
+| `--per-wave` | Prints how far each wave got, the unspent gold at each wave's start and the first wave without a boss that leaked |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
 | `--map=rampart` | Plays on Fallen Rampart; `--map=causeway` plays on the Winding Causeway, under the Element TD rules only |
 | `--rules=classic` | Plays the classic rule set instead of the Element TD one |
@@ -31,6 +31,8 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
+| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05)) |
+| idle | The camper's opening from the starting gold, then nothing at all |
 
 Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its decision timing, which wall tile it fills next and which counter it prefers, so one lucky or unlucky trajectory doesn't decide a target. Columns:
 
@@ -585,6 +587,31 @@ What it shows:
 - **Hard** wins all four games with 2 to 7 lives, against 2 of 4 on each mazing map, so it misses its target of 2 or 3 wins. Its lives are no higher than the Citadel's (4.2 against 4.0); the difference is that on the Causeway it loses them in the same places in every game, the bosses and the Dreadlord, without the late collapse that ends half the Hard games on the mazing maps on waves 39 and 40. A second map number for Hard alone would close the gap, but the map's two numbers are already spent on the shape of the curve, so Hard is left where it falls.
 - **Easy** keeps 18 to 20 lives, three games of four keeping all 20, half a life above its target band of 15 to 19. **Very Hard** is lost in every game, on waves 38 and 40, after the whole game has been played.
 - **The novice** does better here than on the mazing maps, as before the re-set: it loses on waves 34 to 36 on Normal and plays all 40 waves on Easy, though it loses on wave 40, where it wins on the Citadel. **The archers-only bot** loses on wave 23, earlier than on the Citadel (35) and the Rampart (28), since a row of Archers beside the road meets less of each wave than a maze does. **The ground-only bot** loses on wave 5, the first Harpies, on every map.
+
+## Element TD rules: two human yardsticks (2026-10-05)
+
+The 0.4.x opening was tuned against the novice bot, and no bot played it the way a person does. The owner's first recorded game ([playtests.md](playtests.md), issue #33) showed the gap. He spent his 400 starting gold on 16 Archers in two serpentine rows right under the portal, where every creep, ground or air, passes first. The creeps of waves 1 to 9 died within the first tenth of the route. The smart bot never builds there, because its plan starts with the wall on row 3. So two bots now measure what a human gets out of the early game.
+
+- **camper** replays his habits rather than his moves. It builds on the 137 tiles he built on, in the order he first built there, putting down whatever he first put on each tile. That means Archers, with a Cannon, Frost, Plague or Bard where he chose one, and an Archer instead while that tower's element isn't picked. It spends every coin as it arrives, and builds nothing but Archers before wave 1. It repeats his 36 sell-and-rebuild swaps on the waves he made them, starting with Frost on the portal wall at wave 2. It takes his five picks (Aqua, Dark, Interest, Interest, Flame) as they come and leaves the other three unspent. It upgrades nothing before wave 21, and after that it upgrades Cannons, Bards and Archers with all its gold. If the top of the board is reserved, it moves his whole pattern down so that his first row lands on the first row free of reserved tiles. Any tile that is still reserved or refused, it skips.
+- **idle** builds the camper's opening from the starting gold and never acts again: no picks, no upgrades, no more towers. It shows how long a wave-1 build left alone holds.
+
+Off the Citadel both bots put Archers along the other bots' maze plan. Their seeds vary only the timing of their decisions, so the idle bot plays the same game on every seed. The camper matches his game closely through wave 20. After that it drifts, because he stopped building and banked over 3,000 gold, while the camper keeps spending. Read it for the first half of the game.
+
+Measured on 0.4.1's numbers, 2 seeds each, on the Citadel:
+
+| Bot | Mode | Walked %, waves 1–10 | First leak | First non-boss leak | Result |
+|---|---|---|---|---|---|
+| camper | normal | 2, 5, 4, 2, 3, 4, 9, 4, 7, 56 | w20 (Ogre, 2 lives) | w31 | lost on w34 and w36 |
+| camper | very_hard | 2, 5, 4, 2, 3, 4, 9, 4, 7, 100 | w10 (2 lives) | w25 | lost on w30 and w28 |
+| idle | normal | 2, 5, 2, 2, 1, 5, 28, 5, 12, 100 | w10 (10 lives) | w16 | lost on w18 |
+| idle | very_hard | 2, 5, 2, 2, 1, 5, 30, 5, 14, 100 | w10 (10 lives) | w16 | lost on w16 |
+
+His own game walked 2, 5, 7, 2, 3, 4, 9, 4, 7 and 52% on waves 1 to 10 and was lost on wave 36, so the camper stands in for him. Both seeds of each row agree on waves 1 to 10. What the table says about the early game:
+
+- Against the camper, no wave before the wave-10 boss gets past the first tenth of the route. Sixteen level-1 Archers left alone let wave 7 walk under a third of it, and hold every ordinary wave up to wave 15.
+- Very Hard plays the same as Normal for the first nine waves. It only shows from the wave-10 boss on.
+
+`--only=camper:normal,idle:very_hard --per-wave` runs them.
 
 ## Latest run (2026-10-02)
 
