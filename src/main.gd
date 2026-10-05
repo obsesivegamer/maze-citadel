@@ -15,8 +15,8 @@ extends Node3D
 ##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --select=<x,y|tower id>                    select a tower (the first of that kind)
-##   --open=pick|guide|elements                 open the pick panel (eletd), the Field Guide
-##                                              or its Elements and picks page (eletd)
+##   --open=pick|guide|elements|settings        open the pick panel (eletd), the Field Guide,
+##                                              its Elements and picks page (eletd) or Settings
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit

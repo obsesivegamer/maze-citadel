@@ -24,7 +24,7 @@ That split pays for itself in three ways:
 | Sim | `src/sim/` | Every rule of the game. Plain `RefCounted` objects on a fixed 30 Hz step, with no nodes and no rendering. It reports through `GameSim.events` and is tested without a window. |
 | Game | `src/game/game.gd` | Runs one match. It owns a single `GameSim`, steps it at the game speed times 30 Hz, works out how far the current frame sits between two steps, and emits `sim_event(e)` for each event. It also holds the public API for everything a player can do. |
 | Presentation | `src/world`, `src/camera`, `src/units`, `src/fx`, `src/ui`, `src/audio` | What you see and hear. Each subsystem is one root node with a `setup(game: Game)` method. It reads sim state, listens to `game.sim_event`, and calls only the Game API or its own children. |
-| Bots | `src/bots/` | `AutoplayBot` plays a `GameSim` the way a player would. Under the Element TD rules its smart strategy hands over to `RouteLiner`, which prices every build, upgrade, fusion and element pick by the damage it adds to the creeps in the wave preview. The balance runs and the `--autoplay` option use them. |
+| Bots | `src/bots/` | `AutoplayBot` plays a `GameSim` the way a player would. Under the Element TD rules its smart strategy hands over to `RouteLiner`, which prices every build, upgrade, fusion and element pick by the damage it adds to the creeps in the wave preview. The balance runs and the `--autoplay` option use them. `Replayer` plays a recorded game (`PlayLog`, in `src/core/`) again from its actions. |
 | Core | `src/core/` | Shared helpers: coordinates, quality presets, the save file, command-line options, key bindings, and the benchmark and screenshot tools. |
 
 Tests are in `tests/`, and the scripts for checking, building and measuring are in `tools/`.
@@ -70,6 +70,6 @@ Godot extracts the textures embedded in a model and saves them next to it as `<m
 
 `tools/check.sh` is the one command to run before every commit. It imports the project, checks the asset licenses, runs `gdlint` and `gdformat`, runs the unit tests, and plays short games with no window: the Citadel and the Rampart under both rule sets, and the Causeway under the Element TD rules.
 
-The balance table comes from `godot --headless --path . --script res://tests/bots/run_balance.gd`, which plays the Element TD rules unless given `-- --rules=classic`. What the bots found is written up in [balance.md](balance.md).
+The balance table comes from `godot --headless --path . --script res://tests/bots/run_balance.gd`, which plays the Element TD rules unless given `-- --rules=classic`. What the bots found is written up in [balance.md](balance.md). `tests/bots/replay.gd` replays the records the game writes of each player's game ([playtests.md](playtests.md)).
 
 The tools that open a game window, `capture.sh` and `bench.sh`, refuse to run unless `ALLOW_WINDOW=1` is set. They take over the screen, so they only run when someone has set time aside for them.

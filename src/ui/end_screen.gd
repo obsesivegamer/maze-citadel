@@ -2,7 +2,8 @@ class_name EndScreen
 extends Control
 ## Victory and defeat screens (GDD §3): the rule set and mode, wave reached,
 ## kills, time, gold earned, lives, the elements reached (eletd), score and
-## best wave for the mode, then Play again.
+## best wave for the mode, whether the game's record was saved (PlayLog), then
+## Play again.
 
 const PANEL_WIDTH := 420.0
 const DIM := Color(0.02, 0.015, 0.01, 0.6)
@@ -14,6 +15,7 @@ var _title := UiKit.label("", &"Title", UiTheme.SIZE_HUGE)
 var _mode := UiKit.label("", &"Caption", UiTheme.SIZE_SMALL)
 var _grid := GridContainer.new()
 var _best := UiKit.label("", &"Heading", UiTheme.SIZE_BODY)
+var _record := UiKit.label("", &"Dim", UiTheme.SIZE_SMALL)
 
 
 func setup(game: Game) -> void:
@@ -47,6 +49,8 @@ func setup(game: Game) -> void:
 	box.add_child(_grid)
 	_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_best)
+	_record.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_record)
 	var again := UiKit.text_button(game, "Play again")
 	again.add_theme_font_override("font", UiTheme.heading(700))
 	again.add_theme_font_size_override("font_size", UiTheme.SIZE_LARGE)
@@ -96,6 +100,9 @@ func show_result(won: bool, best_before: int) -> void:
 	else:
 		_best.text = "Best wave: %d" % Save.best_wave(mode)
 		_best.add_theme_color_override("font_color", UiTheme.GOLD)
+	var recorded := _game.save_play_log() != ""
+	_record.text = "This game's record is saved (Settings opens the folder)" if recorded else ""
+	_record.visible = recorded
 	visible = true
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, FADE)

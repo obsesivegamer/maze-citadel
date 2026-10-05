@@ -51,6 +51,9 @@ var autoplay: Object
 ## headless tools keep the one-frame setup.
 var async_boot := false
 var is_booted := false
+## This match's record (docs/playtests.md); null until boot, and for the
+## warm-up stage, which never boots.
+var play_log: PlayLog
 
 var world: World
 var camera: CameraRig
@@ -62,6 +65,7 @@ var hud: Hud
 var audio: AudioDirector
 
 var _acc := 0.0
+var _cli_picks: Array[String] = []
 var _loading: LoadingScreen
 
 
@@ -116,6 +120,7 @@ func _apply_cli_picks() -> void:
 		push_warning("--picks needs --rules=eletd and elements or interest; ignored")
 		return
 	sim.elements.apply_picks(picks)
+	_cli_picks.assign(picks.map(func(p: StringName) -> String: return String(p)))
 
 
 ## The presentation's statics follow this match. They are set here, not in
@@ -209,6 +214,8 @@ func _frames(n: int) -> void:
 
 
 func _finish_boot() -> void:
+	play_log = PlayLog.new()
+	play_log.picks = _cli_picks
 	_flush()
 	is_booted = true
 	booted.emit()
@@ -243,10 +250,38 @@ func _process(delta: float) -> void:
 
 
 func _flush() -> void:
-	for e in sim.drain_events():
+	var events := sim.drain_events()
+	var keep := false
+	if _recording():
+		play_log.observe(sim, events)
+	for e in events:
 		if e.type == &"defeat" or e.type == &"victory":
 			Save.record(Save.sim_key(sim), sim.wave, sim.score())
+		keep = keep or e.type in PlayLog.SAVE_ON
 		sim_event.emit(e)
+	if keep:
+		save_play_log()
+
+
+## A bot's game is not recorded: it acts on the sim directly, and the balance
+## tool already measures it.
+func _recording() -> bool:
+	return play_log != null and autoplay == null
+
+
+## Writes the match's record so far, unless the player turned the files off
+## (Settings); returns the file's path, or "".
+func save_play_log() -> String:
+	if not _recording() or not Save.setting(PlayLog.SETTING, true):
+		return ""
+	return play_log.save(sim)
+
+
+## A game left early (quit, Play again, a map or rules switch) keeps its
+## record up to that moment.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_EXIT_TREE:
+		save_play_log()
 
 
 ## Plays instantly (no rendering) until `wave` has started plus `into`
@@ -337,7 +372,10 @@ func pick_element(choice: StringName) -> bool:
 
 
 func call_next_wave() -> void:
+	var before := sim.wave
 	sim.start_next_wave()
+	if sim.wave > before and _recording():
+		play_log.called_wave(sim)
 	_flush()
 
 
