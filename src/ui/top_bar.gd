@@ -1,7 +1,8 @@
 class_name HudTopBar
 extends Control
 ## Top of the HUD (GDD §11). Left: gold, lives, interest ring and next payout,
-## and under eletd the element levels with the Pick chip (ElementStrip).
+## and under eletd "Interest maxed" by the gold once more earns nothing and
+## the element levels with the Pick chip (ElementStrip).
 ## Centre: wave n/40 and the next-wave chip with its countdown and a call
 ## button. Right: mode chip, speed, pause, camera presets, boss tracking, the
 ## Field Guide and settings. refresh() runs every frame but only touches a node when the value
@@ -56,8 +57,9 @@ var _pause: Button
 var _boss: Button
 var _boss_chip := UiKit.panel(&"Chip", false)
 var _boss_text := UiKit.label("", &"", UiTheme.SIZE_SMALL)
-## eletd only: the element levels and the Pick chip.
+## eletd only: the element levels and the Pick chip, and the note by the gold.
 var _elements: ElementStrip
+var _maxed: Label
 var _shown := {}
 
 
@@ -88,6 +90,11 @@ func _build_left() -> void:
 	p.add_child(row)
 	_gold_box.add_child(UiIcon.new(&"coin", ICON_PX))
 	_gold_box.add_child(_gold)
+	if _game.sim.elements.enabled:
+		_maxed = UiKit.label("INTEREST MAXED", &"Caption", UiTheme.SIZE_TINY)
+		_maxed.add_theme_color_override("font_color", UiTheme.GOLD)
+		_maxed.visible = false
+		_gold_box.add_child(_maxed)
 	_gold_box.tooltip_text = "Gold"
 	_gold_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_gold_box)
@@ -310,6 +317,8 @@ func refresh() -> void:
 	var sim := _game.sim
 	if _changed(&"gold", sim.gold):
 		_gold.text = str(sim.gold)
+	if _maxed != null and _changed(&"maxed", ElementPicks.interest_maxed(sim)):
+		_maxed.visible = _shown[&"maxed"]
 	if _changed(&"lives", sim.lives):
 		_lives.text = str(sim.lives)
 		_lives.add_theme_color_override(
@@ -322,6 +331,9 @@ func refresh() -> void:
 	var tip_changed := _changed(&"interest_picks", sim.elements.interest_picks)
 	if tip_changed:
 		_interest_tip = _interest_text()
+		if _maxed != null:
+			var at := TowerInfo.fmt_gold(ElementPicks.interest_cap_gold(sim))
+			_gold_box.tooltip_text = "Gold. Above %s, interest earns no more." % at
 	if _changed(&"interest_locked", sim.interest_locked) or tip_changed:
 		_ring.locked = sim.interest_locked
 		_interest.tooltip_text = LOCKED_TIP if sim.interest_locked else _interest_tip

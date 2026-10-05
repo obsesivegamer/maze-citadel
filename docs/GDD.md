@@ -60,9 +60,9 @@ The first frame is the game. No title screen, no menu, no empty scene.
 |---|---|
 | Lives | 20 |
 | Leak cost | Normal creep −1, boss and Bulky creep (§9.1) −2, Guardian (§7.3) −3. Classic: normal −1, boss −2 |
-| Leak feedback | Gate flashes blue-white, war horn, lives counter pulses |
+| Leak feedback | Gate flashes blue-white, war horn, lives counter pulses. The first leak of a game also puts a line above the cards: "Leaked creeps cost lives and walk the maze again until killed. Interest stops until the board is clear." Classic: no line |
 | After a leak | Creep teleports back to the portal with its current HP and runs again. It no longer pays bounty. Each pass costs lives again. Interest stops until the field is clear (§4). |
-| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, and the elements reached. |
+| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, the elements reached, and what was left unspent ("Unspent: 3 picks · 3,453 gold") when a pick was still waiting or the gold had passed the point where interest stops growing (§4). |
 | Victory | Clear wave 40. Screen shows score and stats; gryphons circle the citadel. |
 | Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
 | Opening build phase | 45 s countdown. `N` starts wave 1 now. |
@@ -348,9 +348,9 @@ A tower's reach shows only for the hovered or selected tower (and for the ghost 
 
 ## 11. HUD
 
-- **Top bar:** element levels and the pick chip (§11.2) · gold · lives · wave n/40 with next-wave chip (icons, element, class, skull, Flying or Bulky tag; its tooltip repeats the banner's flying and composite lines) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
+- **Top bar:** element levels and the pick chip (§11.2) · gold, with "Interest maxed" beside it once more gold earns no more interest (§11.2) · lives · wave n/40 with next-wave chip (icons, element, class, skull, Flying or Bulky tag; its tooltip repeats the banner's flying and composite lines) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
 - **Setup panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
-- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock. Epic cards light up when a fusion is possible.
+- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock and, while a pick that would open it waits, reads "Pick Aqua" in place of its cost. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
@@ -371,9 +371,11 @@ The welcome card and the Field Guide are modal: no key reaches the game behind t
 
 ### 11.2 Element picks on the HUD
 
-The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, the towers that level opens, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused.
+The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, what taking it does in plain words, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. "What it does" is worked out from the board and the rules: "Unlocks Frost Spire", "Lets your 17 Frost Spires upgrade to level 2", "Summons a Guardian: kill it to gain Flame" for any pick after the first element, and "Interest: +10 gold every 15 s once you hold 1,000 gold". A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused.
 
-Locked cards are dimmed with a lock and can't be chosen ("Needs Aqua: pick an element (E)"), and a blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached. None of this appears under classic rules.
+Locked cards are dimmed with a lock and can't be chosen. Their tooltip says what opens them: "Needs Aqua: press E and take it" while a pick waits, "Needs Aqua: kill the Aqua Guardian" while its Guardian walks, otherwise "Needs Aqua: pick an element (E)". A blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached and any picks or idle gold left unspent.
+
+A granted pick adds two lines to the "wave cleared" banner: that it waits (`E`) and what a pick buys. At each wave start, while a pick waits and something can be bought with it, the line above the cards says so ("2 element picks unspent: press E"). Interest stops growing at the gold where the payout reaches its cap (1,000 gold with the starting numbers, whatever the Interest picks, since each raises the rate and the cap together). Past it, "Interest maxed" shows by the gold counter, and at a wave start, at most every third wave, the line says "Gold above 1,000 earns no more interest: build or upgrade". None of this appears under classic rules.
 
 ## 12. World life and juice (checklist)
 

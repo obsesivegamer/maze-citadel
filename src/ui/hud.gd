@@ -15,6 +15,8 @@ const ANNOUNCE_LEAD := 3.0
 const SAY_GAP := 46.0
 const SAY_HOLD := 2.2
 const SAY_FADE := 0.6
+## How long the line holds a rule it teaches (HudNotices).
+const NOTICE_HOLD := 5.0
 
 var _game: Game
 var _root := Control.new()
@@ -30,8 +32,9 @@ var _guide := FieldGuide.new()
 var _settings := SettingsPanel.new()
 var _end := EndScreen.new()
 ## eletd only: the element pick panel and a line of text above the cards
-## for refusals and Guardian leaks.
+## for refusals, Guardian leaks and the rules HudNotices teaches.
 var _picks: PickPanel
+var _notices := HudNotices.new()
 var _say_line: Label
 var _say_tween: Tween
 var _announced := 0
@@ -123,7 +126,7 @@ func _build_elements() -> void:
 
 
 ## Shows `text` above the cards for a moment, like a Warcraft III error line.
-func _say(text: String) -> void:
+func _say(text: String, hold := SAY_HOLD) -> void:
 	if _say_line == null:
 		return
 	_say_line.text = text
@@ -132,14 +135,20 @@ func _say(text: String) -> void:
 	if _say_tween != null:
 		_say_tween.kill()
 	_say_tween = _say_line.create_tween()
-	_say_tween.tween_interval(SAY_HOLD)
+	_say_tween.tween_interval(hold)
 	_say_tween.tween_property(_say_line, "modulate:a", 0.0, SAY_FADE)
 	_say_tween.tween_callback(_say_line.hide)
 
 
-## Guardians, element levels and element refusals (eletd's events).
+## Guardians, element levels, picks and element refusals (eletd's events),
+## and the rules HudNotices teaches.
 func _on_element_event(e: Dictionary) -> void:
+	var line := _notices.line_for(_game.sim, e)
+	if line != "":
+		_say(line, NOTICE_HOLD)
 	match e.type:
+		&"pick_granted":
+			_banner.cleared(e.wave, ElementPicks.granted_text(_game.sim))
 		&"guardian_spawned":
 			var detail := ElementPicks.guardian_detail(e.element, e.level)
 			_banner.notice(ElementPicks.guardian_title(e.element), detail, e.element)
@@ -186,6 +195,7 @@ func _refresh_cards() -> void:
 		else:
 			card.affordable = sim.gold >= TowerDefs.build_cost(id)
 			card.locked = sim.elements.needs(id) != ""
+			card.hint = ElementPicks.card_hint(sim, id)
 
 
 func _on_sim_event(e: Dictionary) -> void:
@@ -209,6 +219,8 @@ func _on_sim_event(e: Dictionary) -> void:
 		&"built", &"sold", &"upgraded", &"fused", &"element_gained":
 			_refresh_cards()
 			_plaque.refresh()
+		&"pick_granted", &"pick_spent", &"guardian_spawned":
+			_refresh_cards()
 
 
 func _announce(wave: int) -> void:

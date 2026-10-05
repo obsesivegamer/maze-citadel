@@ -2,9 +2,10 @@ class_name ElementPicks
 extends RefCounted
 ## Words for the element picks under the eletd rules (GDD §5.0): the top
 ## bar's element tooltips and Pick chip, the pick panel's rows, why a card or
-## an upgrade is locked, the Guardian banners, the Field Guide's page and the
+## an upgrade is locked, the Guardian banners, the reminders of picks left
+## unspent and of gold past the interest cap, the Field Guide's page and the
 ## end screen. Free of nodes so the wording is unit-tested
-## (tests/unit/test_element_picks.gd).
+## (tests/unit/test_element_picks.gd, test_ui_notices.gd).
 
 ## The key that opens the pick panel while a pick waits.
 const KEY := "E"
@@ -29,10 +30,27 @@ static func towers_of(e: StringName) -> Array[StringName]:
 	return out
 
 
-## A locked card's reason, e.g. "Needs Aqua: pick an element (E)"; "" if open.
+## A locked card's reason, e.g. "Needs Aqua: pick an element (E)", or
+## "Needs Aqua: press E and take it" while a pick waits; "" if open.
 static func locked_reason(sim: GameSim, id: StringName) -> String:
 	var why := sim.elements.needs(id)
-	return "" if why == "" else "%s: pick an element (%s)" % [why, KEY]
+	if why == "":
+		return ""
+	var e := SimElements.element_of(id)
+	if sim.elements.pending_level(e) > 0:
+		return "%s: kill the %s" % [why, guardian_title(e)]
+	if sim.elements.can_pick(e):
+		return "%s: press %s and take it" % [why, KEY]
+	return "%s: pick an element (%s)" % [why, KEY]
+
+
+## The words a locked card shows in place of its cost while a pick waits
+## that would open it, e.g. "Pick Aqua"; "" otherwise.
+static func card_hint(sim: GameSim, id: StringName) -> String:
+	var e := SimElements.element_of(id)
+	if sim.elements.needs(id) == "" or not sim.elements.can_pick(e):
+		return ""
+	return "Pick " + element_name(e)
 
 
 static func chip_text(picks: int) -> String:
@@ -43,12 +61,9 @@ static func chip_text(picks: int) -> String:
 ## "Frost Spire to level 3; two fuse into Epic Frost Wyrm".
 static func unlocks(e: StringName, to: int) -> String:
 	var names := PackedStringArray()
-	var epics := PackedStringArray()
 	for id in towers_of(e):
 		names.append(TowerInfo.full_name(id))
-		var epic: StringName = TowerDefs.FUSIONS.get(TowerDefs.TOWERS[id].family, &"")
-		if epic != &"" and not TowerInfo.full_name(epic) in epics:
-			epics.append(TowerInfo.full_name(epic))
+	var epics := _epics(e)
 	var towers := " and ".join(names)
 	if to <= 1:
 		return "Build " + towers
@@ -56,6 +71,151 @@ static func unlocks(e: StringName, to: int) -> String:
 	if to >= EletdRules.MAX_ELEMENT_LEVEL and not epics.is_empty():
 		text += "; two fuse into " + " or ".join(epics)
 	return text
+
+
+## What spending a pick on `choice` does now, in plain words: "Unlocks Frost
+## Spire", "Lets your 17 Frost Spires upgrade to level 2", or "Interest: +10
+## gold every 15 s once you hold 1,000 gold". A pick that summons adds a line
+## on the Guardian that grants it.
+static func does(sim: GameSim, choice: StringName) -> String:
+	var el := sim.elements
+	if choice == SimElements.INTEREST:
+		var rate := el.interest_rate() + EletdRules.INTEREST_PICK_RATE
+		var cap := el.interest_cap() + EletdRules.INTEREST_PICK_CAP
+		var from := maxi(
+			interest_full_at(el.interest_rate(), el.interest_cap()), interest_full_at(rate, cap)
+		)
+		return (
+			"Interest: +%d gold every %d s once you hold %s gold"
+			% [cap - el.interest_cap(), GameSim.INTEREST_PERIOD, TowerInfo.fmt_gold(from)]
+		)
+	var to := el.level(choice) + 1
+	if to > EletdRules.MAX_ELEMENT_LEVEL:
+		return "All its towers to level %d" % EletdRules.MAX_ELEMENT_LEVEL
+	var text := ""
+	if to == 1:
+		var names := PackedStringArray()
+		for id in towers_of(choice):
+			names.append(TowerInfo.full_name(id))
+		text = "Unlocks " + " and ".join(names)
+	else:
+		text = "Lets %s upgrade to level %d" % [_owned(sim, choice), to]
+		var epics := _epics(choice)
+		if to == EletdRules.MAX_ELEMENT_LEVEL and not epics.is_empty():
+			text += "; two at level %d fuse into %s" % [to, " or ".join(epics)]
+	if not el.summons():
+		return text
+	var gain := element_name(choice) if to == 1 else gained_title(choice, to)
+	return text + "\n" + _tint("Summons a Guardian: kill it to gain " + gain, UiTheme.TEXT_DIM)
+
+
+## The towers of element `e` the player has, as "your 17 Frost Spires" or
+## "your 12 Plague Cauldrons and any Shadow Obelisks"; just their names when
+## there are none.
+static func _owned(sim: GameSim, e: StringName) -> String:
+	var counts := {}
+	var any := false
+	for id in towers_of(e):
+		counts[id] = 0
+	for t: SimTower in sim.towers.values():
+		if counts.has(t.id):
+			counts[t.id] += 1
+			any = true
+	var parts := PackedStringArray()
+	for id: StringName in counts:
+		var name := TowerInfo.full_name(id)
+		var n: int = counts[id]
+		if n == 1:
+			parts.append("your " + name)
+		elif n > 1:
+			parts.append("your %d %s" % [n, _plural(name)])
+		else:
+			parts.append(("any " if any else "") + _plural(name))
+	return " and ".join(parts)
+
+
+## "Frost Spire" → "Frost Spires", "Ancient of Roots" → "Ancients of Roots".
+static func _plural(name: String) -> String:
+	return name.replace(" of ", "s of ") if name.contains(" of ") else name + "s"
+
+
+static func _epics(e: StringName) -> PackedStringArray:
+	var out := PackedStringArray()
+	for id in towers_of(e):
+		var epic: StringName = TowerDefs.FUSIONS.get(TowerDefs.TOWERS[id].family, &"")
+		if epic != &"" and not TowerInfo.full_name(epic) in out:
+			out.append(TowerInfo.full_name(epic))
+	return out
+
+
+## The least gold that draws the full payout at interest `rate` and `cap`, as
+## GameSim pays it (a share of gold, rounded down, at most the cap): gold
+## above it earns no more.
+static func interest_full_at(rate: float, cap: int) -> int:
+	var g := ceili(cap / rate)
+	while g > 0 and mini(floori((g - 1) * rate), cap) >= cap:
+		g -= 1
+	while mini(floori(g * rate), cap) < cap:
+		g += 1
+	return g
+
+
+## The gold past which interest stops growing now, with the Interest picks
+## taken.
+static func interest_cap_gold(sim: GameSim) -> int:
+	return interest_full_at(sim.elements.interest_rate(), sim.elements.interest_cap())
+
+
+## True while the gold in hand already draws the full interest payout.
+static func interest_maxed(sim: GameSim) -> bool:
+	return sim.elements.enabled and sim.gold >= interest_cap_gold(sim)
+
+
+## The nudge for gold past the interest cap, e.g. "Gold above 1,000 earns no
+## more interest: build or upgrade"; "" while it all still earns.
+static func gold_nudge(sim: GameSim) -> String:
+	var at := interest_cap_gold(sim)
+	if not sim.elements.enabled or sim.gold <= at:
+		return ""
+	return "Gold above %s earns no more interest: build or upgrade" % TowerInfo.fmt_gold(at)
+
+
+## True while a pending pick has something to buy.
+static func can_spend(sim: GameSim) -> bool:
+	for choice in CHOICES:
+		if sim.elements.can_pick(choice):
+			return true
+	return false
+
+
+## The wave-start reminder, e.g. "2 element picks unspent: press E"; "" with
+## none to spend.
+static func unspent_reminder(sim: GameSim) -> String:
+	var n := sim.elements.pending_picks()
+	if not can_spend(sim):
+		return ""
+	return "%d element pick%s unspent: press %s" % [n, "" if n == 1 else "s", KEY]
+
+
+## The cleared banner's lines when a pick is granted: that it waits, and
+## what a pick buys.
+static func granted_text(sim: GameSim) -> String:
+	var n := sim.elements.pending_picks()
+	var ready := "Element pick ready" if n == 1 else "%d element picks ready" % n
+	var buys := "A pick unlocks an element's towers, lets them upgrade a level, or raises interest"
+	return "%s: press %s\n%s" % [ready, KEY, buys]
+
+
+## The end screen's "Unspent" row, e.g. "3 picks · 3,453 gold", when picks
+## were left or the gold had passed the interest cap; "" otherwise.
+static func unspent(sim: GameSim) -> String:
+	var n := sim.elements.pending_picks()
+	if n <= 0 and sim.gold <= interest_cap_gold(sim):
+		return ""
+	return (
+		"%d pick%s%s%s gold"
+		% [n, "" if n == 1 else "s", TowerInfo.SEP, TowerInfo.fmt_gold(sim.gold)]
+	)
 
 
 ## "Strong vs Flame · Weak vs Dark", coloured.
@@ -102,8 +262,9 @@ static func coming_waves(sim: GameSim, e: StringName) -> String:
 
 
 ## One row of the pick panel for `choice` (an element or Interest): name,
-## glyph, from_to, unlocks, towers (icons), counters, waves, action, hp (the
-## Guardian's, 0 when none comes), enabled and reason (why it can't be taken).
+## glyph, from_to, unlocks (what taking it does, does()), towers (icons),
+## counters, waves, action, hp (the Guardian's, 0 when none comes), enabled
+## and reason (why it can't be taken).
 static func row(sim: GameSim, choice: StringName) -> Dictionary:
 	var el := sim.elements
 	var r := {
@@ -123,10 +284,7 @@ static func row(sim: GameSim, choice: StringName) -> Dictionary:
 		var n := el.interest_picks
 		r.name = "Interest"
 		r.glyph = &"interest"
-		r.unlocks = (
-			"+%d%% interest, +%d cap"
-			% [roundi(EletdRules.INTEREST_PICK_RATE * 100), EletdRules.INTEREST_PICK_CAP]
-		)
+		r.unlocks = does(sim, choice)
 		r.from_to = _pct_step(el.interest_rate(), n < EletdRules.INTEREST_PICKS)
 		r.counters = (
 			"Paid every %d s, up to %d gold now" % [GameSim.INTEREST_PERIOD, el.interest_cap()]
@@ -137,7 +295,7 @@ static func row(sim: GameSim, choice: StringName) -> Dictionary:
 	r.name = element_name(choice)
 	r.glyph = UiGlyphs.element(choice)
 	r.from_to = "Level %d" % level if maxed else "Level %d → %d" % [level, level + 1]
-	r.unlocks = "All its towers to level 3" if maxed else unlocks(choice, level + 1)
+	r.unlocks = does(sim, choice)
 	r.towers = towers_of(choice)
 	r.counters = counters(choice)
 	r.waves = coming_waves(sim, choice)

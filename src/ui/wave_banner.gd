@@ -4,7 +4,7 @@ extends Control
 ## the top with the wave number, creep icons and counts, element, armor class,
 ## a skull for bosses, and the wave's twist (Twists mode) and, under eletd,
 ## its flyers, composite armor and Bulky shape on lines of their own. Also
-## shows a short "wave cleared" note, and
+## shows a short "wave cleared" note (with the pick granted, under eletd), and
 ## under eletd the Guardian and element-level notices.
 
 ## Sits below the portal (fraction of screen height) so spawning creeps stay
@@ -152,17 +152,20 @@ func _unnotice() -> void:
 	_skull_r.glyph = &"skull"
 
 
-func cleared(wave: int) -> void:
+## "Wave n cleared", with `detail` under it when there is news (eletd: an
+## element pick granted), held longer then.
+func cleared(wave: int, detail := "") -> void:
 	_unnotice()
 	_title.text = "Wave %d cleared" % wave
 	_title.add_theme_color_override("font_color", UiTheme.GOOD)
 	_skull_l.visible = false
 	_skull_r.visible = false
 	_icons.visible = false
-	_detail.visible = false
+	_detail.text = "[center]%s[/center]" % detail
+	_detail.visible = detail != ""
 	_twist.visible = false
-	size = Vector2(WIDTH, HEIGHT)
-	_play(CLEARED_HOLD)
+	size = Vector2(WIDTH, HEIGHT + TWIST_HEIGHT * detail.count("\n"))
+	_play(CLEARED_HOLD if detail == "" else HOLD)
 
 
 func _play(hold: float) -> void:

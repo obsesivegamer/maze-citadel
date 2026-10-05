@@ -2,18 +2,19 @@ class_name PickPanel
 extends UiModal
 ## The element picks under the eletd rules (E, or the Pick chip on the top
 ## bar): a row per element and one for Interest, each with the level it would
-## reach, what that opens, its counters, how it fares on the coming waves and
-## a button that takes it (Take, or Summon Guardian with the Guardian's HP).
-## A row that can't be taken says why. The game keeps running behind it unless
-## it was paused already. Keys 1–7 take a row, Enter the highlighted one
-## (under the mouse, else the first open one); E or Esc closes. The wording
-## comes from ElementPicks.
+## reach, what taking it does in plain words (the towers it opens or lets
+## upgrade, the Guardian to kill, the gold Interest adds), its counters, how
+## it fares on the coming waves and a button that takes it (Take, or Summon
+## Guardian with the Guardian's HP). A row that can't be taken says why. The
+## game keeps running behind it unless it was paused already. Keys 1–7 take a
+## row, Enter the highlighted one (under the mouse, else the first open one);
+## E or Esc closes. The wording comes from ElementPicks.
 
-const PANEL_WIDTH := 1000.0
+const PANEL_WIDTH := 1100.0
 const GLYPH_PX := 30.0
 const TOWER_PX := 22.0
 const NAME_WIDTH := 112.0
-const UNLOCK_WIDTH := 250.0
+const UNLOCK_WIDTH := 340.0
 const COUNTER_WIDTH := 290.0
 const ACTION_WIDTH := 168.0
 ## A row that can't be taken.

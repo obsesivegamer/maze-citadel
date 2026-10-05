@@ -1,9 +1,9 @@
 class_name EndScreen
 extends Control
 ## Victory and defeat screens (GDD §3): the rule set and mode, wave reached,
-## kills, time, gold earned, lives, the elements reached (eletd), score and
-## best wave for the mode, whether the game's record was saved (PlayLog), then
-## Play again.
+## kills, time, gold earned, lives, the elements reached and any picks or idle
+## gold left unspent (eletd), score and best wave for the mode, whether the
+## game's record was saved (PlayLog), then Play again.
 
 const PANEL_WIDTH := 420.0
 const DIM := Color(0.02, 0.015, 0.01, 0.6)
@@ -88,6 +88,8 @@ func show_result(won: bool, best_before: int) -> void:
 	]
 	if sim.elements.enabled:
 		rows.insert(5, ["Elements", ElementPicks.reached(sim)])
+		if ElementPicks.unspent(sim) != "":
+			rows.insert(6, ["Unspent", ElementPicks.unspent(sim)])
 	for row in rows:
 		_grid.add_child(UiKit.label(row[0], &"Dim", UiTheme.SIZE_BODY))
 		var v := UiKit.label(row[1], &"Number", UiTheme.SIZE_LARGE)

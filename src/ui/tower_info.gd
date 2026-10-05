@@ -303,6 +303,16 @@ static func fmt_big(v: float) -> String:
 	return str(roundi(v))
 
 
+## Gold as written in sentences: 1000 → "1,000".
+static func fmt_gold(n: int) -> String:
+	var digits := str(absi(n))
+	var out := ""
+	while digits.length() > 3:
+		out = "," + digits.right(3) + out
+		digits = digits.left(-3)
+	return ("-" if n < 0 else "") + digits + out
+
+
 static func fmt_time(seconds: float) -> String:
 	var s := maxi(int(seconds), 0)
 	if s >= 3600:

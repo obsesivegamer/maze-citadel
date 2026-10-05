@@ -63,6 +63,13 @@ func test_locked_cards_say_what_they_need() -> void:
 	for id: StringName in NEEDS:
 		check_eq(
 			ElementPicks.locked_reason(sim, id),
+			"Needs %s: press E and take it" % NEEDS[id],
+			"%s locked while the first pick waits" % id
+		)
+	sim.elements.pick(sim, &"interest")
+	for id: StringName in NEEDS:
+		check_eq(
+			ElementPicks.locked_reason(sim, id),
 			"Needs %s: pick an element (E)" % NEEDS[id],
 			"%s locked" % id
 		)
@@ -124,8 +131,11 @@ func test_first_pick_takes_and_later_ones_summon_the_hp_shown() -> void:
 		check_eq(r.action, "Take", "the first pick takes %s" % choice)
 		check_eq(r.hp, 0.0, "no Guardian for the first pick")
 	check_eq(ElementPicks.row(sim, &"aqua").from_to, "Level 0 → 1")
-	check_eq(ElementPicks.row(sim, &"aqua").unlocks, "Build Frost Spire")
-	check_eq(ElementPicks.row(sim, &"interest").unlocks, "+1% interest, +10 cap")
+	check_eq(ElementPicks.row(sim, &"aqua").unlocks, "Unlocks Frost Spire")
+	check_eq(
+		ElementPicks.row(sim, &"interest").unlocks,
+		"Interest: +10 gold every 15 s once you hold 1,000 gold"
+	)
 	check_eq(ElementPicks.row(sim, &"interest").from_to, "2% → 3%")
 	sim.elements.pick(sim, &"dark")
 	_check_rows_match_the_rules(sim, "no pick left")
@@ -135,7 +145,13 @@ func test_first_pick_takes_and_later_ones_summon_the_hp_shown() -> void:
 	var row := ElementPicks.row(sim, &"dark")
 	check_eq(row.action, "Summon Guardian", "a later element pick summons")
 	check_eq(row.from_to, "Level 1 → 2")
-	check_eq(row.unlocks, "Plague Cauldron and Shadow Obelisk to level 2")
+	check_eq(
+		Counsel.plain(row.unlocks),
+		(
+			"Lets Plague Cauldrons and Shadow Obelisks upgrade to level 2\n"
+			+ "Summons a Guardian: kill it to gain Dark level 2"
+		)
+	)
 	check_eq(ElementPicks.row(sim, &"interest").action, "Take", "Interest never summons")
 	check(sim.elements.pick(sim, &"dark"), "dark 2 taken")
 	var g := _guardian(sim)
