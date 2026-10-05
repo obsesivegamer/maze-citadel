@@ -2,8 +2,9 @@ class_name WaveBanner
 extends Control
 ## The pre-wave announcement (GDD §3): 3 s before a wave spawns, a band across
 ## the top with the wave number, creep icons and counts, element, armor class,
-## a skull for bosses, and the wave's twist (Twists mode) and Bulky shape
-## (eletd) on lines of their own. Also shows a short "wave cleared" note, and
+## a skull for bosses, and the wave's twist (Twists mode) and, under eletd,
+## its flyers, composite armor and Bulky shape on lines of their own. Also
+## shows a short "wave cleared" note, and
 ## under eletd the Guardian and element-level notices.
 
 ## Sits below the portal (fraction of screen height) so spawning creeps stay
@@ -18,7 +19,7 @@ const CLEARED_HOLD := 1.4
 const FADE_OUT := 0.7
 const SLIDE := 14.0
 const ICON_PX := 30.0
-## Extra band height per twist or Bulky line.
+## Extra band height per twist, flying, composite or Bulky line.
 const TWIST_HEIGHT := 28.0
 ## Height and hold of a small notice (an element level gained).
 const NOTICE_HEIGHT := 80.0
@@ -95,6 +96,20 @@ func announce(wave: int, twist: StringName = &"", rules: StringName = &"classic"
 					WaveTwists.display_name(twist),
 					WaveTwists.text(twist)
 				]
+			)
+		)
+	if TowerInfo.flying(wave, rules):
+		lines.append(
+			(
+				"[color=#%s][b]FLYING[/b]: %s[/color]"
+				% [UiTheme.hex(UiTheme.CLASS_COLORS[&"air"]), TowerInfo.flying_text()]
+			)
+		)
+	if TowerInfo.composite_wave(wave, rules):
+		lines.append(
+			(
+				"[color=#%s][b]Composite armor[/b]: %s[/color]"
+				% [UiTheme.hex(UiTheme.element_color(&"composite")), TowerInfo.composite_text()]
 			)
 		)
 	if WaveDefs.bulky(wave, rules):

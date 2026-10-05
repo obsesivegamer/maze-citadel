@@ -416,6 +416,43 @@ static func bulky_text() -> String:
 	)
 
 
+## True when wave `wave` sends flyers and towers reach only the tiles around
+## them (eletd), so where a tower stands decides whether it meets them.
+static func flying(wave: int, rules: StringName) -> bool:
+	if rules != &"eletd":
+		return false
+	for g in wave_groups(wave, rules):
+		if CreepDefs.CREEPS[g[0]].get("flying", false):
+			return true
+	return false
+
+
+## What a flying wave asks of the maze, after "FLYING: ".
+static func flying_text() -> String:
+	return (
+		"ignores your maze and flies straight from portal to gate;"
+		+ " only wing-icon towers beside the flight line hit it"
+	)
+
+
+## True on an eletd wave in composite armor (EletdWaves).
+static func composite_wave(wave: int, rules: StringName) -> bool:
+	return rules == &"eletd" and &"composite" in WaveDefs.elements(wave, rules)
+
+
+## What composite armor changes, after "Composite armor: ", e.g. "elements
+## don't matter this wave: Archers and Cannons hit at full strength, element
+## towers 90%".
+static func composite_text() -> String:
+	var names := PackedStringArray()
+	for id in EletdRules.COMPOSITE_TOWERS:
+		names.append(short_name(id) + "s")
+	return (
+		"elements don't matter this wave: %s hit at full strength, element towers %s"
+		% [" and ".join(names), Counsel.pct(EletdRules.COMPOSITE_DAMAGE, false)]
+	)
+
+
 ## Context-sensitive [key, action] hints for the strip above the cards.
 static func hints(state: StringName) -> Array:
 	match state:

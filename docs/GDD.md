@@ -66,7 +66,7 @@ The first frame is the game. No title screen, no menu, no empty scene.
 | Victory | Clear wave 40. Screen shows score and stats; gryphons circle the citadel. |
 | Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
 | Opening build phase | 45 s countdown. `N` starts wave 1 now. |
-| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element, boss skull, and the composite or Bulky tag (§9.1) |
+| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element and boss skull, and a line each for flyers ("FLYING: ignores your maze and flies straight from portal to gate; only wing-icon towers beside the flight line hit it", on every wave that has them), composite armor (§6.5) and the Bulky shape (§9.1). Classic: no flying or composite line |
 | Spawn interval | 0.6 s (Wolf Riders 0.35 s; bosses enter alone after escorts). Classic: 0.9 s, Wolf Riders 0.5 s |
 | Between waves | Wave cleared → 30 s breather → next wave auto-queues. A wave counts as cleared only once any Guardians walking with it are dead too. The top bar also shows the wave after next. `N` calls the next wave early (waves may overlap). Classic: 5 s breather, no wave-after-next preview |
 | Speed | ×1 / ×2 / ×3 (`F` cycles). `Space` pauses. Building is allowed while paused. |
@@ -199,7 +199,7 @@ Every creep element has exactly one counter family. Each wave announces its elem
 
 ### 6.5 Composite armor
 
-Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor: every element deals 90% to them, so no counter pays double and none pays half. The composite Archer and Cannon still deal 100%. The top bar and the banner show a grey plate glyph, and the Field Guide says "Composite: every element does 90%". Classic has no composite armor.
+Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor: every element deals 90% to them, so no counter pays double and none pays half. The composite Archer and Cannon still deal 100%. The top bar and the banner show a grey plate glyph, the banner and the next-wave chip's tooltip add "Composite armor: elements don't matter this wave: Archers and Cannons hit at full strength, element towers 90%", and the Field Guide says "Composite: every element does 90%". Classic has no composite armor.
 
 ## 7. Towers (14)
 
@@ -348,7 +348,7 @@ A tower's reach shows only for the hovered or selected tower (and for the ghost 
 
 ## 11. HUD
 
-- **Top bar:** element levels and the pick chip (§11.2) · gold · lives · wave n/40 with next-wave chip (icons, element, class, skull, composite or Bulky tag) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
+- **Top bar:** element levels and the pick chip (§11.2) · gold · lives · wave n/40 with next-wave chip (icons, element, class, skull, Flying or Bulky tag; its tooltip repeats the banner's flying and composite lines) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
 - **Setup panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
 - **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.

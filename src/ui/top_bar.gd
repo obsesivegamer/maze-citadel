@@ -393,6 +393,10 @@ func _refresh_next(sim: GameSim) -> void:
 		)
 		if twist != &"":
 			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
+		if has_next and TowerInfo.flying(next, sim.rules):
+			tip += "\nFLYING: %s" % TowerInfo.flying_text()
+		if has_next and TowerInfo.composite_wave(next, sim.rules):
+			tip += "\nComposite armor: %s" % TowerInfo.composite_text()
 		if has_next and WaveDefs.bulky(next, sim.rules):
 			tip += "\nBulky: %s" % TowerInfo.bulky_text()
 		if has_next:

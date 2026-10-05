@@ -1,14 +1,15 @@
 class_name WaveIcons
 extends HBoxContainer
 ## One wave at a glance: creep icons with counts, element and armor-class
-## glyphs, a skull for bosses, the wave's twist (Twists mode) and a Bulky tag
-## (eletd). Used by the next-wave chip and the banner; nodes are rebuilt only
+## glyphs, a skull for bosses, the wave's twist (Twists mode) and Flying and
+## Bulky tags (eletd). Used by the next-wave chip and the banner; nodes are rebuilt only
 ## when the wave or its twist changes.
 
 var wave := -1
 var twist: StringName = &""
 var rules: StringName = &"classic"
-## Twist and Bulky tags after the glyphs; the banner gives them lines instead.
+## Twist, Flying and Bulky tags after the glyphs; the banner gives them lines
+## instead.
 var tags := true
 
 var _icon_px := 18.0
@@ -50,6 +51,8 @@ func show_wave(w: int, w_twist: StringName = &"", w_rules: StringName = &"classi
 		return
 	if twist != &"":
 		_tag(&"twist", WaveTwists.display_name(twist), UiGlyphs.TWIST)
+	if TowerInfo.flying(w, rules):
+		_tag(&"cls_air", "Flying", UiTheme.CLASS_COLORS[&"air"])
 	if WaveDefs.bulky(w, rules):
 		_tag(&"bulky", "Bulky", UiGlyphs.BULKY)
 
