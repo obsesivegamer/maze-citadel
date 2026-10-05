@@ -146,7 +146,7 @@ static func row(sim: GameSim, choice: StringName) -> Dictionary:
 		if not maxed:
 			r.hp = (
 				EletdRules.guardian_hp(level + 1, maxi(sim.wave, 1), sim.difficulty)
-				* MapDefs.hp_mult(sim.grid.map)
+				* MapDefs.hp_mult(sim.grid.map, maxi(sim.wave, 1))
 			)
 	return r
 

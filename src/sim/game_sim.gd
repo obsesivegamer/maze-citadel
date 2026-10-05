@@ -373,7 +373,7 @@ func spawn_creep(type: StringName, element: StringName, w: int, at: Vector2) -> 
 	c.prev_pos = at
 	var hp_mult := hard_hp(w) if hard else 1.0
 	if rules == &"eletd":
-		hp_mult = EletdRules.hp_mult(type, w, difficulty) * MapDefs.hp_mult(grid.map)
+		hp_mult = EletdRules.hp_mult(type, w, difficulty) * MapDefs.hp_mult(grid.map, w)
 	if w > WaveDefs.count():
 		hp_mult *= pow(INFINITE_HP_GROWTH, w - WaveDefs.count())
 	c.max_hp = CreepDefs.max_hp(type, w, hp_mult)

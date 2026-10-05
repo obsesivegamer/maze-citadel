@@ -324,7 +324,7 @@ func _guardian_foe(e: StringName) -> Dictionary:
 		"hp":
 		(
 			EletdRules.guardian_hp(lvl, maxi(sim.wave, 1), sim.difficulty)
-			* MapDefs.hp_mult(sim.grid.map)
+			* MapDefs.hp_mult(sim.grid.map, maxi(sim.wave, 1))
 		),
 		"speed": def.speed,
 		"air": false,
@@ -484,7 +484,7 @@ func _add_yardsticks(w0: int) -> void:
 
 ## The creep HP multiplier GameSim.spawn_creep applies (mode, rule set, map).
 func _hp_mult(type: StringName, w: int) -> float:
-	return EletdRules.hp_mult(type, w, sim.difficulty) * MapDefs.hp_mult(sim.grid.map)
+	return EletdRules.hp_mult(type, w, sim.difficulty) * MapDefs.hp_mult(sim.grid.map, w)
 
 
 ## Damage per second a tower deals one foe while it is in reach, counting

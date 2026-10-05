@@ -48,11 +48,13 @@ const MAPS := {
 		## Under classic ranges a tower reaches several stretches of the road from
 		## almost anywhere, so there would be no spots to choose between.
 		"rules": [&"eletd"],
-		## Creep HP multiplier (MapDefs.hp_mult). The road is 240 m long from
-		## wave 1 and no gold goes on walls, so at the rules' HP the smart bot
-		## lost lives only to the wave-40 Dreadlord (11.5 left on Normal, against
-		## 7 on the Citadel); this brings it level (docs/balance.md).
-		"hp": 1.4,
+		## Creep HP multiplier on wave 1 and wave 40 (MapDefs.hp_mult). The road
+		## is 240 m long from wave 1, while a maze reaches its length late, so
+		## the map is easiest early and hardest late. At a flat 1.4 the wave-10
+		## Ogre never got through and the Dreadlord always did, and Hard lost
+		## every game on waves 38 to 40 (docs/balance.md).
+		"hp": 1.8,
+		"hp_40": 1.15,
 		## The lane's corners, portal to gate, each pair joined along a row or a
 		## column, one tile wide. Two tiles of grass lie between most stretches;
 		## the hairpin on rows 5 and 7 leaves one, every tile of which reaches both.
@@ -91,10 +93,13 @@ static func display_name(id: StringName) -> String:
 	return MAPS[id].name
 
 
-## Creep HP on map `id` under the Element TD rules, as a multiple of what the
-## rules give (1 on the mazing maps); Guardians included.
-static func hp_mult(id: StringName) -> float:
-	return MAPS[id].get("hp", 1.0)
+## Creep HP on map `id` on wave `w` under the Element TD rules, as a multiple
+## of what the rules give (1 on the mazing maps); Guardians included. It runs
+## in a straight line from "hp" on wave 1 to "hp_40" on wave 40.
+static func hp_mult(id: StringName, w: int) -> float:
+	var from: float = MAPS[id].get("hp", 1.0)
+	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
+	return lerpf(from, MAPS[id].get("hp_40", from), f)
 
 
 ## Whether map `id` is played under rule set `rules` (GameSim.RULES).

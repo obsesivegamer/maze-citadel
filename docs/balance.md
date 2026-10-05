@@ -56,7 +56,7 @@ The default rules are tuned to be harder than classic and to make the element pi
 | The novice, with no thought for the next wave, loses on Normal but can win on Easy | Met: it loses on wave 30 on both maps on Normal; on Easy it wins on the Citadel with 14.2 lives and loses on wave 40 on the Rampart |
 | The archers-only bot fails without counters | Met: it loses on wave 35 on the Citadel and 28 on the Rampart |
 | The ground-only bot dies at the Harpy waves | Met: it loses on wave 5 on both maps |
-| The Winding Causeway plays about as hard as the Citadel on Normal | Set by its own creep HP multiplier ([the fixed-lane map](#element-td-rules-the-fixed-lane-map-2026-10-04)) |
+| The Winding Causeway plays about as hard as the Citadel on Normal | Met: 4/4 with 11.2 lives (9–14), lost in every third of the game, set by its own creep HP multiplier ([re-set after the retune](#re-set-after-the-retune)). Hard is easier there (4/4, 4.2 lives) and Easy keeps 19.5 lives |
 
 **Known gap: weak elements.** Aqua, Stone and Verdant are weak picks. Their towers, the Frost Spire, the Runesmith Forge and the Ancient of Roots, pay about a third of a Ballista's damage per gold or less, and their slows, shred and roots, which the smart bot's price model counts only as a flat bonus, don't make up the difference. So the smart bot builds every game around Dark, Flame and Light, takes Aqua at most as a late extra pick and never takes Stone or Verdant. A later release addresses it.
 
@@ -499,7 +499,7 @@ All sixteen rows of the final table were run again with 4 seeds, on top of the d
 
 ## Element TD rules: the fixed-lane map (2026-10-04)
 
-The Winding Causeway ([maps.md](maps.md#winding-causeway)) gives the creeps a fixed road of 119 tiles, about 240 m, from wave 1. Nothing can block or lengthen it, so the bots spend nothing on walls. The smart bot weighs every tile in reach of the road or the flyers' line; the other bots build beside the road in the order the creeps pass it. At the rules' HP the map played much easier than the Citadel for the smart bot: on Normal it lost lives only to the wave-40 Dreadlord, and the median wave got a fifth of the way along the road. No global number changed. The map has one number of its own instead: its creeps, Guardians included, get 1.4 times the HP the rules and the difficulty give them (`hp` in its `MapDefs` entry).
+The Winding Causeway ([maps.md](maps.md#winding-causeway)) gives the creeps a fixed road of 119 tiles, about 240 m, from wave 1. Nothing can block or lengthen it, so the bots spend nothing on walls. The smart bot weighs every tile in reach of the road or the flyers' line; the other bots build beside the road in the order the creeps pass it. At the rules' HP the map played much easier than the Citadel for the smart bot: on Normal it lost lives only to the wave-40 Dreadlord, and the median wave got a fifth of the way along the road. No global number changed. The map has HP numbers of its own instead: its creeps, Guardians included, get more HP than the rules and the difficulty give them. That was first a flat 1.4 times; after the retune above it is 1.8 times on wave 1, falling in a straight line to 1.15 times on wave 40 (`hp` and `hp_40` in its `MapDefs` entry), for the reasons [below](#re-set-after-the-retune).
 
 4 seeds per row, measured before the retune above, at its HP numbers then:
 
@@ -526,6 +526,65 @@ What it shows:
 - Hard is gentler here than on the Citadel: 4/4 wins with 4.0 lives, against 1/4 with 0.8. The single map number was set for Normal; making Hard match too would need a second one, and Hard is the other team's to retune.
 - The novice, who builds one tower every four seconds, does far better: it reaches waves 28 to 38 instead of dying on wave 6, since the road is long from the start and needs no maze. The archers-only bot does worse (wave 25 against 38), since a single row of Archers beside a 240 m road meets less of each wave than the Citadel's 500 m maze, where every tower borders two corridors.
 - By wave 8 the smart bot has filled the hairpin row, the tiles that reach two stretches of road, with Plague Cauldrons and Archers, and has only a handful of towers anywhere else.
+
+### Re-set after the retune
+
+The retune above made the elemental towers stronger and reshaped the HP curve, the bosses and the difficulties, so the flat 1.4 was measured against numbers that no longer exist. Played again on the retuned rules, it left the smart bot on Normal with 10.0 lives (2 seeds), in the Citadel's band, but in the wrong shape. The wave-10 Ogre never got through (it walked 89% of the road), so nothing was lost in the first third of the game, while the Dreadlord leaked in both games for 5 lives each. Hard lost both games, on waves 38 and 40, against 2 of 4 won on the Citadel.
+
+The cause is the map itself, not the number. On the mazing maps the maze is short early and grows to 440–510 m by the late game, so the creeps meet more towers as the game goes on. The Causeway's road is 240 m from wave 1 and never longer, so it is the easier map early and the harder one late, and no single multiplier fixes both ends: one high enough to make the wave-10 Ogre a test leaves the Dreadlord unbeatable, and one low enough for the Dreadlord makes the first twenty waves free. So the map's HP now runs in a straight line, from `hp` on wave 1 to `hp_40` on wave 40. That is the one number added, and it has a plain meaning for a player: the Causeway starts harder than the mazing maps and ends easier, because its road is long from the start.
+
+Tried on the way, 2 seeds, smart bot (lives, Normal / Hard):
+
+| Causeway HP, wave 1 → wave 40 | Normal | Hard |
+|---|---|---|
+| 1.4, flat | 2/2, 10.0; {20: 4, 30: 6, 40: 10} | 0/2, lost on wave 40 both times; {20: 4, 23: 1, 30: 8, 38: 20, 40: 8} |
+| 1.6 → 1.2 | 2/2, 16.0; {20: 4, 30: 4} | 2/2, 5.5 |
+| 1.8 → 1.25 | 2/2, 5.0; the Dreadlord took 6 and 8 lives | 2/2, 3.5 |
+| **1.8 → 1.15** | 2/2, 11.5 | 2/2, 4.0 |
+
+The Dreadlord is the knife edge: between 1.15 and 1.25 at wave 40 it goes from dying on its first pass in most games to taking 6 to 8 lives in every one.
+
+All eight rows, 4 seeds each, at 1.8 → 1.15. The Citadel and Rampart rows were run alongside and match the [retune's final table](#final-results) to the life.
+
+| Map | Bot | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Causeway | smart | easy | 4/4 | 19.5, 18–20 | 1.2 | 18% | 22% | 72% / 91% / 48% / 51% | – |
+| Causeway | smart | normal | 4/4 | 11.2, 9–14 | 4.8 | 14% | 22% | 100% / 100% / 100% / 98% | – |
+| Causeway | smart | hard | 4/4 | 4.2, 2–7 | 5.2 | 16% | 28% | 100% / 100% / 100% / 100% | – |
+| Causeway | smart | very_hard | 0/4 | 0.0, 0–0 | 5.8 | 14% | 28% | 100% / 100% / 100% / 100% | w40, w40, w40, w38 |
+| Causeway | archers | normal | 0/4 | 0.0, 0–0 | 4.0 | 1% | 6% | 100% / 100% / – / – | w23, w23, w23, w23 |
+| Causeway | no_air | normal | 0/4 | 0.0, 0–0 | 1.0 | 22% | 2% | – / – / – / – | w5, w5, w5, w5 |
+| Causeway | novice | normal | 0/4 | 0.0, 0–0 | 5.0 | 1% | 8% | 100% / 100% / 100% / – | w36, w34, w34, w36 |
+| Causeway | novice | easy | 0/4 | 0.0, 0–0 | 5.2 | 1% | 8% | 100% / 100% / 100% / 100% | w40, w40, w40, w40 |
+
+Lives lost per wave, all 4 seeds:
+
+| Row | Causeway |
+|---|---|
+| smart, easy | {20: 2} |
+| smart, normal | {10: 8, 20: 8, 23: 1, 30: 10, 40: 8} |
+| smart, hard | {10: 8, 20: 8, 30: 16, 35: 1, 38: 4, 40: 26} |
+| smart, very hard | {10: 8, 20: 8, 30: 16, 35: 8, 38: 18, 40: 22} |
+| archers | {10: 16, 20: 24, 21: 20, 23: 20} |
+| no_air | {5: 80} |
+| novice, normal | {10: 14, 20: 16, 28: 7, 30: 32, 34: 6, 36: 5} |
+| novice, easy | {10: 8, 20: 8, 30: 16, 40: 49} |
+
+Smart bot on Normal, game by game:
+
+| Seed | Lives | Picks | Elements at the end | Elemental damage | Guardians |
+|---|---|---|---|---|---|
+| 0 | 9 | `dark@0, dark@5, light@10, flame@15, dark@20, light@25, flame@30, interest@35` | Light 2, Dark 3, Flame 2 | 86% (ballista 39%, plague 38%, archer 14%, demolisher 10%) | 6 summoned, none got through |
+| 1 | 14 | `dark@0, dark@5, light@10, flame@15, dark@20, flame@25, interest@35, interest@36` | Light 1, Dark 3, Flame 2 | 83% (demolisher 37%, plague 25%, ballista 21%, archer 17%) | 5, none |
+| 2 | 10 | the same | the same | 84% (demolisher 35%, plague 28%, ballista 21%, archer 16%) | 5, none |
+| 3 | 12 | the same | the same | 89% (demolisher 38%, ballista 29%, plague 22%, archer 11%) | 5, none |
+
+What it shows:
+
+- **Normal** is won in every game with 9 to 14 lives, against 12 to 14 on the mazing maps, and lives now go in every third of the game: the Ogres of waves 10, 20 and 30 take 2 to 4 each, and the Dreadlord gets through in three games of four for 1 to 5. The one ordinary wave to cost a life is wave 23, once. The bot takes Light at wave 10 here, against 15 or 20 on the mazing maps, and its elemental towers deal 83% to 89% of all damage, against 55% to 65% there: with no walls to buy, its gold goes on Cauldrons, Ballistas and Demolishers along the road.
+- **Hard** wins all four games with 2 to 7 lives, against 2 of 4 on each mazing map, so it misses its target of 2 or 3 wins. Its lives are no higher than the Citadel's (4.2 against 4.0); the difference is that on the Causeway it loses them in the same places in every game, the bosses and the Dreadlord, without the late collapse that ends half the Hard games on the mazing maps on waves 39 and 40. A second map number for Hard alone would close the gap, but the map's two numbers are already spent on the shape of the curve, so Hard is left where it falls.
+- **Easy** keeps 18 to 20 lives, three games of four keeping all 20, half a life above its target band of 15 to 19. **Very Hard** is lost in every game, on waves 38 and 40, after the whole game has been played.
+- **The novice** does better here than on the mazing maps, as before the re-set: it loses on waves 34 to 36 on Normal and plays all 40 waves on Easy, though it loses on wave 40, where it wins on the Citadel. **The archers-only bot** loses on wave 23, earlier than on the Citadel (35) and the Rampart (28), since a row of Archers beside the road meets less of each wave than a maze does. **The ground-only bot** loses on wave 5, the first Harpies, on every map.
 
 ## Latest run (2026-10-02)
 

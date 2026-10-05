@@ -207,8 +207,8 @@ func test_offered_under_element_td_only() -> void:
 ## The map's own HP multiplier applies to every creep it sends, on top of the
 ## rules' curve and the difficulty, and to no other map.
 func test_creeps_get_the_map_hp_multiplier() -> void:
-	var k := MapDefs.hp_mult(MAP)
-	check_eq(MapDefs.hp_mult(&"citadel"), 1.0, "mazing maps keep the rules' HP")
+	var k := MapDefs.hp_mult(MAP, 10)
+	check_eq(MapDefs.hp_mult(&"citadel", 10), 1.0, "mazing maps keep the rules' HP")
 	for level: StringName in [&"normal", &"very_hard"]:
 		var lane := _eletd_sim()
 		var open := GameSim.new()
