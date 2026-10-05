@@ -6,13 +6,15 @@ extends RefCounted
 
 const PATH := "user://save.cfg"
 
+## PATH, unless a test points the save somewhere else.
+static var path := PATH
 static var _cfg: ConfigFile
 
 
 static func _file() -> ConfigFile:
 	if _cfg == null:
 		_cfg = ConfigFile.new()
-		_cfg.load(PATH)
+		_cfg.load(path)
 	return _cfg
 
 
@@ -58,7 +60,7 @@ static func record(mode: String, wave: int, score: int) -> bool:
 		f.set_value("best", mode + "_wave", wave)
 	if score > best_score(mode):
 		f.set_value("best", mode + "_score", score)
-	f.save(PATH)
+	f.save(path)
 	return improved
 
 
@@ -68,4 +70,4 @@ static func setting(key: String, fallback: Variant) -> Variant:
 
 static func set_setting(key: String, value: Variant) -> void:
 	_file().set_value("settings", key, value)
-	_file().save(PATH)
+	_file().save(path)

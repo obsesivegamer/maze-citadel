@@ -5,6 +5,14 @@ extends "res://tests/test_case.gd"
 ## scene reload. Games never enter the tree here.
 
 
+## A Game whose reload only leaves the carry for the next Game.new().
+class NoReload:
+	extends Game
+
+	func restart() -> void:
+		pass
+
+
 func test_rules_come_from_the_switch_then_the_flag_then_the_save() -> void:
 	check_eq(Game.choose_rules(&"classic", "eletd", "eletd"), &"classic", "a switch beats all")
 	check_eq(Game.choose_rules(&"eletd", "classic", "classic"), &"eletd", "either way")
@@ -59,6 +67,40 @@ func test_switch_carries_the_board_setup() -> void:
 		back.free()
 	game.free()
 	classic.free()
+
+
+## The Causeway is Element TD only, so a switch to classic plays the default
+## map, and that is the map remembered: switching back, Play again and the
+## next launch all stay on it rather than jumping back to the Causeway.
+func test_switch_off_the_causeway_remembers_the_map_played() -> void:
+	Save.path = "user://test_rules_switch.cfg"
+	Save._cfg = ConfigFile.new()
+	Save.set_setting("rules", "eletd")
+	Save.set_setting("map", "causeway")
+	var game := NoReload.new()
+	check_eq(game.sim.grid.map, &"causeway", "the saved pick")
+	check(game.change_rules(&"classic"), "switched to classic")
+	var classic := NoReload.new()
+	check_eq(classic.sim.grid.map, MapDefs.DEFAULT, "classic plays the default map")
+	check_eq(Save.setting("map", ""), String(MapDefs.DEFAULT), "and remembers it")
+	check(classic.change_rules(&"eletd"), "switched back")
+	var back := NoReload.new()
+	check_eq(back.sim.grid.map, MapDefs.DEFAULT, "back on Element TD, same map")
+	var again := NoReload.new()
+	check_eq([again.sim.rules, again.sim.grid.map], [&"eletd", MapDefs.DEFAULT], "Play again")
+	check(again.change_rules(&"classic"), "a map classic offers")
+	var stays := NoReload.new()
+	check_eq(stays.sim.grid.map, MapDefs.DEFAULT, "stays")
+	Save.set_setting("map", "rampart")
+	var rampart := NoReload.new()
+	check(rampart.change_rules(&"eletd"), "switched on the Rampart")
+	check_eq(Save.setting("map", ""), "rampart", "a map both offer is kept")
+	Game._carry = {}
+	for g in [game, classic, back, again, stays, rampart]:
+		g.free()
+	DirAccess.remove_absolute(Save.path)
+	Save.path = Save.PATH
+	Save._cfg = null
 
 
 ## Records already kept apart by rule set keep their names, so a classic best

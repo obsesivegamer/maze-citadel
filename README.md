@@ -14,7 +14,7 @@ Demons come out of a red portal at the north end of a plateau and march for the 
 
 The maze is half the game. The other half is reading what's coming. Each wave has an armor class and an element, announced before it arrives. The right towers hit it for double damage and the wrong ones barely scratch it. Every tower reaches only the tiles around it, so the road has to run right past your towers.
 
-You start with three towers that need no element, and you earn the rest. Eight element picks come over the game, one at the start and one every five waves, and each buys one level of an element. The first is yours at once. Every later pick summons a Guardian of that element, a boss that walks the maze and grants the level only when you kill it. Eight picks never cover all six elements, so every game is built around a few. Hold the gate for forty waves, the last of them led by the Dreadlord, and the citadel is saved.
+You start with three towers that need no element, and you earn the rest. Eight element picks come over the game, one at the start and one every five waves, and each buys one level of an element. The first is yours at once. Every later pick summons a Guardian of that element, a boss that walks the maze and grants the level only when you kill it. Eight picks against eighteen element levels can never take all six elements to the top, so every game is built around a few. Hold the gate for forty waves, the last of them led by the Dreadlord, and the citadel is saved.
 
 What's in it:
 

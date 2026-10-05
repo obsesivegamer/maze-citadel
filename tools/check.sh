@@ -19,6 +19,9 @@ echo "== perf matrix tools"
 python3 tools/test_perf_matrix.py 2>&1 | tail -1
 tools/perf_matrix.sh --dry-run tools/perf_configs/renderer.txt >/dev/null
 
+echo "== site tools"
+python3 tools/test_build_site.py 2>&1 | tail -1
+
 echo "== lint"
 gdlint src tests
 gdformat --check src tests

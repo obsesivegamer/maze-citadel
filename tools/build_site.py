@@ -378,9 +378,9 @@ def roster_html(data: dict) -> str:
         t.pop("min_range", None)
         if tid == "archer":
             t["multishot"] = [min(v, rules["archer_multishot"]) for v in t["multishot"]]
-        for key in DAMAGE_STATS:
-            if isinstance(t.get(key), list):
-                t[key] = [round(v * tower_power(tid, t, i + 1, rules, data["epics"]), 2) for i, v in enumerate(t[key])]
+        for stat in DAMAGE_STATS:
+            if isinstance(t.get(stat), list):
+                t[stat] = [round(v * tower_power(tid, t, i + 1, rules, data["epics"]), 2) for i, v in enumerate(t[stat])]
         composite = tid in rules["composite"]
         element = None if composite else t.get("element")
         color = ELEMENT_COLORS.get(element, NO_ELEMENT_COLOR)

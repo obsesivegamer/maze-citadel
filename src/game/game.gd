@@ -394,11 +394,14 @@ func change_map(id: StringName) -> bool:
 ## Rules change the way the map does: only before wave 1, by rebuilding the
 ## board, and remembered for the next launch. The modes carry over, and so do
 ## the map and the difficulty where the new rules offer them (else the
-## default map and Normal).
+## default map and Normal). A map given way is forgotten too, so Play again
+## and the next launch stay on the map the board shows.
 func change_rules(rules: StringName) -> bool:
 	if sim.wave > 0 or rules == sim.rules or not rules in GameSim.RULES:
 		return false
 	Save.set_setting("rules", String(rules))
+	if not MapDefs.offered(sim.grid.map, rules):
+		Save.set_setting("map", String(MapDefs.DEFAULT))
 	_carry = _carry_with({"rules": rules})
 	restart()
 	return true

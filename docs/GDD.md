@@ -8,7 +8,7 @@ Maze Citadel is a single-player maze tower defense. Creeps walk from a portal at
 
 Two counter systems sit on top of the maze. Each tower has an attack type that is strong or weak against each armor class, and an element that is strong or weak around a ring of six. Every wave announces its armor and element ahead of time, so the game rewards reading what's coming and building for it. The forty waves start with one lesson each and build up to mixed pressure, with a boss every tenth wave.
 
-Elements have to be earned. The game opens with three towers that need no element (Archer, Cannon and Bard), and eight element picks over the game unlock the rest a level at a time, never enough for all six elements. The first pick is granted at once; every later one summons a Guardian, a boss of that element that grants the level only when it dies. Four difficulties run from Easy to Very Hard.
+Elements have to be earned. The game opens with three towers that need no element (Archer, Cannon and Bard), and eight element picks over the game unlock the rest a level at a time: eight picks against eighteen element levels, never enough to take all six elements to the top. The first pick is granted at once; every later one summons a Guardian, a boss of that element that grants the level only when it dies. Four difficulties run from Easy to Very Hard.
 
 The design borrows from the Warcraft III custom maps it grew out of: the element picks, counters and looping leaks of Element TD, the fusion of Gem TD, the open mazing and anti-block rule of Wintermaul One, and the mix of cheap filler and tech towers from Poker TD and Cube Defense. It isn't a clone, and no Blizzard names, models or sounds ship with it.
 
