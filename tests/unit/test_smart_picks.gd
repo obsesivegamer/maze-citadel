@@ -93,3 +93,20 @@ func test_smart_bot_spends_its_last_picks_while_interest_is_open() -> void:
 	check(sim.towers.is_empty(), "nothing built")
 	check_eq(sim.elements.interest_picks, 2, "both went on Interest")
 	check_eq(sim.elements.pending_picks(), 0, "none held into wave 38")
+
+
+## The balance runner's --pick-order: the forced picks come first and in
+## order, the first before wave 1 as always.
+func test_forced_pick_order_comes_first() -> void:
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	var bot := Bot.new(sim, &"smart")
+	var order: Array[StringName] = [&"verdant"]
+	bot.force_picks(order)
+	var spent: Array[StringName] = []
+	while sim.wave < 1:
+		bot.step()
+		for e in sim.drain_events():
+			if e.type == &"pick_spent":
+				spent.append(e.choice)
+	check_eq(spent, order, "the first pick is the forced one")

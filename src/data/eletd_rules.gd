@@ -11,9 +11,10 @@ extends RefCounted
 ## deal composite damage the novice bot has no counters for the opening: at
 ## 0.15, and at 0.11 with HP_TO at 0.68, it lost to the Ghouls of wave 6; at
 ## HP_FROM it holds to wave 30. HP_TO keeps the smart bot near 12 lives on
-## Normal with the stronger elemental towers: at 0.6 it kept 18 on the Rampart.
+## Normal with the stronger elemental towers: at 0.6 it kept 18 on the Rampart,
+## and at 0.68, once every element's towers paid their way, 15.
 const HP_FROM := 0.1
-const HP_TO := 0.68
+const HP_TO := 0.69
 ## Armored HP share: up to ARMORED_HP_TO on wave 40 on a squared curve, so
 ## waves 3 and 7 barely change and late armor needs siege. It sits a little
 ## above HP_TO, so armored creeps are never the easier ones at the end.
@@ -67,13 +68,15 @@ const COMPOSITE_WAVES: Array[int] = [14, 27, 34]
 const COMPOSITE_DAMAGE := 0.9
 ## Bulky waves: BULKY_COUNT of the creeps, each with BULKY_HP times the HP and
 ## BULKY_BOUNTY times the bounty. A leak costs BULKY_LIVES, as a boss's does.
-## BULKY_SCALE is only how much larger they are drawn. At BULKY_HP 2.0 a Bulky
-## wave carries the HP of the wave it replaces in half the creeps. At 2.5 the
-## Bulky wave 25 cost up to 6 lives on Normal, and at 2.2 up to 10 on Very
-## Hard, ending games before wave 30.
+## BULKY_SCALE is only how much larger they are drawn. At BULKY_HP 1.75 a
+## Bulky wave carries seven eighths of the HP of the wave it replaces in half
+## the creeps. At 2.5 the Bulky wave 25 cost up to 6 lives on Normal, at 2.2
+## up to 10 on Very Hard, and at 2.0 4 to 8 on Normal in games built on Aqua
+## or Stone, which deal half to the Dark creeps of wave 25 or to the Verdant
+## ones after it.
 const BULKY_WAVES: Array[int] = [12, 18, 25, 37]
 const BULKY_COUNT := 0.5
-const BULKY_HP := 2.0
+const BULKY_HP := 1.75
 const BULKY_BOUNTY := 2
 const BULKY_LIVES := 2
 const BULKY_SCALE := 1.3
@@ -104,10 +107,23 @@ const ARCHER_POWER: Array[float] = [1.0, 0.85, 0.8]
 ## table priced them for range, which adjacent reach took away: the Ballista
 ## and Demolisher reached 12 and 15 m against the Archer's 9 and now see the
 ## same tiles. At 1.0 the smart bot's elemental purchases rarely came within
-## half of its best buy per gold, so it spent picks on Interest. The Plague
-## Cauldron keeps 1.0: its poison works on after the creep walks on, so reach
-## cost it little, and it was already the bot's first pick.
+## half of its best buy per gold, so it spent picks on Interest.
 const ELEMENTAL_POWER := 1.4
+## Elemental towers with a share of their own in place of ELEMENTAL_POWER, so
+## that every element's towers pay their way. The Plague Cauldron keeps 1.0:
+## its poison works on after the creep walks on, so reach cost it little. The
+## rest were measured on a fixed mid-game board (tests/bots/support_value.gd).
+## There the Frost Spire's slow and the Runesmith's shred added next to
+## nothing to the other towers' damage, since each tower sees a creep for
+## about 2 s anyway, so those two pay their way in damage: at 1.4 each dealt
+## about a third of a Ballista's damage per gold, and the Frost Spire let more
+## HP through than a tower that never fired. The Ancient of Roots, whose nova
+## slows and roots all it reaches, paid well beside the portal only.
+## A Shadow Obelisk's clouds hit every creep that walks through: at 1.4 it
+## stopped more HP per gold than anything but the Demolisher.
+const TOWER_POWER := {
+	&"plague": 1.0, &"frost": 4.5, &"runesmith": 4.0, &"shadow": 1.0, &"roots": 3.5
+}
 
 
 ## The difficulties rule set `rules` offers, easiest first.
@@ -157,8 +173,10 @@ static func armored_hp(w: int) -> float:
 static func tower_power(id: StringName, level: int) -> float:
 	if id == &"archer":
 		return ARCHER_POWER[clampi(level - 1, 0, ARCHER_POWER.size() - 1)]
-	if id == &"plague" or id in COMPOSITE_TOWERS or id in TowerDefs.EPICS:
+	if id in COMPOSITE_TOWERS or id in TowerDefs.EPICS:
 		return 1.0
+	if TOWER_POWER.has(id):
+		return TOWER_POWER[id]
 	return ELEMENTAL_POWER if TowerDefs.TOWERS[id].has("element") else 1.0
 
 

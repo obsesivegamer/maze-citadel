@@ -32,6 +32,8 @@ const BUILDS: Array[StringName] = [
 ## A tower splits its fire among the creeps in reach, so in a stream each
 ## creep draws at most this many spawn intervals of one tower's fire.
 const STREAM_SHARE := 1.8
+## Kinds that hit every creep in their area at once, which no stream shares.
+const AREA_KINDS: Array[StringName] = [&"nova", &"cloud"]
 ## Damage a creep must be able to take on its way, in multiples of its HP,
 ## before more of it stops paying: value grows as 1 - exp(-damage / (HP × this)).
 const MARGIN := 1.5
@@ -40,12 +42,14 @@ const MARGIN := 1.5
 const SAVE_RATIO := 0.7
 const MAX_ACTIONS := 8
 ## Per-kind extra worth on top of single-target damage: splash, pierce,
-## slows, shred, several creeps in reach.
+## slows, several creeps in reach. The Frost Spire has none: slowing the one
+## creep it hits added nothing to the other towers' damage on a mid-game board
+## (tests/bots/support_value.gd). Nor has the Runesmith Forge: its shred is
+## counted once, against the classes it pays against (SHRED_CLASSES).
 const KIND_BONUS := {
 	&"cannon": 1.5,
 	&"demolisher": 1.8,
 	&"doom_cannon": 2.0,
-	&"frost": 1.6,
 	&"frost_wyrm": 2.6,
 	&"plague": 0.8,
 	&"plague_necropolis": 1.2,
@@ -53,7 +57,6 @@ const KIND_BONUS := {
 	&"sunfire_ballista": 2.5,
 	&"roots": 2.0,
 	&"shadow": 1.8,
-	&"runesmith": 1.2,
 }
 const SHRED_CLASSES: Array[StringName] = [&"armored", &"boss"]
 ## A boss counts as this many creeps: a leak costs 2 lives, and it walks again.
@@ -80,6 +83,8 @@ const MAX_ELEMENTS := 4
 ## A purchase a pick unlocks counts toward its worth only at this share of the
 ## best value per gold open now, or the bot would never get round to it.
 const WORTH_BUYING := 0.5
+## How far a jittered seed's liking for an element moves its worth either way.
+const TASTE := 0.05
 
 var sim: GameSim
 ## The serpentine plan, or on a fixed-lane map the tiles in reach of the lane
@@ -87,6 +92,9 @@ var sim: GameSim
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many plan tiles were given up for that reason.
 var skip_reasons := {}
+## Picks to spend in this order before the bot chooses its own, each when the
+## bot would take a pick (the balance runner's --pick-order).
+var pick_order: Array[StringName] = []
 
 ## The plan's walls in build order, as [row, gap columns, ...].
 var _walls: Array = []
@@ -114,6 +122,8 @@ var _actions: Array[Dictionary] = []
 var _wishes := {}
 ## The wave whose breather last weighed the picks (0: before wave 1).
 var _picks_weighed := -1
+## Element → this player's liking for it, a factor on its worth: 1 on seed 0.
+var _taste := {}
 var _dirty := true
 
 
@@ -124,6 +134,10 @@ func _init(
 	plan = p_plan
 	_walls = walls
 	_rng = rng
+	# Players differ in taste as well as timing: two elements a few percent
+	# apart in worth go one way for one player and the other way for the next.
+	for e in Damage.WHEEL:
+		_taste[e] = 1.0 + (_rng.randf_range(-TASTE, TASTE) if _rng else 0.0)
 	var a := sim.grid.spawn_point
 	var b := sim.grid.gate_point
 	var samples := PackedVector2Array()
@@ -247,7 +261,8 @@ func _pick_now(options: Array[Dictionary]) -> StringName:
 ## climb a step can beat a new element's best tower. Interest is worth the
 ## gold it adds by then, spent at the best rate open now. Lives is what the
 ## element's Guardian is expected to cost if summoned now: a lone boss the
-## route must kill, 3 lives each time it gets through.
+## route must kill, 3 lives each time it gets through. While pick_order lasts
+## its next pick is the only option, taken when the bot would take any.
 func _pick_options() -> Array[Dictionary]:
 	var weights: Array[float] = []
 	for k in PICK_AHEAD:
@@ -273,10 +288,14 @@ func _pick_options() -> Array[Dictionary]:
 		if sim.elements.summons():
 			lives = _guardian_leaks(first_guardian + i) * EletdRules.GUARDIAN_LIVES
 		var worth := _unlocked(_wishes.get(elements[i], []), budget, open * WORTH_BUYING)
+		worth *= _taste[elements[i]]
 		out.append({"choice": elements[i], "worth": worth, "lives": lives})
 	if sim.elements.can_pick(SimElements.INTEREST):
 		var worth := _interest_gold(next - sim.wave) * open
 		out.append({"choice": SimElements.INTEREST, "worth": worth, "lives": 0})
+	var k := sim.elements.spent
+	if k < pick_order.size():
+		out.assign(out.filter(func(o: Dictionary) -> bool: return o.choice == pick_order[k]))
 	return out
 
 
@@ -547,11 +566,27 @@ func _raw(id: StringName, lvl: int, ground: int, air: int) -> PackedFloat32Array
 		return out
 	var row: PackedFloat32Array = _dps[id][lvl - 1]
 	var at := _foes.size() if TowerDefs.TOWERS[id].has("poison_dps") else 0
+	# A nova or a cloud hits every creep in it, so a stream doesn't share it out.
+	var shared: bool = not TowerDefs.TOWERS[id].kind in AREA_KINDS
 	for f in _foes.size():
 		var foe := _foes[f]
 		var contact := air if foe.air else ground
 		if contact > 0:
-			out[at + f] = row[f] * minf(contact * Grid.TILE / foe.speed, foe.cap)
+			var cap: float = foe.cap if shared else INF
+			out[at + f] = row[f] * minf(contact * Grid.TILE / foe.speed, cap)
+	return out
+
+
+## The damage one creep of each foe takes from a tower of `id` at `lvl` on
+## `tile`, on the board as last read, poison included: what the bot reckons
+## that tower adds (tests/bots/support_value.gd sets it beside the sim's).
+func added(tile: Vector2i, id: StringName, lvl: int) -> PackedFloat32Array:
+	var raw := _raw(id, lvl, _ground_contact(tile, _route), _air_contact.get(tile, 0))
+	var n := _foes.size()
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for f in n:
+		out[f] = (raw[f] + raw[n + f]) * (1.0 + _aura_at(tile))
 	return out
 
 

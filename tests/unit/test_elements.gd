@@ -325,10 +325,10 @@ func test_starters_deal_composite_damage() -> void:
 	check_near(classic.hit(dark, 10.0, archer, 0.0), 30.0, 1e-4, "classic Archer is Light")
 
 
-## Under eletd upgraded Archers hit softer and elemental towers but the Plague
-## Cauldron hit harder (EletdRules.ARCHER_POWER, ELEMENTAL_POWER); classic
-## keeps the table's damage.
-func test_tower_power_scales_hits_poison_and_clouds() -> void:
+## Under eletd upgraded Archers hit softer and elemental towers harder, five
+## of them by shares of their own (EletdRules.ARCHER_POWER, ELEMENTAL_POWER,
+## TOWER_POWER); classic keeps the table's damage.
+func test_tower_power_scales_hits_poison_clouds_and_craters() -> void:
 	var want := {
 		[&"archer", 1]: 1.0,
 		[&"archer", 2]: 0.85,
@@ -336,9 +336,9 @@ func test_tower_power_scales_hits_poison_and_clouds() -> void:
 		[&"cannon", 3]: 1.0,
 		[&"ballista", 1]: 1.4,
 		[&"demolisher", 3]: 1.4,
-		[&"frost", 2]: 1.4,
-		[&"roots", 1]: 1.4,
-		[&"runesmith", 1]: 1.4,
+		[&"frost", 2]: 4.5,
+		[&"roots", 1]: 3.5,
+		[&"runesmith", 1]: 4.0,
 		[&"sunfire_ballista", 1]: 1.0,
 	}
 	for key: Array in want:
@@ -370,7 +370,20 @@ func test_tower_power_scales_hits_poison_and_clouds() -> void:
 		sim.build(Vector2i(12, 10), &"shadow")
 		sim.step()
 		var cloud: float = sim.zones[0].dps if not sim.zones.is_empty() else -1.0
-		check_near(cloud, 18.0 * (1.4 if rules == &"eletd" else 1.0), 1e-4, "%s cloud" % rules)
+		check_near(cloud, 18.0, 1e-4, "Shadow Obelisk keeps its cloud, %s" % rules)
+		var burn := _eletd() if rules == &"eletd" else GameSim.new()
+		burn.countdown = -1.0
+		burn.gold = 1000
+		burn.elements.apply_picks([&"flame"])
+		var target := burn.spawn_creep(&"grunt", &"light", 1, Grid.center(Vector2i(12, 11)))
+		target.max_hp = 1e6
+		target.hp = target.max_hp
+		burn.build(Vector2i(12, 10), &"demolisher")
+		for _i in 60:
+			burn.step()
+		var crater: float = burn.zones[0].dps if not burn.zones.is_empty() else -1.0
+		var want_crater := 10.0 * (1.4 if rules == &"eletd" else 1.0)
+		check_near(crater, want_crater, 1e-4, "%s crater" % rules)
 
 
 func test_tower_cards_show_eletd_damage() -> void:

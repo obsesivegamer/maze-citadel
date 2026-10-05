@@ -12,6 +12,8 @@ extends SceneTree
 ## --only also takes smart:easy or smart:very_hard. --rules=classic plays the
 ## classic rules, which every classic table in docs/balance.md was measured on.
 ## --per-wave also prints the unspent gold at each wave's start.
+## --pick-order=aqua,aqua,stone makes the smart bot spend its element picks
+## in that order, each when it would take a pick, then choose as usual.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -46,11 +48,14 @@ func _initialize() -> void:
 		printerr("%s is not played under %s rules" % [MapDefs.display_name(map), rules])
 		quit(1)
 		return
-	for p in SimElements.parse_picks(Cli.get_str("picks")):
-		if rules != &"eletd" or not SimElements.is_choice(p):
-			printerr("--picks takes elements and interest, under --rules=eletd (got %s)" % p)
-			quit(1)
-			return
+	for key in ["picks", "pick-order"]:
+		for p in SimElements.parse_picks(Cli.get_str(key)):
+			if rules != &"eletd" or not SimElements.is_choice(p):
+				printerr(
+					"--%s takes elements and interest, under --rules=eletd (got %s)" % [key, p]
+				)
+				quit(1)
+				return
 	var runs: Array = RUNS
 	if only != "":
 		runs = []
@@ -91,6 +96,7 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	sim.rules = StringName(Cli.get_str("rules", Game.DEFAULT_RULES))
 	sim.elements.apply_picks(SimElements.parse_picks(Cli.get_str("picks")))
 	var bot := Bot.new(sim, strategy, bot_seed)
+	bot.force_picks(SimElements.parse_picks(Cli.get_str("pick-order")))
 	var lost_at := {}
 	var walked := {}
 	var boss_walked := {}
