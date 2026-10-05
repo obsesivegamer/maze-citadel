@@ -56,7 +56,7 @@ func setup(game: Game) -> void:
 	again.add_theme_font_size_override("font_size", UiTheme.SIZE_LARGE)
 	again.custom_minimum_size = Vector2(200, 40)
 	again.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	again.pressed.connect(game.restart)
+	again.pressed.connect(game.play_again)
 	box.add_child(again)
 
 

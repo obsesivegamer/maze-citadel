@@ -45,6 +45,7 @@ func test_switch_waits_for_wave_one() -> void:
 
 
 func test_switch_carries_the_board_setup() -> void:
+	_use_test_save()
 	var game := _game({"rules": &"eletd", "map": &"rampart"})
 	check(game.set_mode(&"very_hard", true, true), "Very Hard, Infinite, Twists")
 	Game._carry = game._carry_with({"rules": &"classic"})
@@ -67,14 +68,14 @@ func test_switch_carries_the_board_setup() -> void:
 		back.free()
 	game.free()
 	classic.free()
+	_restore_save()
 
 
 ## The Causeway is Element TD only, so a switch to classic plays the default
-## map, and that is the map remembered: switching back, Play again and the
-## next launch all stay on it rather than jumping back to the Causeway.
+## map, and that is the map remembered: switching back and the next launch
+## both stay on it rather than jumping back to the Causeway.
 func test_switch_off_the_causeway_remembers_the_map_played() -> void:
-	Save.path = "user://test_rules_switch.cfg"
-	Save._cfg = ConfigFile.new()
+	_use_test_save()
 	Save.set_setting("rules", "eletd")
 	Save.set_setting("map", "causeway")
 	var game := NoReload.new()
@@ -87,7 +88,7 @@ func test_switch_off_the_causeway_remembers_the_map_played() -> void:
 	var back := NoReload.new()
 	check_eq(back.sim.grid.map, MapDefs.DEFAULT, "back on Element TD, same map")
 	var again := NoReload.new()
-	check_eq([again.sim.rules, again.sim.grid.map], [&"eletd", MapDefs.DEFAULT], "Play again")
+	check_eq([again.sim.rules, again.sim.grid.map], [&"eletd", MapDefs.DEFAULT], "the next launch")
 	check(again.change_rules(&"classic"), "a map classic offers")
 	var stays := NoReload.new()
 	check_eq(stays.sim.grid.map, MapDefs.DEFAULT, "stays")
@@ -98,14 +99,13 @@ func test_switch_off_the_causeway_remembers_the_map_played() -> void:
 	Game._carry = {}
 	for g in [game, classic, back, again, stays, rampart]:
 		g.free()
-	DirAccess.remove_absolute(Save.path)
-	Save.path = Save.PATH
-	Save._cfg = null
+	_restore_save()
 
 
 ## Records already kept apart by rule set keep their names, so a classic best
 ## from 0.3 still counts once Element TD is the default.
 func test_record_keys_are_unchanged() -> void:
+	_use_test_save()
 	var classic := _game({"rules": &"classic", "map": MapDefs.DEFAULT})
 	check_eq(Save.sim_key(classic.sim), "normal", "classic keeps its 0.3 key")
 	classic.set_mode(&"hard", true)
@@ -116,6 +116,83 @@ func test_record_keys_are_unchanged() -> void:
 	check_eq(Save.sim_key(rampart.sim), "rampart_hard")
 	for g in [classic, eletd, rampart]:
 		g.free()
+	_restore_save()
+
+
+## Play again and the next launch keep the difficulty and the modes. A launch
+## takes a switch's carry first, then --difficulty, then the last choice, but
+## a headless or scripted run (a bot, a benchmark, a capture) never plays the
+## saved mode.
+func test_mode_comes_from_the_carry_then_the_flag_then_the_save() -> void:
+	var saved := {"difficulty": "very_hard", "infinite": true, "twists": true}
+	var none := {}
+	var hard := {"difficulty": "hard"}
+	var normal := {"difficulty": &"normal", "infinite": false, "twists": false, "twist_seed": 0}
+	check_eq(Game.choose_mode({}, none, {}), normal, "a first launch")
+	var last := Game.choose_mode({}, none, saved)
+	check_eq(last, normal.merged(saved, true).merged({"difficulty": &"very_hard"}, true), "saved")
+	check_eq(Game.choose_mode({}, hard, saved).difficulty, &"hard", "--difficulty beats the save")
+	check(Game.choose_mode({}, hard, saved).twists, "and the modes stay saved")
+	check_eq(Game.choose_mode({}, none, saved, true), normal, "a scripted run ignores the save")
+	var carry := {"rules": &"eletd", "difficulty": &"easy", "twists": true, "twist_seed": 7}
+	var carried := Game.choose_mode(carry, hard, saved)
+	check_eq(
+		[carried.difficulty, carried.infinite, carried.twists], [&"easy", false, true], "carry"
+	)
+	check_eq(carried.twist_seed, 7, "with its seed")
+	var tool := Game.choose_mode({"rules": &"classic"}, hard, saved)
+	check_eq(tool, normal.merged({"difficulty": &"hard"}, true), "a tool's carry: flag, not save")
+
+
+func test_set_mode_is_remembered_for_the_next_launch() -> void:
+	_use_test_save()
+	var game := _game({"rules": &"eletd"})
+	check(game.set_mode(&"very_hard", true, true), "Very Hard, Infinite, Twists")
+	var saved := {}
+	for key: String in Game.DEFAULT_MODE:
+		saved[key] = Save.setting(key, null)
+	check_eq(saved, {"difficulty": "very_hard", "infinite": true, "twists": true}, "saved")
+	var next := Game.choose_mode({}, {}, saved)
+	check_eq([next.difficulty, next.infinite, next.twists], [&"very_hard", true, true], "launch")
+	check_eq(Game.offered_difficulty(next.difficulty, &"classic"), &"normal", "classic: Normal")
+	check(game.set_mode(&"hard", false, false, false), "--twists sets the mode")
+	check_eq(Save.setting("difficulty", ""), "very_hard", "without saving it")
+	game.sim.wave = 1
+	check(not game.set_mode(&"easy", false), "refused once wave 1 has spawned")
+	check_eq(Save.setting("difficulty", ""), "very_hard", "and not saved")
+	game.free()
+	_restore_save()
+
+
+func test_play_again_keeps_the_board_setup() -> void:
+	_use_test_save()
+	Game._carry = {"rules": &"eletd", "map": &"rampart"}
+	var game := NoReload.new()
+	check(game.set_mode(&"very_hard", true, true), "Very Hard, Infinite, Twists")
+	game.sim.wave = 12
+	game.play_again()
+	var again := NoReload.new()
+	var setup := [again.sim.rules, again.sim.grid.map, again.sim.difficulty]
+	check_eq(setup, [&"eletd", &"rampart", &"very_hard"], "same rules, map and difficulty")
+	check(again.sim.infinite and again.sim.twists, "Infinite and Twists")
+	check(again.sim.twist_seed != 0, "a Twists schedule is dealt")
+	check_eq(again.sim.wave, 0, "from the start")
+	check(Game._carry.is_empty(), "the carry is spent")
+	for g in [game, again]:
+		g.free()
+	_restore_save()
+
+
+## set_mode and the switches save settings; tests keep theirs apart.
+func _use_test_save() -> void:
+	Save.path = "user://test_rules_switch.cfg"
+	Save._cfg = ConfigFile.new()
+
+
+func _restore_save() -> void:
+	DirAccess.remove_absolute(Save.path)
+	Save.path = Save.PATH
+	Save._cfg = null
 
 
 func _game(carry: Dictionary) -> Game:

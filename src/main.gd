@@ -51,8 +51,9 @@ func _ready() -> void:
 		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
 		game.choose_build(&"")
 	if Cli.has("twists"):
-		game.sim.twist_seed = int(Cli.get_str("seed", "0"))
-		game.set_mode(game.sim.difficulty, game.sim.infinite, true)
+		if Cli.has("seed"):
+			game.sim.twist_seed = int(Cli.get_str("seed"))
+		game.set_mode(game.sim.difficulty, game.sim.infinite, true, false)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
 	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).
