@@ -60,7 +60,8 @@ const WALL_CENTER := 9.5
 const DECIDE_EVERY := 1.0
 const UPGRADE_RESERVE := 120
 
-## Tower for the k-th wall slot, per strategy.
+## Tower for the k-th wall slot, per strategy. The camper and idle bots
+## (Camper) build Archers wherever the owner's game has nothing else.
 const PATTERNS := {
 	&"smart":
 	[
@@ -80,6 +81,8 @@ const PATTERNS := {
 	&"archers": [&"archer"],
 	&"no_air": [&"cannon", &"cannon", &"roots", &"cannon", &"shadow"],
 	&"novice": [&"archer", &"archer", &"cannon", &"archer", &"frost"],
+	&"camper": [&"archer"],
+	&"idle": [&"archer"],
 }
 ## Element picks under the eletd rules (SimElements), spent as soon as they
 ## come: the first choice in the list not yet taken as often as it is listed.
@@ -141,6 +144,8 @@ var _timer := 0.0
 var _rng: RandomNumberGenerator
 ## The smart strategy under the eletd rules (RouteLiner); null otherwise.
 var _liner: RouteLiner
+## The camper and idle strategies (Camper); null otherwise.
+var _camper: Camper
 
 
 func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
@@ -167,6 +172,10 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 	if strategy == &"smart" and sim.adjacent_reach():
 		_liner = RouteLiner.new(sim, plan, walls.get(grid.map, []), _rng)
 		skip_reasons = _liner.skip_reasons
+	if strategy in [&"camper", &"idle"]:
+		_camper = Camper.new(sim, strategy == &"idle", plan)
+		plan = _camper.plan
+		skip_reasons = _camper.skip_reasons
 
 
 ## On a fixed-lane map there is no maze to build: the plan is every tile
@@ -194,6 +203,9 @@ func step() -> void:
 func _decide() -> void:
 	if _liner:
 		_liner.decide()
+		return
+	if _camper:
+		_camper.decide()
 		return
 	_spend_picks()
 	# Fill the maze first; when short of gold for the next wall slot, upgrade.
