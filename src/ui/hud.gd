@@ -271,6 +271,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_guide.close_modal()
 		&"open_guide":
 			_guide.open()
+		&"settings":
+			_settings.toggle()
 		&"begin":
 			_tutorial.begin()
 	get_viewport().set_input_as_handled()
@@ -279,7 +281,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## What a key does with the Field Guide or the welcome card up. Both are
 ## modal: the topmost takes Esc and nothing else reaches the game behind
 ## (&"swallow"); Space and Enter also begin from the welcome. Without either,
-## only H is the HUD's (&"" passes the key on).
+## only H and F10 (Settings) are the HUD's (&"" passes the key on).
 static func modal_action(event: InputEvent, guide_open: bool, welcome_open: bool) -> StringName:
 	var guide_key := event.is_action_pressed(&"field_guide")
 	if guide_open:
@@ -291,7 +293,9 @@ static func modal_action(event: InputEvent, guide_open: bool, welcome_open: bool
 			if event.is_action_pressed(a):
 				return &"begin"
 		return &"swallow"
-	return &"open_guide" if guide_key else &""
+	if guide_key:
+		return &"open_guide"
+	return &"settings" if event.is_action_pressed(&"settings") else &""
 
 
 func _refresh_hints() -> void:

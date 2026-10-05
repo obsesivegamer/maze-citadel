@@ -101,6 +101,7 @@ It's the same game on all three systems, with the same saves. The game keeps its
 | `F` | Cycle the speed: ×1, ×2, ×3 |
 | `E` | Open the element picks, while a pick is waiting |
 | `H` | Open the Field Guide |
+| `F10` | Open or close Settings |
 | `Esc` | Deselect or cancel |
 | `W` `A` `S` `D`, arrow keys, or two-finger drag on a Mac trackpad | Move the camera |
 | Mouse wheel, pinch, or two-finger swipe on a PC touchpad | Zoom |

@@ -340,6 +340,7 @@ Infinite's replays of waves 34 and 37 keep their composite and Bulky shapes. Cla
 | `R` | Hero view (reset to the default 3/4 camera) |
 | `C` / `B` | Cycle camera presets (full board, portal close-up, gate defense) / toggle boss tracking |
 | `H` | Field Guide (§11.1) |
+| `F10` | Settings, or the gear on the top bar |
 | `E` | While an element pick waits: open the pick panel (§11.2). Otherwise it rotates the camera. |
 | Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag (Alt-drag on PC) orbit, `Q`/`E` rotate (`Q` only while a pick waits), trackpad two-finger pan and pinch zoom on Mac. Windows and Linux touchpads zoom with a two-finger swipe, scaled to the swipe's size. All damped. On Windows and Linux, `F11` or `Alt`+`Enter` toggles fullscreen. |
 

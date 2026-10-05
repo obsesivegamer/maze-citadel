@@ -93,10 +93,12 @@ func test_modals_keep_keys_from_the_game() -> void:
 	var h := _key(KEY_H)
 	var n := _key(KEY_N)
 	var one := _key(KEY_1)
+	var f10 := _key(KEY_F10)
 	check_eq(Hud.modal_action(n, false, false), &"", "no modal: keys reach the game")
+	check_eq(Hud.modal_action(f10, false, false), &"settings", "F10, as the gear's tooltip says")
 	check_eq(Hud.modal_action(esc, false, false), &"", "Esc still deselects")
 	check_eq(Hud.modal_action(h, false, false), &"open_guide")
-	for k in [space, n, one]:
+	for k in [space, n, one, f10]:
 		check_eq(Hud.modal_action(k, true, false), &"swallow", "guide blocks %s" % k.as_text())
 		check_eq(Hud.modal_action(k, true, true), &"swallow", "guide over welcome")
 	check_eq(Hud.modal_action(esc, true, false), &"close_guide")
@@ -107,6 +109,7 @@ func test_modals_keep_keys_from_the_game() -> void:
 	check_eq(Hud.modal_action(h, false, true), &"open_guide", "guide over the welcome")
 	check_eq(Hud.modal_action(n, false, true), &"swallow", "no early wave")
 	check_eq(Hud.modal_action(one, false, true), &"swallow", "no build pick")
+	check_eq(Hud.modal_action(f10, false, true), &"swallow", "no Settings over the welcome")
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:
