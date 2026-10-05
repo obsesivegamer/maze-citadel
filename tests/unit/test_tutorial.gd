@@ -99,9 +99,9 @@ func test_modals_keep_keys_from_the_game() -> void:
 	check_eq(Hud.modal_action(esc, &"", false), &"", "Esc still deselects or cancels first")
 	check_eq(Hud.modal_action(esc, &"", true), &"open_menu", "then opens the pause menu")
 	check_eq(Hud.modal_action(h, &"", true), &"open_guide")
-	for top in [&"guide", &"settings", &"menu", &"welcome", &"end"]:
+	for top in [&"guide", &"settings", &"menu", &"setup", &"welcome", &"end"]:
 		for k in [space, n, one]:
-			if top != &"welcome" or k != space:
+			if not (top in [&"welcome", &"setup"] and k == space):
 				check_eq(
 					Hud.modal_action(k, top, true), &"swallow", "%s blocks %s" % [top, k.as_text()]
 				)
@@ -117,6 +117,11 @@ func test_modals_keep_keys_from_the_game() -> void:
 		check_eq(Hud.modal_action(k, &"welcome", true), &"begin", "%s begins" % k.as_text())
 	check_eq(Hud.modal_action(h, &"welcome", true), &"open_guide", "guide over the welcome")
 	check_eq(Hud.modal_action(f10, &"welcome", true), &"swallow", "no Settings over the welcome")
+	for k in [space, enter]:
+		check_eq(Hud.modal_action(k, &"setup", true), &"start", "%s starts" % k.as_text())
+	check_eq(Hud.modal_action(esc, &"setup", true), &"swallow", "Esc can't skip the setup")
+	check_eq(Hud.modal_action(h, &"setup", true), &"open_guide", "guide over the setup")
+	check_eq(Hud.modal_action(f10, &"setup", true), &"settings", "and Settings")
 	for k in [esc, h, f10]:
 		check_eq(
 			Hud.modal_action(k, &"end", true), &"swallow", "the end screen keeps %s" % k.as_text()
@@ -126,6 +131,8 @@ func test_modals_keep_keys_from_the_game() -> void:
 	check_eq(Hud.topmost({&"menu": true, &"settings": true}), &"settings", "Settings over menu")
 	check_eq(Hud.topmost({&"menu": true, &"guide": true}), &"guide", "guide over the menu")
 	check_eq(Hud.topmost({&"menu": true, &"guide": false}), &"menu", "closing returns to it")
+	check_eq(Hud.topmost({&"setup": true, &"settings": true}), &"settings", "Settings over setup")
+	check_eq(Hud.topmost({&"setup": true, &"welcome": true}), &"setup", "setup over the welcome")
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:

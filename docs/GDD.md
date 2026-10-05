@@ -30,15 +30,15 @@ The section numbers below are stable, because comments in the code refer to them
 | Gate | Blue town gate, south edge, 2 tiles wide, unbuildable |
 | Straight path | 28 tiles (≈19 s for a Grunt) |
 | Camera at launch | 3/4 top-down, whole plateau in view, builder selected |
-| HUD at launch | Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
+| HUD at launch | The setup panel (§5) over the board, the game paused until Start. Then: Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
 
 Around the plateau: cliffs, outer walls with banners, pine forest, a river with a watermill, a village of huts, sheep fields, drifting clouds.
 
 **Maps** ([maps.md](maps.md)). The table above is **Citadel Plateau**, the default. **Fallen Rampart** keeps the same plateau but opens the portal at columns 5–6 and the gate at columns 13–14, and a broken wall crosses row 13 with three 2-tile breaches, plus two 2 × 2 boulder heaps. Ruins can't be built on. **Winding Causeway**, played under the default rules only, lays a fixed cobbled road of 119 tiles (about 240 m) from the portal to the gate; creeps never leave it, and towers go on the grass beside it (§2). It has its own creep HP multiplier, Guardians included, set so the map plays about as hard as the Citadel ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)). Under classic rules the Causeway is greyed out.
 
-The map and the rule set are picked from a panel under the gold counter (its MAP and RULES rows) during the opening build phase; switching either clears the board, keeps the mode, and is remembered. Best waves are kept per map and per rule set.
+The map and the rule set are picked on the setup panel before the clock starts (§5), or from the panel under the gold counter (its MAP and RULES rows) during the opening build phase; switching either clears the board, keeps the mode, and is remembered. Best waves are kept per map and per rule set.
 
-The first frame is the game. No title screen, no menu, no empty scene.
+The first frame is the game: the board is already drawn behind the setup panel. No title screen and no empty scene.
 
 ## 2. Pathing rules
 
@@ -65,7 +65,7 @@ The first frame is the game. No title screen, no menu, no empty scene.
 | Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, the elements reached, and what was left unspent ("Unspent: 3 picks · 3,453 gold") when a pick was still waiting or the gold had passed the point where interest stops growing (§4). Its buttons are Play again, Change setup and Quit to desktop. |
 | Victory | Clear wave 40. Screen shows score and stats, with the same buttons as defeat; gryphons circle the citadel. |
 | Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
-| Opening build phase | 45 s countdown. `N` starts wave 1 now. |
+| Opening build phase | 45 s countdown, from the moment Start is pressed on the setup panel (§5). `N` starts wave 1 now. |
 | Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element and boss skull, and a line each for flyers ("FLYING: ignores your maze and flies straight from portal to gate; only wing-icon towers beside the flight line hit it", on every wave that has them), composite armor (§6.5) and the Bulky shape (§9.1). Classic: no flying or composite line |
 | Spawn interval | 0.6 s (Wolf Riders 0.35 s; bosses enter alone after escorts). Classic: 0.9 s, Wolf Riders 0.5 s |
 | Between waves | Wave cleared → 30 s breather → next wave auto-queues. A wave counts as cleared only once any Guardians walking with it are dead too. The top bar also shows the wave after next. `N` calls the next wave early (waves may overlap). Classic: 5 s breather, no wave-after-next preview |
@@ -98,11 +98,13 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. No element picks come after wave 35's. |
 | Twists | From wave 11, most waves carry one random creep ability (below). Combines with every difficulty and Infinite. Score × 1.1. |
 
-Easy, Normal, Hard and Very Hard are the four difficulties, each with its own records; Infinite and Twists are switched on beside one. Classic offers only Normal and Hard. The difficulty and the extras are picked from chips in the top bar during the opening build phase and lock when wave 1 spawns. Play again keeps them, along with the map and rules, and the next launch starts with the last ones picked (a difficulty the rules don't offer becomes Normal). `--difficulty=hard` on the command line picks a difficulty for one launch without changing the saved one. Bots, benchmarks and captures always start on Normal with no extras unless their flags say otherwise. Each new game deals a fresh Twists schedule; only a map or rules switch before wave 1 keeps the one dealt.
+Easy, Normal, Hard and Very Hard are the four difficulties, each with its own records; Infinite and Twists are switched on beside one. Classic offers only Normal and Hard. The difficulty and the extras are picked on the setup panel before the clock starts, or from chips in the top bar during the opening build phase, and lock when wave 1 spawns. Play again keeps them, along with the map and rules, and the next launch starts with the last ones picked (a difficulty the rules don't offer becomes Normal). `--difficulty=hard` on the command line picks a difficulty for one launch without changing the saved one. Bots, benchmarks and captures always start on Normal with no extras unless their flags say otherwise. Each new game deals a fresh Twists schedule; only a map or rules switch before wave 1 keeps the one dealt.
+
+**The setup panel.** Every fresh match in a real window opens on a panel over the board, with the game paused, so the 45 s opening countdown waits until the player is ready. It holds the MAP and RULES rows, the difficulties the rules offer with a line each on what it does, Infinite and Twists with a line each, and the Tutorial chip (the same setting as Settings → Help → Tutorial). Nothing applies until **Start** (or `Space` or `Enter`), which sets the mode, remembers it with the tutorial choice, and starts the clock; with the tutorial on, the welcome card (§11.1) follows at once. A map or rules switch on the panel rebuilds the board and opens the panel again with the choices made so far. Play again and the pause menu's Restart skip it and start the clock at once on the same setup, because that setup has just been chosen; the pause menu's New game setup and the end screen's Change setup start over on the panel instead. A map switch from the panel under the gold counter, after Start, also starts at once. Headless tools, bots, captures, benchmarks, launch probes, warps and `--no-tutorial` never show it, and `--open=setup` opens it for a screenshot.
 
 ### 5.0 Rule sets
 
-The game has two rule sets, and the setup panel under the gold counter switches between them with its RULES row (Element TD | Classic) during the opening build phase. Switching rebuilds the board, keeps the map and the difficulty where the other rules offer them (otherwise the Citadel Plateau and Normal), and is remembered for the next launch. On the command line, `--rules=classic` or `--rules=eletd` picks one; without it the game plays the rules last picked, and on a first launch the Element TD rules. The two keep separate records (§15).
+The game has two rule sets, and the RULES row (Element TD | Classic) switches between them, on the setup panel before the clock starts (§5) or in the panel under the gold counter during the opening build phase. Switching rebuilds the board, keeps the map and the difficulty where the other rules offer them (otherwise the Citadel Plateau and Normal), and is remembered for the next launch. On the command line, `--rules=classic` or `--rules=eletd` picks one; without it the game plays the rules last picked, and on a first launch the Element TD rules. The two keep separate records (§15).
 
 - **Element TD** (`eletd` in the code) is the default and is what the rest of this page describes. It brings the game closer to Element TD and makes it harder: towers reach only the tiles around them, elements are earned with picks, and waves come as long, tight streams.
 - **Classic** is the game as released in 0.3.1, kept exactly as it played there. Its numbers appear on this page as short "Classic:" notes.
@@ -349,12 +351,13 @@ A tower's reach shows only for the hovered or selected tower (and for the ghost 
 ## 11. HUD
 
 - **Top bar:** element levels and the pick chip (§11.2) · gold, with "Interest maxed" beside it once more gold earns no more interest (§11.2) · lives · wave n/40 with next-wave chip (icons, element, class, skull, Flying or Bulky tag; its tooltip repeats the banner's flying and composite lines) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
-- **Setup panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
+- **Setup panel:** over the board at the start of each fresh match until Start: map, rules, difficulty, Infinite, Twists and the tutorial (§5).
+- **Map and rules panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
 - **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock and, while a pick that would open it waits, reads "Pick Aqua" in place of its cost. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
-- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (a second click confirms; the map, rules and mode stay), New game setup (for now the same as Restart), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Settings and the Field Guide open over it and `Esc` returns to it.
+- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (a second click confirms; the map, rules and mode stay), New game setup (the same, but opening on the setup panel, §5), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Settings and the Field Guide open over it and `Esc` returns to it.
 
 ### 11.1 Teaching the counters
 
@@ -362,13 +365,13 @@ In the spirit of a Warcraft III map's quest log and timed hints. All advice is c
 
 | Piece | What it does |
 |---|---|
-| Welcome card | First launch, before wave 1 (the countdown waits): the maze, the element wheel, the three armor rules, how to read the next-wave chip. Begin or Skip. |
+| Welcome card | First launch, straight after Start on the setup panel (the countdown waits): the maze, the element wheel, the three armor rules, how to read the next-wave chip. Begin or Skip. |
 | Counsel card | Waves 1–10, top right, from the moment the previous wave starts: the next wave's lesson title, one line per element ("Verdant creeps: Flame towers deal 200%, Stone towers only 50%"), one per armor class, a note on any creep appearing for the first time, and up to two tower picks (the hardest hitter on each of the wave's groups) that glow on the card bar and can be clicked to build. |
 | Tips | Once each, on the counsel card: the first counter hit (gold "!"), resisted hit (grey-blue) and IMMUNE. |
 | Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
 | Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
 
-The welcome card, the Field Guide, Settings, the pause menu and the end screen are modal: no key reaches the game behind them, `Esc` closes the topmost (`H` and `F10` close their own panels), and `Space` or `Enter` also begin from the welcome. All but the end screen pause the game while open. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
+The setup panel, the welcome card, the Field Guide, Settings, the pause menu and the end screen are modal: no key reaches the game behind them, `Esc` closes the topmost (`H` and `F10` close their own panels; the setup panel closes only on Start), and `Space` or `Enter` also start from the setup panel and begin from the welcome. All but the end screen pause the game while open. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
 
 ### 11.2 Element picks on the HUD
 

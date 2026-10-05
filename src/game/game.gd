@@ -496,9 +496,11 @@ func play_again() -> void:
 	restart()
 
 
-## A new match from the board setup (the pause menu's New game setup and the
-## end screen's Change setup). Until the setup screen exists it plays again.
+## A new match on the same setup, opening on the setup panel so it can be
+## changed before the clock starts (the pause menu's New game setup and the
+## end screen's Change setup).
 func change_setup() -> void:
+	SetupPanel.pending = true
 	play_again()
 
 

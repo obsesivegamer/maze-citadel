@@ -77,7 +77,7 @@ On a fixed-lane map every tile off the lane is a third kind of tile beside open 
 
 **On screen.** `Coords.map` is the map the presentation draws, and `Game` sets it. `Coords.portal()` and `Coords.gate()` follow it, and the portal arch, the citadel gatehouse, the ramp, the road, the blight and the camera presets all follow those two. `WorldRuins` builds the broken wall and the boulders on the ruin tiles. The plateau shader paves a fixed lane with the portal apron's cobbles and a darker kerb, from a mask with one texel per tile, the same way it darkens the ground under ruins. The path preview dots follow the route, so they follow the lane.
 
-**Picking a map.** The map picker is its own HUD panel, `src/ui/map_picker.gd`, and it stays up until wave 1. Changing the map reloads the scene with the new map and keeps the mode you chose. A map the current rules don't offer is greyed out, and its tooltip says why.
+**Picking a map.** The setup panel at the start of each match (`src/ui/setup_panel.gd`) has a MAP row, and so does the map picker, its own HUD panel in `src/ui/map_picker.gd`, which stays up until wave 1; both build their rows with `HudMapPicker.row`. Changing the map reloads the scene with the new map and keeps the mode you chose. A map the current rules don't offer is greyed out, and its tooltip says why.
 
 **Bots.** The bots build their mazes from wall rows on the mazing maps. On a fixed-lane map the archers, no_air and novice bots build on the tiles beside the lane, in the order the creeps pass them (`AutoplayBot.lane_plan()`), and the smart bot weighs every tile that reaches the lane or the flyers' line with its usual damage-per-gold model.
 

@@ -2,8 +2,8 @@ class_name Hud
 extends CanvasLayer
 ## The HUD (GDD §11): top bar, 12 tower cards with tooltips, the pre-wave
 ## banner, the plaque over the selected tower, a key-hint strip, the
-## first-run tutorial, the Field Guide, settings, the pause menu and the end
-## screen. Composes
+## first-run tutorial, the setup panel, the Field Guide, settings, the pause
+## menu and the end screen. Composes
 ## the components in src/ui/ and routes game signals to them; per-frame work
 ## is limited to values that changed.
 
@@ -19,7 +19,7 @@ const SAY_FADE := 0.6
 ## How long the line holds a rule it teaches (HudNotices).
 const NOTICE_HOLD := 5.0
 ## The modals that take the keys, topmost first (modal_action).
-const MODALS: Array[StringName] = [&"guide", &"settings", &"menu", &"welcome", &"end"]
+const MODALS: Array[StringName] = [&"guide", &"settings", &"menu", &"setup", &"welcome", &"end"]
 
 var _game: Game
 var _root := Control.new()
@@ -32,6 +32,7 @@ var _plaque := TowerPlaque.new()
 var _hints := UiKit.label("", &"Dim", UiTheme.SIZE_TINY)
 var _tutorial := Tutorial.new()
 var _menu := PauseMenu.new()
+var _setup := SetupPanel.new()
 var _guide := FieldGuide.new()
 var _settings := SettingsPanel.new()
 var _end := EndScreen.new()
@@ -78,6 +79,9 @@ func setup(game: Game) -> void:
 	_menu.setup(game)
 	_menu.settings_requested.connect(_settings.open)
 	_menu.guide_requested.connect(_guide.open)
+	_root.add_child(_setup)
+	_setup.setup(game)
+	_setup.started.connect(_on_setup_started)
 	_root.add_child(_guide)
 	_guide.setup(game)
 	_tutorial.guide_requested.connect(_guide.open)
@@ -86,14 +90,16 @@ func setup(game: Game) -> void:
 	_root.add_child(_tooltip)
 	_root.add_child(_settings)
 	_settings.setup(game)
-	_settings.setting_changed.connect(_tutorial.on_setting)
+	_settings.setting_changed.connect(_on_setting)
 	_root.add_child(_end)
 	_end.setup(game)
 	_best_before = Save.best_wave(Save.sim_key(game.sim))
 	game.sim_event.connect(_on_sim_event)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
-	if Tutorial.wanted():
+	if SetupPanel.wanted():
+		_open_setup.call_deferred()
+	elif Tutorial.wanted():
 		_start_tutorial.call_deferred()
 
 
@@ -265,8 +271,34 @@ func _start_tutorial() -> void:
 		_tutorial.start()
 
 
+## Once the loading screen is gone, so a key pressed while loading can't
+## start the match unseen.
+func _open_setup() -> void:
+	if not _game.is_booted:
+		await _game.booted
+	if _game.autoplay == null:
+		_setup.open()
+
+
+## Start on the setup panel: the welcome or the counsel follows at once if
+## the tutorial is on, so the clock doesn't run in between.
+func _on_setup_started(tutorial: bool) -> void:
+	if tutorial:
+		_start_tutorial()
+
+
+## While the setup panel is up, Settings → Tutorial moves its chip instead;
+## Start then begins the tutorial or not.
+func _on_setting(key: String, on: bool) -> void:
+	if _setup.visible:
+		_setup.on_setting(key, on)
+	else:
+		_tutorial.on_setting(key, on)
+
+
 ## Opens a panel for a screenshot (main.gd's --open): "pick" (eletd),
-## "guide", "elements" (the Field Guide's eletd page), "settings" or "menu".
+## "guide", "elements" (the Field Guide's eletd page), "settings", "menu" or
+## "setup".
 func open_panel(which: String) -> void:
 	match which:
 		"pick":
@@ -279,6 +311,8 @@ func open_panel(which: String) -> void:
 			_settings.open()
 		"menu":
 			_menu.open()
+		"setup":
+			_setup.open()
 
 
 ## The HUD gets input before the builder and camera, so keys stop here while
@@ -300,6 +334,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_menu.open()
 		&"begin":
 			_tutorial.begin()
+		&"start":
+			_setup.start()
 	get_viewport().set_input_as_handled()
 
 
@@ -309,6 +345,7 @@ func _top_modal() -> StringName:
 			&"guide": _guide.visible,
 			&"settings": _settings.visible,
 			&"menu": _menu.visible,
+			&"setup": _setup.visible,
 			&"welcome": _tutorial.welcome_visible(),
 			&"end": _end.visible,
 		}
@@ -339,7 +376,9 @@ static func topmost(shown: Dictionary) -> StringName:
 ## No key reaches the game behind a modal (&"swallow"). Esc closes the
 ## Field Guide, Settings and the pause menu (&"close"), and so do H and F10
 ## their own panels; the menu opens either over itself. Esc, Space and Enter
-## begin from the welcome, where H opens the guide. The end screen keeps
+## begin from the welcome, where H opens the guide; Space and Enter start
+## from the setup panel, which opens the guide and Settings over itself but
+## doesn't close on Esc (Start is the way on). The end screen keeps
 ## every key. With no modal up, H opens the guide, F10 Settings, and Esc
 ## the pause menu once `idle` (nothing to cancel); otherwise &"" passes the
 ## key on, so Esc deselects as before.
@@ -358,6 +397,15 @@ static func modal_action(event: InputEvent, top: StringName, idle: bool) -> Stri
 			if guide_key:
 				return &"open_guide"
 			return &"settings" if settings_key else &"swallow"
+		&"setup":
+			if guide_key:
+				return &"open_guide"
+			if settings_key:
+				return &"settings"
+			for a in [&"pause", &"ui_accept"]:
+				if event.is_action_pressed(a):
+					return &"start"
+			return &"swallow"
 		&"welcome":
 			if guide_key:
 				return &"open_guide"

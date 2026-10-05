@@ -65,8 +65,10 @@ func test_menu_buttons() -> void:
 	menu.press(&"guide")
 	check_eq(asked, [&"settings", &"guide"], "Settings and the Field Guide")
 	check(menu.visible and game.paused, "open over the menu, which stays paused")
+	SetupPanel.pending = false
 	menu.press(&"setup")
-	check_eq(game.reloads, 1, "New game setup starts over (the setup screen will follow)")
+	check_eq(game.reloads, 1, "New game setup starts over")
+	check(SetupPanel.pending, "on the setup panel")
 	Game._carry = {}
 	check_eq(game.quits, 0)
 	menu.press(&"quit")

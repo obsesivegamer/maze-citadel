@@ -168,23 +168,13 @@ func _build_right() -> void:
 	p.add_child(row)
 	var group := ButtonGroup.new()
 	for level in EletdRules.difficulties(_game.sim.rules):
-		_levels[level] = _segment(TowerInfo.difficulty_name(level), _level_tip(level), group)
-	_infinite = UiKit.icon_button(
-		_game, &"infinity", "Infinite: waves continue after 40", BUTTON_PX, true
-	)
-	_twists = (
-		UiKit
-		. icon_button(
-			_game,
-			&"twist",
-			(
-				"Twists: from wave %d most waves get a random creep ability, shown a wave ahead. Score ×%s"
-				% [WaveTwists.FIRST_WAVE, TowerInfo.fmt_num(WaveTwists.SCORE_MULT)]
-			),
-			BUTTON_PX,
-			true
+		_levels[level] = _segment(
+			TowerInfo.difficulty_name(level),
+			TowerInfo.difficulty_tip(level, _game.sim.rules),
+			group
 		)
-	)
+	_infinite = UiKit.icon_button(_game, &"infinity", TowerInfo.infinite_tip(), BUTTON_PX, true)
+	_twists = UiKit.icon_button(_game, &"twist", TowerInfo.twists_tip(), BUTTON_PX, true)
 	for b in _levels.values() + [_infinite, _twists]:
 		b.toggled.connect(func(_on: bool) -> void: _apply_mode())
 		row.add_child(b)
@@ -218,29 +208,6 @@ func _build_right() -> void:
 	var gear := UiKit.icon_button(_game, &"gear", "Settings (F10)", BUTTON_PX)
 	gear.pressed.connect(settings_pressed.emit)
 	row.add_child(gear)
-
-
-## Classic's chips keep their released text; eletd's read its numbers.
-func _level_tip(level: StringName) -> String:
-	if level == &"normal":
-		return "Normal: base creep HP and bounty"
-	if _game.sim.rules != &"eletd":
-		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
-	var score := "score ×%s" % TowerInfo.fmt_num(EletdRules.SCORE_MULT[level])
-	if level == &"easy":
-		return (
-			"Easy: creeps have %d%% less HP, %s" % [roundi(100 - EletdRules.EASY_HP * 100), score]
-		)
-	return (
-		"%s: creeps +%d%% HP rising to +%d%% by wave %d, %s"
-		% [
-			TowerInfo.difficulty_name(level),
-			roundi(EletdRules.difficulty_hp(level, 1) * 100 - 100),
-			roundi(EletdRules.difficulty_hp(level, WaveDefs.count()) * 100 - 100),
-			WaveDefs.count(),
-			score,
-		]
-	)
 
 
 func _segment(text: String, tip: String, group: ButtonGroup) -> Button:
@@ -341,10 +308,14 @@ func refresh() -> void:
 			"font_color", UiTheme.TEXT_DIM if sim.interest_locked else UiTheme.GOLD_BRIGHT
 		)
 	var wave_changed := _changed(&"wave", sim.wave)
-	if _changed(&"infinite", sim.infinite) or wave_changed:
+	var infinite_changed := _changed(&"infinite", sim.infinite)
+	if infinite_changed or wave_changed:
 		_wave.text = str(sim.wave) if sim.wave > 0 else "–"
 		_wave_total.text = "/" if sim.infinite else "/%d" % WaveDefs.count()
 		_wave_inf.visible = sim.infinite
+	# The setup panel sets the mode too.
+	var level_changed := _changed(&"difficulty", sim.difficulty)
+	if _changed(&"twists", sim.twists) or level_changed or infinite_changed or wave_changed:
 		_sync_mode()
 	_refresh_next(sim)
 	if _elements != null:

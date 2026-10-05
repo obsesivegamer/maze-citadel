@@ -342,6 +342,41 @@ static func difficulty_name(difficulty: StringName) -> String:
 	return String(difficulty).capitalize()
 
 
+## One line on what a difficulty does, for its top-bar chip and the setup
+## panel. Classic's keep their released text; eletd's read its numbers.
+static func difficulty_tip(level: StringName, rules: StringName) -> String:
+	if level == &"normal":
+		return "Normal: base creep HP and bounty"
+	if rules != &"eletd":
+		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
+	var score := "score ×%s" % fmt_num(EletdRules.SCORE_MULT[level])
+	if level == &"easy":
+		return (
+			"Easy: creeps have %d%% less HP, %s" % [roundi(100 - EletdRules.EASY_HP * 100), score]
+		)
+	return (
+		"%s: creeps +%d%% HP rising to +%d%% by wave %d, %s"
+		% [
+			difficulty_name(level),
+			roundi(EletdRules.difficulty_hp(level, 1) * 100 - 100),
+			roundi(EletdRules.difficulty_hp(level, WaveDefs.count()) * 100 - 100),
+			WaveDefs.count(),
+			score,
+		]
+	)
+
+
+static func infinite_tip() -> String:
+	return "Infinite: waves continue after %d" % WaveDefs.count()
+
+
+static func twists_tip() -> String:
+	return (
+		"Twists: from wave %d most waves get a random creep ability, shown a wave ahead. Score ×%s"
+		% [WaveTwists.FIRST_WAVE, fmt_num(WaveTwists.SCORE_MULT)]
+	)
+
+
 static func epic_requirement(epic: StringName) -> String:
 	var def: Dictionary = TowerDefs.TOWERS[epic]
 	var members := PackedStringArray()

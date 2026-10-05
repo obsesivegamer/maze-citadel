@@ -1,5 +1,6 @@
 extends Node3D
-## Entry point: opens straight into the citadel (GDD §1).
+## Entry point: opens into the citadel, behind the setup panel in a real
+## window (GDD §1, §5).
 ##
 ## User args (after `--`):
 ##   --scene=spike                              M1 render spike instead of the game
@@ -12,12 +13,14 @@ extends Node3D
 ##   --rules=eletd|classic                      rule set (default: the last pick, else eletd)
 ##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
 ##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
-##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
+##   --tutorial / --no-tutorial                 force the first-run tutorial on / off;
+##                                              --no-tutorial also skips the setup panel
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --select=<x,y|tower id>                    select a tower (the first of that kind)
-##   --open=pick|guide|elements|settings|menu   open the pick panel (eletd), the Field Guide,
-##                                              its Elements and picks page (eletd), Settings
-##                                              or the pause menu
+##   --open=pick|guide|elements|settings|menu|setup
+##                                              open the pick panel (eletd), the Field Guide,
+##                                              its Elements and picks page (eletd), Settings,
+##                                              the pause menu or the setup panel
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit

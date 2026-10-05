@@ -298,14 +298,15 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--map=rampart` | Start on Fallen Rampart. `--map=causeway` starts on the Winding Causeway, which needs the Element TD rules, and `--map=citadel` is the default board. |
 | `--quality=performance` | Start on a quality preset: `cinematic`, `balanced` or `performance` |
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
-| `--rules=classic` | Play the classic rules, the game as it was in 0.3.1. `--rules=eletd` plays the Element TD rules. Without either the game plays the rules you last picked in the panel under the gold counter, and on a first launch the Element TD rules |
+| `--rules=classic` | Play the classic rules, the game as it was in 0.3.1. `--rules=eletd` plays the Element TD rules. Without either the game plays the rules you last picked, and on a first launch the Element TD rules |
 | `--difficulty=hard` | Start on a difficulty: `easy`, `normal`, `hard` or `very_hard`. The classic rules offer only `normal` and `hard` |
 | `--picks=aqua,dark,dark,interest` | Under the Element TD rules, start with these element levels and Interest picks already taken, with no Guardians to kill. They come on top of the picks the game hands out. Meant for tests, screenshots and experiments. |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
+| `--no-tutorial` | Skip the tutorial and the setup panel, and start the opening countdown at once on Normal, or what the other options say |
 | `--warp-wave=24` | Fast-forward to the start of a wave; `--warp-into=10` goes on that many seconds into it |
 | `--select=archer` | Select a tower, by tile (`--select=9,14`) or the first of a kind |
-| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`), Settings (`settings`) or the pause menu (`menu`) |
+| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`), Settings (`settings`), the pause menu (`menu`) or the setup panel (`setup`) |
 | `--shot=build/shots/m3 --views=full,portal,gate` | Save one screenshot per camera preset and quit, as `build/shots/m3-full.png` and so on. `--shot-frames=n` saves n frames per view and `--shot-freeze` stops game time while it does. `tools/capture.sh` runs a set of these |
 
 For example:
