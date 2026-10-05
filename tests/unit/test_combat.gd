@@ -307,9 +307,9 @@ func test_eletd_ballista_bolt_still_flies_down_the_lane() -> void:
 	sim.rules = &"eletd"
 	sim.countdown = -1.0
 	for i in 5:
-		var c := sim.spawn_creep(&"ogre", &"flame", 20, Grid.center(Vector2i(10, 3 + i)))
+		var c := sim.spawn_creep(&"ogre", &"flame", 20, Grid.center(Vector2i(10, 4 + i)))
 		c.speed = 0.0
-	var t := _place(sim, Vector2i(10, 2), &"ballista")
+	var t := _place(sim, Vector2i(10, 3), &"ballista")
 	t.cooldown = 0.0
 	_run(sim, 0.6)
 	var damaged := sim.creeps.filter(func(c: SimCreep) -> bool: return c.hp < c.max_hp)

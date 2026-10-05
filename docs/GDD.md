@@ -28,6 +28,7 @@ The section numbers below are stable, because comments in the code refer to them
 | Tower footprint | 1 tile |
 | Portal | Red demon portal, north edge, 2 tiles wide, unbuildable |
 | Gate | Blue town gate, south edge, 2 tiles wide, unbuildable |
+| Band by the portal | The 3 rows along the portal edge (rows 0–2, 60 tiles) take no towers, drawn as a faint red strip with a red edge line. Classic: none, only the portal tiles are kept clear |
 | Straight path | 28 tiles (≈19 s for a Grunt) |
 | Camera at launch | 3/4 top-down, whole plateau in view, builder selected |
 | HUD at launch | Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
@@ -49,6 +50,7 @@ The first frame is the game. No title screen, no menu, no empty scene.
   1. the portal can no longer reach the gate, or
   2. any ground creep's current tile can no longer reach the gate, or
   3. a creep is standing on that tile.
+- **Band by the portal:** under the default rules nothing can be built on the three rows along the portal edge. The ghost turns red there, and a click is refused with "Too close to the portal" on the line above the tower cards. Every creep, ground or air, goes at least 5.5 m from the portal before any tower can reach it. Before the band, towers ringing the two portal tiles killed the opening waves within 3 m of the portal. Classic has no band.
 - **Refusal feedback:** red ghost, "thunk" sound, short shake of the ghost. Nothing is spent.
 - **Dotted path:** glowing dots trace the current portal-to-gate route and flow toward the gate. It starts as a straight line and redraws on every change.
 - **Air creeps** (Harpies) ignore the maze and fly the straight portal-to-gate line at 4 m altitude. Pale dots mark that line while a tower's reach is shown (§10).
@@ -119,6 +121,7 @@ The game has two rule sets, and the setup panel under the gold counter switches 
 | Between waves (§3) | 30 s, with the wave after next shown | 5 s |
 | Interest (§4) | Locked after a leak until the field is clear; picks can raise it | Always paid |
 | Difficulties (§5) | Easy, Normal, Hard, Very Hard | Normal, Hard |
+| Building by the portal (§1, §2) | Not on the 3 rows along the portal edge | Anywhere but the portal tiles |
 | Maps (§1) | Citadel Plateau, Fallen Rampart, Winding Causeway | Citadel Plateau, Fallen Rampart |
 
 ### 5.1 Twists (random wave abilities)

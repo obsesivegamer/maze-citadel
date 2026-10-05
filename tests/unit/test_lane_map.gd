@@ -85,12 +85,18 @@ func test_lane_tiles_refuse_builds() -> void:
 	var sim := _eletd_sim()
 	sim.gold = 1_000_000
 	for t in sim.grid.lane:
-		if sim.grid.is_reserved(t):
+		if sim.grid.near_portal(t) and not t in sim.grid.spawn_tiles:
+			check_eq(sim.check_build(t, &"archer"), R.NEAR_PORTAL, "by the portal %s" % t)
+		elif sim.grid.is_reserved(t):
 			check_eq(sim.check_build(t, &"archer"), R.RESERVED, "portal or gate %s" % t)
 		else:
 			check_eq(sim.check_build(t, &"archer"), R.LANE, "lane %s" % t)
 	check_eq(Placement.describe(R.LANE), "Keep the road clear", "message")
-	check_eq(sim.build(sim.grid.lane[5], &"archer"), R.LANE, "build refused")
+	check_eq(Placement.describe(R.NEAR_PORTAL), "Too close to the portal", "band message")
+	var off_band := sim.grid.lane.filter(
+		func(t: Vector2i) -> bool: return not sim.grid.near_portal(t)
+	)
+	check_eq(sim.build(off_band[0], &"archer"), R.LANE, "build refused")
 	check(sim.towers.is_empty(), "nothing built")
 
 

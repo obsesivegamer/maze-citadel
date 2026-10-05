@@ -25,7 +25,9 @@ const WALLS := {
 }
 ## The same per map for the eletd rules, where a tower reaches only the tiles
 ## around it: corridors one tile wide, so every wall tower borders two lanes.
-## The Rampart's boulders sit in wider corridors, and its east breach stays open.
+## The first walls start below the band by the portal (EletdRules.PORTAL_ROWS).
+## The Rampart's northern boulders close the end of its second wall and the
+## southern ones sit in a wider corridor; its east breach stays open.
 const WALLS_ELETD := {
 	&"citadel":
 	[
@@ -44,8 +46,8 @@ const WALLS_ELETD := {
 	],
 	&"rampart":
 	[
-		[2, [19], 5.5],
-		[4, [0]],
+		[3, [19], 5.5],
+		[5, [0]],
 		[8, [19]],
 		[10, [0]],
 		[13, [17, 18]],

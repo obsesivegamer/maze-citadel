@@ -1,29 +1,22 @@
 extends "res://tests/test_case.gd"
 ## The camper and idle bots (Camper), the balance runs' yardsticks for a
-## human player: the opening the owner built under the portal, kept clear of
-## any reserved band at the top of the board, and an idle bot that stops there.
+## human player: the opening the owner built under the portal, moved below
+## the no-build band by the portal, and an idle bot that stops there.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
-## Rows a no-build band reserves at the top of the board in BandGrid.
-const BAND := 3
+## Rows the Element TD rules keep clear at the top of the board.
+const BAND := EletdRules.PORTAL_ROWS
 ## The waves the idle bot is watched through.
 const TO_WAVE := 3
 
 
-## The Citadel with its top BAND rows reserved, as a portal no-build band would.
-class BandGrid:
-	extends Grid
-
-	func is_reserved(t: Vector2i) -> bool:
-		return t.y < BAND or super(t)
-
-
-func _sim(band := false) -> GameSim:
+## The Citadel under the Element TD rules; without `band`, open up to the
+## portal as it was when the owner played his game.
+func _sim(band := true) -> GameSim:
 	var sim := GameSim.new(&"citadel")
 	sim.rules = &"eletd"
-	if band:
-		sim.grid = BandGrid.new(&"citadel")
-		sim.field.compute(sim.grid)
+	if not band:
+		sim.grid.portal_rows = 0
 	return sim
 
 
@@ -61,7 +54,7 @@ func _check_opening(sim: GameSim, bot: RefCounted, label: String) -> void:
 
 
 func test_camper_opening_spends_starting_gold_on_archers_under_the_portal() -> void:
-	var sim := _sim()
+	var sim := _sim(false)
 	_check_opening(sim, Bot.new(sim, &"camper"), "camper")
 	check_eq(sim.tower_at(Vector2i(10, 1)).id, &"archer", "his first tower")
 
@@ -86,7 +79,7 @@ func test_idle_builds_the_camper_opening_then_never_acts() -> void:
 
 func test_both_skip_reserved_tiles() -> void:
 	for strategy in [&"camper", &"idle"]:
-		var sim := _sim(true)
+		var sim := _sim()
 		var bot := Bot.new(sim, strategy)
 		check(bot.plan.size() > 100, "%s: plan kept" % strategy)
 		for t in bot.plan:

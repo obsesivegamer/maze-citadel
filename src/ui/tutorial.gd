@@ -171,6 +171,8 @@ func _build_welcome() -> void:
 			"\n[b]A tower reaches only the eight tiles around it[/b], so build the maze along the"
 			+ " road: every tile the creeps walk beside a tower is time under fire."
 		)
+	if _game.sim.grid.portal_rows > 0:
+		intro.text += " Nothing can be built on the red rows by the portal."
 	box.add_child(intro)
 	var row := UiKit.hbox(18)
 	var wheel := ElementWheel.new(WHEEL_PX, false)

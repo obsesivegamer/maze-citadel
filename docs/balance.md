@@ -45,7 +45,7 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 
 ### Element TD rules
 
-The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of the [retune after element picks](#element-td-rules-retune-after-element-picks-2026-10-04), 4 seeds per row on the Citadel Plateau and the Fallen Rampart.
+The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of the [retune after element picks](#element-td-rules-retune-after-element-picks-2026-10-04), 4 seeds per row on the Citadel Plateau and the Fallen Rampart. The [band by the portal](#element-td-rules-the-band-by-the-portal-2026-10-05) left the Citadel rows as they were, and moved the Rampart's smart bot to 14.0 lives and the Causeway's to 12.2.
 
 | Target | Status |
 |---|---|
@@ -612,6 +612,29 @@ His own game walked 2, 5, 7, 2, 3, 4, 9, 4, 7 and 52% on waves 1 to 10 and was l
 - Very Hard plays the same as Normal for the first nine waves. It only shows from the wave-10 boss on.
 
 `--only=camper:normal,idle:very_hard --per-wave` runs them.
+
+## Element TD rules: the band by the portal (2026-10-05)
+
+In the owner's game the creeps of the opening waves died within 3 m of the portal. His Archers stood on five of the six tiles touching the two portal tiles, which every creep and every flyer passes first, and one arrow kills a wave-1 creep. Under the Element TD rules the top three rows of every map, along the portal edge, now take no towers (`EletdRules.PORTAL_ROWS`, [GDD §2](GDD.md#2-pathing-rules)). No tower can reach a creep, on the ground or in the air, until it is at least 5.5 m from the portal. The bots' first Citadel wall already stood on row 3, just below the band, so their plans still fit there. Two rows would leave about 3.5 m, and four would take 80 build tiles. The plateau shows the band as a faint red strip, and a build there is refused with "Too close to the portal". Classic has no band.
+
+The band only moves where the one-shot kills happen. The investigation behind it found that an opening built on row 3 kills waves 1 to 4 about 14 m along the route with or without the band. So the band takes away the ring round the portal, but it can't make the opening waves hard on its own. That is the HP and gold retune's job.
+
+The Rampart's first two walls moved from rows 2 and 4 to rows 3 and 5. On the Causeway the band takes 11 of the 226 tiles beside the road. The bots were run again with the band and the numbers otherwise unchanged, on Normal:
+
+| Map | Bot | Seeds | Before the band | With the band |
+|---|---|---|---|---|
+| Citadel | smart | 2 | Won with 12 lives, 11,322 and 11,248 gold | The same games |
+| Citadel | novice | 2 | Lost on wave 30, leaks {3: 9, 5: 3, 10: 2, 20: 2, 30: 4} | The same game |
+| Citadel | camper | 2 | Lost on waves 34 and 36; first leak wave 20 | Lost on wave 3 in both games: 7 lives on wave 2, 13 on wave 3 |
+| Citadel | idle | 2 | Lost on wave 18 | Lost on wave 3, the same as the camper |
+| Rampart | smart | 4 | 13.0 lives (12–14) | 4/4, 14.0 lives (14–14), 2 lives on each Ogre wave |
+| Rampart | archers | 1 | Lost on wave 28 | The same: lost on wave 28 with the same leaks |
+| Rampart | novice | 1 | Lost on wave 30, 9 lives on wave 2 | Lost on wave 36, 2 lives on wave 2 |
+| Causeway | smart | 4 | 11.2 lives (9–14) | 4/4, 12.2 lives (7–14); seed 0 lost 5 lives to the Dreadlord |
+
+The camper and idle rows aren't a fair yardstick under the band. The owner's opening used the board's north edge: an Archer at (11, 0), beside the portal, and a wall along row 1 from column 1 to 11 sent every creep west along row 0, down the west edge, and back along row 2, an 89.5 m route past all sixteen towers. The camper moves that pattern down to row 3. That puts the (11, 0) Archer in the band, so it is dropped, and the edge is no longer there to lean on. Creeps now walk east round the end of the row-3 wall and straight down column 12. That route is 62.7 m long and passes only one Archer. A person would close the end of the wall instead. So the band breaks the owner's shape, not the opening as such. Until the camper learns to close its wall, read its rows with the band as how the 0.4.1 opening fares, not as how a person would play.
+
+Records made before the band don't replay as the same game. Replaying the owner's 0.4.1 record refuses 14 of its 271 actions, starting with his first builds, and loses all 20 lives on wave 1.
 
 ## Latest run (2026-10-02)
 

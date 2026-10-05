@@ -4,13 +4,16 @@ extends Node3D
 ## gate (GDD §2). Redrawn on every path change; hidden while a wave runs if
 ## the player prefers (always shown for now). Under rules where towers reach
 ## only the tiles around them, pale dots also mark the straight line flyers
-## take, since only towers beside it can hit them.
+## take, since only towers beside it can hit them, and a faint red strip with
+## an edge line marks the rows by the portal where nothing may be built.
 
 const SPACING := 1.6
 const SPEED := 2.4
 const MAX_DOTS := 600
 const FLIGHT_SPACING := 2.0
 const FLIGHT_COLOR := Color(0.6, 0.85, 1.0)
+const BAND_COLOR := Color(0.85, 0.12, 0.08, 0.16)
+const BAND_EDGE_COLOR := Color(1.0, 0.25, 0.15, 0.55)
 
 var _game: Game
 var _mm := MultiMesh.new()
@@ -45,6 +48,8 @@ func setup(game: Game) -> void:
 	refresh()
 	if game.sim.adjacent_reach():
 		_add_flight_line()
+	if game.sim.grid.portal_rows > 0:
+		_add_portal_band(game.sim.grid.portal_rows * Grid.TILE)
 
 
 func _add_flight_line() -> void:
@@ -72,6 +77,23 @@ func _add_flight_line() -> void:
 	mmi.multimesh = mm
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
+
+
+func _add_portal_band(depth: float) -> void:
+	for edge in [false, true]:
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color = BAND_EDGE_COLOR if edge else BAND_COLOR
+		var quad := PlaneMesh.new()
+		quad.size = Vector2(Grid.WIDTH, 0.14 if edge else depth)
+		quad.material = mat
+		var mi := MeshInstance3D.new()
+		mi.mesh = quad
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var centre := Vector2(Grid.WIDTH / 2.0, depth if edge else depth / 2.0)
+		mi.position = Coords.to_world(centre, Coords.PLATEAU_TOP + (0.06 if edge else 0.04))
+		add_child(mi)
 
 
 func _on_sim_event(e: Dictionary) -> void:

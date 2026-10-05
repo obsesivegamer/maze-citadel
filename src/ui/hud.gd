@@ -137,7 +137,8 @@ func _say(text: String) -> void:
 	_say_tween.tween_callback(_say_line.hide)
 
 
-## Guardians, element levels and element refusals (eletd's events).
+## Guardians, element levels and eletd's refusals: a locked element, the band
+## by the portal.
 func _on_element_event(e: Dictionary) -> void:
 	match e.type:
 		&"guardian_spawned":
@@ -151,6 +152,8 @@ func _on_element_event(e: Dictionary) -> void:
 		&"build_refused":
 			if e.reason == Placement.Result.LOCKED:
 				_say(ElementPicks.locked_reason(_game.sim, e.get("id", _game.build_choice)))
+			elif e.reason == Placement.Result.NEAR_PORTAL:
+				_say(Placement.describe(e.reason))
 		&"leaked":
 			for c in _game.sim.creeps:
 				if c.id == e.id and c.type == &"guardian":

@@ -71,7 +71,7 @@ It's the same game on all three systems, with the same saves. The game keeps its
 
 ## How to play
 
-**Build a maze.** Pick a tower from the bar at the bottom of the screen, or press its number key, and click a tile. Hold `Shift` while clicking to keep placing the same tower. A glowing dotted line shows the road the creeps will take, and it redraws every time you build. If the ghost of the tower turns red, that spot would block the road completely and the game won't allow it.
+**Build a maze.** Pick a tower from the bar at the bottom of the screen, or press its number key, and click a tile. Hold `Shift` while clicking to keep placing the same tower. A glowing dotted line shows the road the creeps will take, and it redraws every time you build. If the ghost of the tower turns red, that spot would block the road completely and the game won't allow it. It also turns red on the three rows next to the portal, marked by a faint red strip, where nothing can be built.
 
 **Pick your elements.** The Archer, the Cannon and the Bard need no element. Every other tower needs its element: one level to build it, and the second and third levels for its upgrades. When a pick is waiting, a pulsing chip on the top bar, or `E`, opens the pick panel, which shows what each element would open and how it fares against the next ten waves. Your first pick is granted at once. Later ones summon a Guardian that has to die before the level is yours, and it costs 3 lives if it gets through. A pick can also go on Interest, which raises the interest you earn on unspent gold.
 
@@ -85,7 +85,7 @@ It's the same game on all three systems, with the same saves. The game keeps its
 
 **Learn as you go.** On the first launch a tutorial walks you through waves 1 to 10. Before each wave, a counsel card names what counters it and lights up the towers worth building. `H` opens the Field Guide at any time, with the element ring, the attack and armor chart and advice for the next wave. You can turn the tutorial back on under **Settings → Help**.
 
-**Pick a map, a difficulty and the rules.** Before wave 1, choose a map in the panel under the gold counter and a difficulty on the top bar. Easy takes 30% off the creeps' health. Hard adds 6% on wave 1, rising to 28% on wave 40, and Very Hard adds 10% rising to 55%, slowly at first and steeply after wave 25. Infinite keeps going after wave 40. Twists gives most waves from wave 11 a random ability, shown a full wave ahead. The RULES switch in the same panel turns on the classic rules, the game as it was in 0.3.1, with 220 gold, long tower ranges and every tower open. Your best wave is saved for each map, difficulty and rule set.
+**Pick a map, a difficulty and the rules.** Before wave 1, choose a map in the panel under the gold counter and a difficulty on the top bar. Easy takes 30% off the creeps' health. Hard adds 6% on wave 1, rising to 28% on wave 40, and Very Hard adds 10% rising to 55%, slowly at first and steeply after wave 25. Infinite keeps going after wave 40. Twists gives most waves from wave 11 a random ability, shown a full wave ahead. The RULES switch in the same panel turns on the classic rules, the game as it was in 0.3.1, with 220 gold, long tower ranges, every tower open and no band by the portal. Your best wave is saved for each map, difficulty and rule set.
 
 ### Controls
 

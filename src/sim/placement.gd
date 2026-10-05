@@ -2,8 +2,9 @@ class_name Placement
 extends RefCounted
 ## Anti-block validation (GDD §2). A tower may go on a tile only if, with it
 ## in place, the portal still reaches the gate and no ground creep is cut off.
-## Map ruins and a fixed lane's tiles are never buildable; the ground beside a
-## lane always is, since creeps never walk it (Grid.GROUND).
+## Map ruins, a fixed lane's tiles and the band by the portal (Element TD rules)
+## are never buildable; the ground beside a lane always is, since creeps never
+## walk it (Grid.GROUND).
 
 enum Result {
 	OK,
@@ -19,6 +20,8 @@ enum Result {
 	LOCKED,
 	## A fixed lane's tile (Grid.is_lane): creeps walk it, nothing is built on it.
 	LANE,
+	## The no-build band by the portal (Grid.near_portal).
+	NEAR_PORTAL,
 }
 
 
@@ -37,6 +40,8 @@ static func check(
 	if not Grid.in_bounds(tile):
 		return Result.OUT_OF_BOUNDS
 	if grid.is_reserved(tile):
+		if grid.near_portal(tile) and not tile in grid.spawn_tiles:
+			return Result.NEAR_PORTAL
 		return Result.RESERVED
 	if grid.is_obstacle(tile):
 		return Result.OBSTACLE
@@ -83,4 +88,6 @@ static func describe(result: Result) -> String:
 			return "Needs its element"
 		Result.LANE:
 			return "Keep the road clear"
+		Result.NEAR_PORTAL:
+			return "Too close to the portal"
 	return "Can't build here"

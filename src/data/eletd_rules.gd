@@ -25,6 +25,13 @@ const ARCHER_MULTISHOT := 1
 ## end and only the towers there reach them; at 220 the novice bot loses on
 ## wave 2 whatever the creep HP.
 const START_GOLD := 400
+## Rows at the portal (north) edge where nothing may be built (Grid.portal_rows).
+## With towers allowed beside the portal tiles, every creep passed a ring of
+## Archers on its first step and the opening waves died within 3 m of the
+## portal. Three rows keep every creep at least 5.5 m from the portal before
+## a tower can reach it and match the bots' first Citadel wall; four would
+## take 80 build tiles.
+const PORTAL_ROWS := 3
 ## Pause between waves: time to read the next waves and rebuild.
 const BREATHER := 30.0
 ## Hard creep HP multiplier, in place of classic's 1.1 to 1.4: HARD_FROM on
