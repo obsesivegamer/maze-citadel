@@ -41,8 +41,8 @@ const SUMMON_COUNT := 3
 const SHRED_MAX := 10.0
 const SHRED_TIME := 6.0
 const BOLT_HIT_RADIUS := 0.8
-## Rule sets. &"classic" is the game as released; &"eletd" is the harder
-## Element TD rebalance being tuned beside it (docs/balance.md).
+## Rule sets. &"eletd", the Element TD rules, is what a player gets (GDD §5.0,
+## Game.DEFAULT_RULES); &"classic" is the game as released in 0.3.1.
 const RULES: Array[StringName] = [&"classic", &"eletd"]
 
 var grid: Grid

@@ -5,12 +5,14 @@ Fills site/index.html from the newest published release: its .dmg and the
 build-info.json that tools/verify_dmg.sh wrote, plus the Windows .zip and the
 Linux .tar.gz with their build-info-windows.json and build-info-linux.json when
 the release has them (releases up to v0.2.0 are Mac only). The tower roster and the
-tower and wave counts come from the game's own data (src/data/tower_defs.gd,
-src/data/wave_defs.gd, src/data/eletd_rules.gd, src/ui/tower_info.gd), so the page
-follows rebalances. The roster shows the towers as the default Element TD rules
-play them: a reach of the tiles around the tower, the element each one needs. A private repo's release files
-need a login to download, so for a private repo the downloads are copied into the
-site and served from there; a public repo links to the release file. With no
+tower, wave and map counts come from the game's own data (src/data/tower_defs.gd,
+src/data/wave_defs.gd, src/data/map_defs.gd, src/data/eletd_rules.gd,
+src/ui/tower_info.gd), so the page follows rebalances. The roster shows the
+towers as the default Element TD rules play them: a reach of the tiles around
+the tower, the damage these rules deal, the element each one needs. A private
+repo's release files need a login to download, so for a private repo the
+downloads are copied into the site and served from there; a public repo links to
+the release file. With no
 release (or no token), the page says the first build is on its way.
 
 Usage: tools/build_site.py [--out build/site] [--repo owner/name] [--offline]
@@ -241,18 +243,35 @@ def gd_const(path: Path, name: str):
 def default_rules() -> dict:
     """What the game's default rules (Element TD) change on a tower card:
     the starters that deal composite damage, the Archer's arrows per shot,
-    and the blurb sentences TowerInfo.blurb drops."""
+    each tower's share of its table damage (EletdRules.tower_power), and the
+    blurb sentences TowerInfo.blurb drops."""
     eletd = ROOT / "src" / "data" / "eletd_rules.gd"
     info = (ROOT / "src" / "ui" / "tower_info.gd").read_text()
     multishot = re.search(r"^const ARCHER_MULTISHOT := (\d+)", eletd.read_text(), re.M)
+    elemental = re.search(r"^const ELEMENTAL_POWER := ([\d.]+)", eletd.read_text(), re.M)
     blurb = re.search(r"^static func blurb\(.*?(?=^\S)", info, re.M | re.S)
-    if not multishot or not blurb:
+    if not multishot or not elemental or not blurb:
         sys.exit("build_site: can't read the Element TD rules for the tower cards")
     return {
         "composite": gd_const(eletd, "COMPOSITE_TOWERS"),
         "archer_multishot": int(multishot.group(1)),
+        "archer_power": gd_const(eletd, "ARCHER_POWER"),
+        "elemental_power": float(elemental.group(1)),
         "drop": re.findall(r'\.replace\("([^"]+)", ""\)', blurb.group(0)),
     }
+
+
+# The stats a tower's power scales: every hit, poison stack, cloud and crater.
+DAMAGE_STATS = ("damage", "poison_dps", "cloud_dps", "crater_dps")
+
+
+def tower_power(tid: str, tower: dict, level: int, rules: dict, epics) -> float:
+    """EletdRules.tower_power: the share of its table damage a tower deals."""
+    if tid == "archer":
+        return rules["archer_power"][min(level, len(rules["archer_power"])) - 1]
+    if tid == "plague" or tid in rules["composite"] or tid in epics:
+        return 1.0
+    return rules["elemental_power"] if "element" in tower else 1.0
 
 
 def game_data() -> dict:
@@ -359,6 +378,9 @@ def roster_html(data: dict) -> str:
         t.pop("min_range", None)
         if tid == "archer":
             t["multishot"] = [min(v, rules["archer_multishot"]) for v in t["multishot"]]
+        for key in DAMAGE_STATS:
+            if isinstance(t.get(key), list):
+                t[key] = [round(v * tower_power(tid, t, i + 1, rules, data["epics"]), 2) for i, v in enumerate(t[key])]
         composite = tid in rules["composite"]
         element = None if composite else t.get("element")
         color = ELEMENT_COLORS.get(element, NO_ELEMENT_COLOR)

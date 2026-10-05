@@ -1,7 +1,7 @@
 class_name EletdRules
 extends RefCounted
-## Numbers of the &"eletd" rule set (GameSim.rules): the harder Element TD
-## rebalance. Classic numbers stay where they always were; docs/balance.md
+## Numbers of the &"eletd" rule set (GameSim.rules): the Element TD rules, the
+## game's default. Classic numbers stay where they always were; docs/balance.md
 ## has the reasoning behind each value here.
 
 ## Creep HP as a share of classic, on a straight line from HP_FROM on wave 1

@@ -6,7 +6,7 @@ Maze Citadel has three maps. This page describes how each one plays and how a ma
 
 Every map uses the same plateau, 20 tiles wide and 28 tiles long (40 × 56 m), in the same valley. What changes from map to map is where the portal and the gate open on the north and south edges, whether ruins block some tiles from the start, and who decides the road: on two maps you build the maze yourself, and on the Winding Causeway the road is laid down for you.
 
-You pick the map before wave 1, the same way you pick the mode, and the game remembers your last choice.
+You pick the map before wave 1 in the panel under the gold counter, beside the rules switch, and the game remembers your last choice. The Citadel Plateau and the Fallen Rampart are played under both rule sets, the default Element TD rules and the classic ones; the Winding Causeway only under the Element TD rules.
 
 | Map | Portal | Gate | Ruins | How it plays |
 |---|---|---|---|---|

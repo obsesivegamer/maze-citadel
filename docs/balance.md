@@ -1,6 +1,8 @@
 # Balance log
 
-This is the record of how Maze Citadel's numbers were tuned. Three bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. The rules and numbers as they are now are in [GDD.md](GDD.md).
+This is the record of how Maze Citadel's numbers were tuned. Four bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
+
+The game has two rule sets. The Element TD rules (`eletd` in the code) are the default a player gets, and every section headed "Element TD rules" tuned them. The classic rules are the game as released in 0.3.1; the sections without that heading tuned them, and they no longer change. Every change under the Element TD rules is checked against the classic game, which must still play exactly as released: the smart bot on Normal, seed 0, wins with 20 lives, 2 close calls and 12,110 gold at 34:09.
 
 ## Running the bots
 
@@ -8,11 +10,11 @@ This is the record of how Maze Citadel's numbers were tuned. Three bots play ful
 godot --headless --path . --script res://tests/bots/run_balance.gd
 ```
 
-It plays the Element TD rules, the game's default. Every table on this page that isn't under an "Element TD rules" heading was measured on the classic rules, and `-- --rules=classic` reproduces it. A full run plays 4 seeds of every row. On the classic rules that takes about 8 minutes on one core; an Element TD game takes about a minute. Options go after a `--`:
+It plays the Element TD rules, the game's default, on the Citadel Plateau. Every table on this page that isn't under an "Element TD rules" heading was measured on the classic rules, and `-- --rules=classic` reproduces it. A full run plays 4 seeds of every row. On the classic rules that takes about 8 minutes on one core; an Element TD game takes 40 to 70 seconds, so the full Element TD table is best run as a few processes side by side, each with its own `--only`. Options go after a `--`:
 
 | Option | What it does |
 |---|---|
-| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic` |
+| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic`. The rows the latest tables use are `smart:normal,smart:hard,smart:easy,smart:very_hard,archers:normal,no_air:normal,novice:normal,novice:easy` |
 | `--seeds=N` | Sets how many games each row plays |
 | `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
@@ -37,7 +39,30 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 - **Walked, non-boss median:** the middle value of how far each non-boss wave got.
 - **Boss walked:** how far the boss got on each boss wave, averaged; 100% means it leaked.
 
-## Targets (PLAN M6 gate)
+## Targets
+
+### Element TD rules
+
+The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of the [retune after element picks](#element-td-rules-retune-after-element-picks-2026-10-04), 4 seeds per row on the Citadel Plateau and the Fallen Rampart.
+
+| Target | Status |
+|---|---|
+| The smart bot wins Normal with about 12 lives, losing them across the game rather than all at once | Met: 4/4 on both maps, 12.0 lives on the Citadel and 13.0 on the Rampart (12–14), lost to the Ogre waves 10, 20 and 30 and once to wave 29; the Dreadlord dies on its first pass in every game |
+| Hard is beatable but tight | Met: 2/4 on each map, with 4.0 and 3.2 lives; the lost games end on waves 39 and 40 |
+| Very Hard: a good player reaches wave 30, and the last ten waves are the wall | Met: 0/4 on both maps, every game lost on waves 38 to 40 after the whole game has been played |
+| Easy is comfortable | Met: 4/4 on both maps, 15.2 and 18.5 lives |
+| The picks matter: elemental towers do most of the damage | Met: they deal 55% to 65% of all damage in the smart bot's Normal games, which end with three or four elements |
+| Guardians are a fair price for a level | Met: none of the 32 smart games' Guardians got through |
+| The novice, with no thought for the next wave, loses on Normal but can win on Easy | Met: it loses on wave 30 on both maps on Normal; on Easy it wins on the Citadel with 14.2 lives and loses on wave 40 on the Rampart |
+| The archers-only bot fails without counters | Met: it loses on wave 35 on the Citadel and 28 on the Rampart |
+| The ground-only bot dies at the Harpy waves | Met: it loses on wave 5 on both maps |
+| The Winding Causeway plays about as hard as the Citadel on Normal | Set by its own creep HP multiplier ([the fixed-lane map](#element-td-rules-the-fixed-lane-map-2026-10-04)) |
+
+**Known gap: weak elements.** Aqua, Stone and Verdant are weak picks. Their towers, the Frost Spire, the Runesmith Forge and the Ancient of Roots, pay about a third of a Ballista's damage per gold or less, and their slows, shred and roots, which the smart bot's price model counts only as a flat bonus, don't make up the difference. So the smart bot builds every game around Dark, Flame and Light, takes Aqua at most as a late extra pick and never takes Stone or Verdant. A later release addresses it.
+
+### Classic rules (PLAN M6 gate)
+
+These were the targets of the game as released, and the classic rules still meet them.
 
 | Target | Status |
 |---|---|

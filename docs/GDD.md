@@ -4,11 +4,15 @@ This is the design reference for Maze Citadel: every rule, tower, creep and wave
 
 ## Overview
 
-Maze Citadel is a single-player maze tower defense. Creeps walk from a portal at the north end of a plateau to a gate at the south end, and the player's towers are the maze they walk through. A longer road gives every tower more time to shoot. The player can bend the road as far as they like but can never close it.
+Maze Citadel is a single-player maze tower defense. Creeps walk from a portal at the north end of a plateau to a gate at the south end, and the player's towers are the maze they walk through. A tower reaches only the tiles around it, so a longer road that runs past more towers gives every tower more time to shoot. The player can bend the road as far as they like but can never close it. On the third map, the Winding Causeway, the road is fixed instead, and the game is choosing where to build beside it.
 
 Two counter systems sit on top of the maze. Each tower has an attack type that is strong or weak against each armor class, and an element that is strong or weak around a ring of six. Every wave announces its armor and element ahead of time, so the game rewards reading what's coming and building for it. The forty waves start with one lesson each and build up to mixed pressure, with a boss every tenth wave.
 
-The design borrows from the Warcraft III custom maps it grew out of: the element counters and looping leaks of Element TD, the fusion of Gem TD, the open mazing and anti-block rule of Wintermaul One, and the mix of cheap filler and tech towers from Poker TD and Cube Defense. It isn't a clone, and no Blizzard names, models or sounds ship with it.
+Elements have to be earned. The game opens with three towers that need no element (Archer, Cannon and Bard), and eight element picks over the game unlock the rest a level at a time, never enough for all six elements. The first pick is granted at once; every later one summons a Guardian, a boss of that element that grants the level only when it dies. Four difficulties run from Easy to Very Hard.
+
+The design borrows from the Warcraft III custom maps it grew out of: the element picks, counters and looping leaks of Element TD, the fusion of Gem TD, the open mazing and anti-block rule of Wintermaul One, and the mix of cheap filler and tech towers from Poker TD and Cube Defense. It isn't a clone, and no Blizzard names, models or sounds ship with it.
+
+The game has two rule sets. The Element TD rules are the default, and this page describes them. The classic rules, the game as released in 0.3.1, are one click away before wave 1; where they differ, a short note says so ("Classic: 220 gold"), and §5.0 sums up the differences.
 
 The numbers on this page are the ones in the game. They began as estimates and were tuned by having bots play full games, and [balance.md](balance.md) records what changed and why. When a number changes in the game, this page changes in the same commit.
 
@@ -26,11 +30,13 @@ The section numbers below are stable, because comments in the code refer to them
 | Gate | Blue town gate, south edge, 2 tiles wide, unbuildable |
 | Straight path | 28 tiles (≈19 s for a Grunt) |
 | Camera at launch | 3/4 top-down, whole plateau in view, builder selected |
-| HUD at launch | Gold 220 · Lives 20 · Wave 1 preview: 10 Grunts · 45 s build countdown |
+| HUD at launch | Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
 
 Around the plateau: cliffs, outer walls with banners, pine forest, a river with a watermill, a village of huts, sheep fields, drifting clouds.
 
-**Maps** ([maps.md](maps.md)). The table above is **Citadel Plateau**, the default. **Fallen Rampart** keeps the same plateau but opens the portal at columns 5–6 and the gate at columns 13–14, and a broken wall crosses row 13 with three 2-tile breaches, plus two 2 × 2 boulder heaps. Ruins can't be built on. The map is picked from a MAP panel under the gold counter during the opening build phase; switching clears the board, keeps the mode, and is remembered. Best waves are kept per map.
+**Maps** ([maps.md](maps.md)). The table above is **Citadel Plateau**, the default. **Fallen Rampart** keeps the same plateau but opens the portal at columns 5–6 and the gate at columns 13–14, and a broken wall crosses row 13 with three 2-tile breaches, plus two 2 × 2 boulder heaps. Ruins can't be built on. **Winding Causeway**, played under the default rules only, lays a fixed cobbled road of 119 tiles (about 240 m) from the portal to the gate; creeps never leave it, and towers go on the grass beside it (§2). It has its own creep HP multiplier, Guardians included, set so the map plays about as hard as the Citadel ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)). Under classic rules the Causeway is greyed out.
+
+The map and the rule set are picked from a panel under the gold counter (its MAP and RULES rows) during the opening build phase; switching either clears the board, keeps the mode, and is remembered. Best waves are kept per map and per rule set.
 
 The first frame is the game. No title screen, no menu, no empty scene.
 
@@ -45,23 +51,24 @@ The first frame is the game. No title screen, no menu, no empty scene.
   3. a creep is standing on that tile.
 - **Refusal feedback:** red ghost, "thunk" sound, short shake of the ghost. Nothing is spent.
 - **Dotted path:** glowing dots trace the current portal-to-gate route and flow toward the gate. It starts as a straight line and redraws on every change.
-- **Air creeps** (Harpies) ignore the maze and fly the straight portal-to-gate line at 4 m altitude.
+- **Air creeps** (Harpies) ignore the maze and fly the straight portal-to-gate line at 4 m altitude. Pale dots mark that line while a tower's reach is shown (§10).
+- **Fixed lane** (Winding Causeway): every tile off the road is ground a tower can stand on but creeps never walk, so no tower can block, bend or lengthen the road. A tower on a road tile is refused ("Keep the road clear"), and selling a tower returns its tile to grass.
 
 ## 3. Rules: lives, leaks, waves, speed
 
 | Rule | Value |
 |---|---|
 | Lives | 20 |
-| Leak cost | Normal creep −1, boss −2 |
+| Leak cost | Normal creep −1, boss and Bulky creep (§9.1) −2, Guardian (§7.3) −3. Classic: normal −1, boss −2 |
 | Leak feedback | Gate flashes blue-white, war horn, lives counter pulses |
-| After a leak | Creep teleports back to the portal with its current HP and runs again. It no longer pays bounty. Each pass costs lives again. |
-| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave. |
+| After a leak | Creep teleports back to the portal with its current HP and runs again. It no longer pays bounty. Each pass costs lives again. Interest stops until the field is clear (§4). |
+| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, and the elements reached. |
 | Victory | Clear wave 40. Screen shows score and stats; gryphons circle the citadel. |
-| Score | 10 × kills + 500 × lives left + gold on hand; × 1.3 on Hard |
+| Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
 | Opening build phase | 45 s countdown. `N` starts wave 1 now. |
-| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element, boss skull |
-| Spawn interval | 0.9 s (Wolf Riders 0.5 s; bosses enter alone after escorts) |
-| Between waves | Wave cleared → 5 s breather → next wave auto-queues. `N` calls the next wave early (waves may overlap). |
+| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element, boss skull, and the composite or Bulky tag (§9.1) |
+| Spawn interval | 0.6 s (Wolf Riders 0.35 s; bosses enter alone after escorts). Classic: 0.9 s, Wolf Riders 0.5 s |
+| Between waves | Wave cleared → 30 s breather → next wave auto-queues. A wave counts as cleared only once any Guardians walking with it are dead too. The top bar also shows the wave after next. `N` calls the next wave early (waves may overlap). Classic: 5 s breather, no wave-after-next preview |
 | Speed | ×1 / ×2 / ×3 (`F` cycles). `Space` pauses. Building is allowed while paused. |
 
 Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. The same sim runs headless for tests and balance bots.
@@ -70,50 +77,49 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 
 | Item | Value |
 |---|---|
-| Starting gold | 220 |
-| Kill bounty | `round(6 + 16 × (wave − 1) / 39)` → 6 gold at wave 1, 22 at wave 40 |
-| Boss bounty | Ogre ×10, Dreadlord ×25 |
-| Interest | Every 15 s of game time: +2% of unspent gold, max +20 per tick. Pauses with the game. HUD shows a countdown ring and the next payout. |
+| Starting gold | 400. Classic: 220 |
+| Kill bounty | `round(6 + 16 × (wave − 1) / 39)` → 6 gold at wave 1, 22 at wave 40, per creep of the wave table. The default rules send 1.5 times the creeps and share each group's gold out among them in whole coins, so a wave pays the same in total (§9.1). |
+| Boss bounty | Ogre ×10, Dreadlord ×25. Guardians pay nothing. |
+| Interest | Every 15 s of game time: +2% of unspent gold, max +20 per tick. Each element pick spent on Interest adds 1 point and 10 gold to the cap, up to three times (5%, max +50; §7.3). Pauses with the game. HUD shows a countdown ring and the next payout. |
+| Interest lock | Once any creep leaks, the interest countdown stops where it is and nothing is paid until every creep on the board is dead; then it carries on from where it stopped. The ring dims and shows a lock meanwhile. Classic: interest keeps paying after a leak |
 | Sell | 75% of everything invested in that tower (build + upgrades + fusion) |
-| Opener check | 220 gold = 8 Archer Towers (25 g) with 20 g left, or 6 Archers + 1 Frost Spire |
+| Opener check | 400 gold = 16 Archer Towers (25 g), or 8 Archers and 3 Cannons with 20 g left. Until the first wall row is whole, creeps walk round its end and only the towers there reach them. Classic: 220 gold = 8 Archers with 20 g left, or 6 Archers + 1 Frost Spire |
 
-**Cost curve:** buildable towers cost 25–120 g; upgrades cost 15–120 g. Together they span the requested 15–120 g. The cheapest *tower* is 25 g, not 15 g: at 15 g, 220 gold would buy 14 towers, which breaks the "6–8 cheap towers" opener.
+**Cost curve:** buildable towers cost 25–120 g; upgrades cost 15–120 g. Together they span the requested 15–120 g. The cheapest *tower* is 25 g, not 15 g: at 15 g, classic's 220 gold would buy 14 towers, which breaks its "6–8 cheap towers" opener. The default rules start with 400 because a tower reaches only its neighbours: at 220 the novice bot loses on wave 2 whatever the creep HP.
 
 ## 5. Modes
 
 | Mode | Change |
 |---|---|
+| Easy | Creeps have 70% of their HP. Score × 0.7. |
 | Normal | Base values |
-| Hard | Creep HP +10% on wave 1 rising to +40% on wave 40; no bounty bonus |
-| Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. |
-| Twists | From wave 11, most waves carry one random creep ability (below). Combines with Hard and Infinite. Score × 1.1. |
+| Hard | Creep HP × 1.06 on wave 1 rising in a straight line to × 1.28 on wave 40; no bounty bonus. Score × 1.3. Classic: +10% on wave 1 rising to +40% on wave 40 |
+| Very Hard | Creep HP × 1.1 on wave 1 rising to × 1.55 on wave 40 on a squared curve, so it stays close to Hard until about wave 25 and climbs steeply after; the last ten waves are the wall. Score × 1.6. |
+| Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. No element picks come after wave 35's. |
+| Twists | From wave 11, most waves carry one random creep ability (below). Combines with every difficulty and Infinite. Score × 1.1. |
 
-Mode is picked from a chip in the top bar during the opening build phase and locks when wave 1 spawns.
+Easy, Normal, Hard and Very Hard are the four difficulties, each with its own records; Infinite and Twists are switched on beside one. Classic offers only Normal and Hard. The difficulty and the extras are picked from chips in the top bar during the opening build phase and lock when wave 1 spawns.
 
 ### 5.0 Rule sets
 
-Everything in this document describes the classic rules, which are the game as released. A second rule set, `eletd`, is being tuned to make the game harder and closer to Element TD. It is off unless the game is started with `--rules=eletd`, and its records are kept apart from the classic ones. [balance.md](balance.md) follows its tuning.
+The game has two rule sets, and the setup panel under the gold counter switches between them with its RULES row (Element TD | Classic) during the opening build phase. Switching rebuilds the board, keeps the map and the difficulty where the other rules offer them (otherwise the Citadel Plateau and Normal), and is remembered for the next launch. On the command line, `--rules=classic` or `--rules=eletd` picks one; without it the game plays the rules last picked, and on a first launch the Element TD rules. The two keep separate records (§15).
 
-| Rule | Classic | `eletd` |
+- **Element TD** (`eletd` in the code) is the default and is what the rest of this page describes. It brings the game closer to Element TD and makes it harder: towers reach only the tiles around them, elements are earned with picks, and waves come as long, tight streams.
+- **Classic** is the game as released in 0.3.1, kept exactly as it played there. Its numbers appear on this page as short "Classic:" notes.
+
+| Rule | Element TD (default) | Classic |
 |---|---|---|
-| Tower reach | The range in metres from §7 | The 3×3 block of tiles around the tower, for every attack. Splash, clouds, craters and the Bard's aura keep their sizes. The Demolisher has no minimum range. |
-| Creep HP | §8 | A share of classic that climbs in a straight line from 10% on wave 1 to 68% on wave 40; armored creeps climb to 70% on a squared curve. The wave-10 Ogre has 2.1 times its HP, the Dreadlord 0.3 of it. Hard multiplies HP by 1.06 on wave 1 rising to 1.28 on wave 40. |
-| Starting gold | 220 | 400 |
-| Archer | Level 3 fires two arrows | One arrow at every level. Level 2 deals 85% of its §7 damage and level 3 80% (12.75 and 19.2) |
-| Elemental tower damage | §7 | Every tower that needs an element deals 140% of its §7 damage, poison clouds and craters included, except the Plague Cauldron, which keeps its own. Epics keep theirs. Cards, tooltips and the upgrade preview show the damage these rules deal. |
-| Wave size | 8 to 24 creeps per wave (§9), 0.9 s apart, fast creeps 0.5 s | Every group except a boss has one and a half times the creeps, rounded up, entering 0.6 s apart (fast creeps 0.35 s; Stampede still halves the gap). Each creep has the matching share of the HP and the bounty, so a wave's total HP and gold stay what they were. |
-| Composite armor | None | Waves 14, 27 and 34 are composite: every element deals 90% to them, so no counter pays double and none pays half. The top bar and the banner show it with a grey plate glyph, and the Field Guide says "Composite: every element does 90%". |
-| Bulky waves | None | Waves 12, 18, 25 and 37 send half as many creeps, each with twice the HP and twice the bounty, so a Bulky wave carries the HP of the wave it replaces. A Bulky creep that leaks costs 2 lives, like a boss, and is drawn larger. The next-wave chip, its tooltip, the banner and the Field Guide tag the wave Bulky. |
-| Between waves | 5 s breather | 30 s, and the top bar also shows the wave after next. `N` still calls a wave early. |
-| Interest after a leak | Keeps paying | Locked until the field is clear: once any creep leaks, the interest countdown stops where it is and nothing is paid until every creep on the board is dead. Then the countdown carries on from where it stopped. The interest ring dims and shows a lock meanwhile. |
-| Difficulty | Normal and Hard | Easy, Normal, Hard and Very Hard, each with its own records. Easy gives creeps 70% of their HP; Hard is the ramp above; Very Hard multiplies HP by 1.1 on wave 1 rising to 1.55 on wave 40 on a squared curve, so it stays close to Hard until about wave 25 and climbs steeply after. Score × 0.7, 1, 1.3 and 1.6. |
-| Elements | None: every tower is open from the start | Each of the six elements has a level from 0 to 3, all 0 at the start. A tower of an element can be built only with that element at level 1, upgraded to level 2 only at level 2, and to level 3 only at level 3: Ballista needs Light, Demolisher Flame, Frost Spire Aqua, Plague Cauldron and Shadow Obelisk Dark, Ancient of Roots Verdant, Runesmith Forge Stone. A refused build or upgrade says why ("Needs Aqua", "Needs Aqua level 2"). Archer, Cannon and Bard need nothing, and an Epic needs only its two level-3 parents. |
-| Element picks | None | One pick at the start and one as each of waves 5, 10, 15, 20, 25, 30 and 35 is cleared: 8 in all, against 18 element levels, so no game has everything. Infinite mode adds none after wave 35. A pick is kept until the player spends it, on one level of an element or on Interest. |
-| Guardians | None | The first element pick of a game is granted at once. Every later one summons a Guardian of that element instead: a boss that enters at the portal at once, whatever the phase, and grants the level only when it dies. It has 0.35, 0.8 or 1.2 times the HP of a lone Ogre of the current wave for level 1, 2 or 3, pays no bounty, costs 3 lives when it leaks and walks again until killed. It is drawn as the Ogre, 15% larger. A wave counts as cleared only once its Guardians are dead too, and no second pick can go on an element while its Guardian walks. |
-| Interest picks | None | A pick spent on Interest adds 1 point to the interest rate and 10 gold to the cap per tick, up to three times (5% and 50 gold). It summons no Guardian. |
-| Archer and Cannon damage | Light and Flame on the element wheel | Composite: 100% against every creep element, composite armor included. Their cards, tooltips and plaque say Composite and "100% against everything". |
-| Picks on the HUD | None | The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, the towers that level opens, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused. While a pick waits, `E` opens the panel instead of turning the camera (`Q` still turns it). Locked cards are dimmed with a lock, can't be chosen ("Needs Aqua: pick an element (E)"), and a blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached. The Field Guide has an Elements and picks page, and the tutorial's counsel names only towers that can be built. |
-| Shown on the board | Range ring | A square around the reach, and pale dots along the straight line flyers take |
+| Tower reach (§7.1) | The 3×3 block of tiles around the tower | The range in metres from §7, shown as a ring |
+| Starting gold (§4) | 400 | 220 |
+| Creep HP (§8) | A share of classic's, from 10% on wave 1 to 68% on wave 40 | The full curve |
+| Elements (§7.3) | Earned with 8 element picks; later picks summon Guardians | Every tower open from the start |
+| Archer and Cannon (§6.2, §7.2) | Composite damage; the Archer fires one arrow at every level and its upgrades deal 85% and 80% | Light and Flame; the level-3 Archer fires two arrows |
+| Elemental towers (§7.2) | 140% damage, the Plague Cauldron excepted | Table damage |
+| Wave shapes (§9.1) | 1.5 times the creeps, 0.6 s apart; composite waves 14, 27, 34; Bulky waves 12, 18, 25, 37 | Table counts, 0.9 s apart |
+| Between waves (§3) | 30 s, with the wave after next shown | 5 s |
+| Interest (§4) | Locked after a leak until the field is clear; picks can raise it | Always paid |
+| Difficulties (§5) | Easy, Normal, Hard, Very Hard | Normal, Hard |
+| Maps (§1) | Citadel Plateau, Fallen Rampart, Winding Causeway | Citadel Plateau, Fallen Rampart |
 
 ### 5.1 Twists (random wave abilities)
 
@@ -135,7 +141,7 @@ In the spirit of Element TD's random creep abilities. The schedule comes from a 
 ## 6. Damage model
 
 ```
-damage = base
+damage = base × power[tower][level]         // §7.2; always 1 under classic
        × attack_vs_class[attack][class]
        × element_mult[tower_element][creep_element]
        × armor_factor(armor − shred)        // skipped for Poison
@@ -143,6 +149,8 @@ damage = base
 ```
 
 `armor_factor(A) = 1 − 0.06A / (1 + 0.06A)` for A ≥ 0, and `2 − 0.94^(−A)` for A < 0 (shredded armor below zero amplifies damage).
+
+The power factor applies to every hit, poison stack, cloud and crater, and a shot carries the power of its tower as it was when it fired (§7).
 
 ### 6.1 Attack type vs armor class
 
@@ -162,14 +170,15 @@ Each element deals **200%** to the element it points at, **50%** to the element 
 
 | Tower element | Strong vs (200%) | Weak vs (50%) | Towers |
 |---|---|---|---|
-| Light | Dark | Stone | Archer, Ballista, Epic Sunfire Ballista |
+| Light | Dark | Stone | Ballista, Epic Sunfire Ballista (classic: also Archer) |
 | Dark | Aqua | Light | Plague Cauldron, Shadow Obelisk, Epic Plague Necropolis |
 | Aqua | Flame | Dark | Frost Spire, Epic Frost Wyrm |
-| Flame | Verdant | Aqua | Cannon, Demolisher, Epic Doom Cannon |
+| Flame | Verdant | Aqua | Demolisher, Epic Doom Cannon (classic: also Cannon) |
 | Verdant | Stone | Flame | Ancient of Roots |
 | Stone | Light | Verdant | Runesmith Forge |
+| Composite | — | — | Archer, Cannon: 100% against every creep element, composite armor included. Their cards, tooltips and plaque say Composite and "100% against everything". |
 
-Every creep element has exactly one counter family. Each wave announces its element 3 s before it spawns.
+Every creep element has exactly one counter family. Each wave announces its element 3 s before it spawns. The Bard's Pavilion has no element.
 
 ### 6.3 Damage numbers
 
@@ -188,20 +197,24 @@ Every creep element has exactly one counter family. Each wave announces its elem
 - **Poison:** stacks up to 5. Halves healing received.
 - **Armor shred:** −2 per Runesmith hit, up to −10, lasts 6 s, refreshes on hit.
 
+### 6.5 Composite armor
+
+Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor: every element deals 90% to them, so no counter pays double and none pays half. The composite Archer and Cannon still deal 100%. The top bar and the banner show a grey plate glyph, and the Field Guide says "Composite: every element does 90%". Classic has no composite armor.
+
 ## 7. Towers (14)
 
-10 buildable cards plus 4 Epic fusion cards, one per family. Upgrades: L1 → L2 → L3 (two upgrade levels).
+10 buildable cards plus 4 Epic fusion cards, one per family. Upgrades: L1 → L2 → L3 (two upgrade levels). The damage figures are the tower table's; under the default rules each tower deals its power share of them (§7.2). The ranges in metres are classic's reach and the Bard's aura radius; under the default rules every attacking tower reaches the tiles around it instead (§7.1). Every tower but the Archer, the Cannon, the Bard and the Epics needs its element (§7.3).
 
 | Key | Tower | Family | Cost L1 / +L2 / +L3 | Attack · Element | Air? | L1 stats | Signature |
 |---|---|---|---|---|---|---|---|
-| 1 | Archer Tower | Alliance | 25 / +15 / +35 | Pierce · Light | ✓ | 9 dmg, 0.6 s, 9 m (L2 15, L3 24) | Cheap maze filler. L3 fires 2 arrows. |
-| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Flame | — | 30 splash r2.2, 1.5 s, 10 m (L2 60, L3 110) | Arcing shells, scorch marks (6 s, look only), small shake |
+| 1 | Archer Tower | Alliance | 25 / +15 / +35 | Pierce · Composite (classic: Light) | ✓ | 9 dmg, 0.6 s, 9 m (L2 15, L3 24) | Cheap maze filler, open from the start. One arrow at every level; classic's L3 fires 2. |
+| 2 | Cannon Tower | Horde | 60 / +45 / +80 | Siege · Composite (classic: Flame) | — | 30 splash r2.2, 1.5 s, 10 m (L2 60, L3 110) | Arcing shells, scorch marks (6 s, look only), small shake |
 | 3 | Frost Spire | Elven | 50 / +40 / +70 | Magic · Aqua | ✓ | 8 dmg, 1.0 s, 9 m | 35% slow for 2 s. L2 splash slow r1.5. L3 frost ring every 3rd shot. |
 | 4 | Plague Cauldron | Forsaken | 45 / +35 / +65 | Poison · Dark | ✓ | 6 dps × 5 s per stack, 1.2 s, 8.5 m | Stacks ×5, ignores armor, halves healing |
 | 5 | Bard's Pavilion | Support | 80 / +60 / +90 | — | — | Aura r7 m | +15% damage (L2 +20%, L3 +25% and +10% attack speed). Highest aura wins. |
 | 6 | Runesmith Forge | Support | 75 / +55 / +90 | Rune · Stone | ✓ | 14 dmg, 1.2 s, 9 m | Shreds 2 armor per hit |
 | 7 | Ballista | Alliance | 70 / +60 / +100 | Pierce · Light | ✓ | 55 dmg, 1.6 s, 12 m | Bolt pierces 3 creeps in a line |
-| 8 | Demolisher | Horde | 120 / +90 / +120 | Siege · Flame | — | 110 splash r3, 3.0 s, 15 m (min 4 m) | Burning crater 3 s at 10 dps, big shake |
+| 8 | Demolisher | Horde | 120 / +90 / +120 | Siege · Flame | — | 110 splash r3, 3.0 s, 15 m (classic: min 4 m) | Burning crater 3 s at 10 dps, big shake |
 | 9 | Ancient of Roots | Elven | 90 / +70 / +110 | Magic · Verdant | — | Nova every 3 s, r5 m, 20 dmg | 35% slow 2 s + 0.4 s root |
 | 0 | Shadow Obelisk | Forsaken | 100 / +80 / +110 | Poison · Dark | — | Cloud r2.5 m for 4 s, 18 dps | Up to 3 clouds overlap, ignores armor |
 | G | **Epic Frost Wyrm** | Elven | Fuse 2 × L3 Elven + 100 g | Magic · Aqua | ✓ | Breath cone 7 m, 60 dmg, 1.2 s | 50% slow 3 s; every 5th breath freezes 1 s. Wyrm coils the spire, 1.4× scale. |
@@ -213,9 +226,47 @@ Every creep element has exactly one counter family. Each wave announces its elem
 
 **Targeting** is a fixed trait of each tower type; the player never aims. Every tower shoots the creep closest to the gate except the Plague Necropolis (closest uninfected creep first).
 
+### 7.1 Reach
+
+A tower attacks only creeps on the 3 × 3 block of tiles around it: its own tile and the eight next to it. The block's edges count, so a creep walking a tile border, as flyers do on the portal-to-gate line, is reached from both sides alike. This holds for every attack: the Ancient of Roots' nova and the Frost Wyrm's breath hit only creeps in the block, and the Demolisher has no minimum range. Splash, poison clouds, craters, frost rings and the Bard's aura keep their sizes, and the Ballista's bolt and the Sunfire Ballista's lance aim at a creep in reach and fly on along their line as far as before. Placing, hovering or selecting a tower shows its block as a square (§10).
+
+A long road matters only where it runs past towers, so the maze is a matter of lining the road with them; a tile beside two corridors of the maze reaches both. Classic: each tower reaches the range in metres from the table above, shown as a ring.
+
+### 7.2 Tower power
+
+Under the default rules a tower deals a share of its table damage, set per tower and level, on every hit, poison stack, cloud and crater:
+
+| Towers | Power |
+|---|---|
+| Ballista, Demolisher, Frost Spire, Ancient of Roots, Shadow Obelisk, Runesmith Forge (every tower that needs an element but the Plague Cauldron) | 140% |
+| Archer | 100% at L1, 85% at L2, 80% at L3 (9, 12.75 and 19.2 damage) |
+| Cannon, Bard's Pavilion, Plague Cauldron, every Epic | 100% |
+
+The table priced the elemental towers for their range, which reaching only the tiles around them took away, and at full damage the Archer's upgrades were among the best buys per gold in the game ([balance.md](balance.md#element-td-rules-retune-after-element-picks-2026-10-04)). Cards, tooltips and the upgrade preview show the damage these rules deal. Classic: every tower deals its table damage.
+
+### 7.3 Elements and picks
+
+Each of the six elements has a level from 0 to 3, all 0 at the start. A tower of an element can be built only with that element at level 1, upgraded to L2 only at level 2, and to L3 only at level 3: Ballista needs Light, Demolisher Flame, Frost Spire Aqua, Plague Cauldron and Shadow Obelisk Dark, Ancient of Roots Verdant, Runesmith Forge Stone. A refused build or upgrade says why ("Needs Aqua", "Needs Aqua level 2"). Archer, Cannon and Bard need nothing, and an Epic needs only its two L3 parents.
+
+| Rule | Value |
+|---|---|
+| Element picks | One at the start and one as each of waves 5, 10, 15, 20, 25, 30 and 35 is cleared: 8 in all, against 18 element levels, so no game has everything. Infinite mode adds none after wave 35. A pick is kept until the player spends it, on one level of an element or on Interest. |
+| First pick | The first pick spent on an element grants its level at once. |
+| Guardians | Every later element pick summons a Guardian of that element instead: a boss that enters at the portal at once, whatever the phase, and grants the level only when it dies. It has 0.35, 0.8 or 1.2 times the HP of a lone Ogre of the current wave for level 1, 2 or 3, taking the share, the difficulty and the map multiplier of §8 but no boss wave's own scaling, armor 8 and speed 2.0 m/s, pays no bounty, costs 3 lives when it leaks and walks again until killed. It is drawn as the Ogre, 15% larger. A wave counts as cleared only once its Guardians are dead too, and no second pick can go on an element while its Guardian walks. |
+| Interest picks | A pick spent on Interest adds 1 point to the interest rate and 10 gold to the cap per tick, up to three times (5% and 50 gold). It summons no Guardian. |
+
+The HUD for all of this is in §11.2. Classic: there are no element levels or picks, and every tower is open from the start.
+
 ## 8. Creeps
 
-`HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × mode multiplier` → about 147 at wave 10, 400 at 20, 1086 at 30, 2950 at 40 (before type multiplier). Tuned by the balance bots; see [balance.md](balance.md).
+`HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × share × difficulty multiplier × map multiplier` (Infinite adds its growth past wave 40, §5).
+
+- **The curve** `60 × 1.105^(wave − 1)` is about 147 at wave 10, 400 at 20, 1086 at 30 and 2950 at 40, before the type multiplier.
+- **The share** climbs in a straight line from 0.10 on wave 1 to 0.68 on wave 40. Armored creeps climb to 0.70 on a squared curve instead, never below the line, so waves 3 and 7 barely change and late armor needs siege. The wave-10 Ogre gets 2.1 times its share and the Dreadlord 0.3 of it, on top of the wave table's own boss scale below.
+- **The difficulty multiplier** is in §5, and **the map multiplier** is 1 except on the Winding Causeway, which has its own ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)).
+- A wave's groups are then split over 1.5 times the creeps (§9.1), each with its matching part of this HP: the 15 Grunts of wave 1 have 4 HP each.
+
+Classic: `HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × mode multiplier`, the full curve, with Hard's multiplier from §5 as the mode multiplier. Tuned by the balance bots; see [balance.md](balance.md).
 
 | Creep | Class | Armor | Speed m/s | HP × | Mechanic |
 |---|---|---|---|---|---|
@@ -229,6 +280,7 @@ Every creep element has exactly one counter family. Each wave announces its elem
 | Ogre Boss | Boss | 8 | 2.0 | 12 (×2.2 on wave 10, ×3.2 on wave 20, ×0.9 on wave 30) | Aura r6 m: escorts +3 armor, +10% speed (not other bosses). Leak −2. |
 | Dreadlord | Boss | 12 | 1.8 | 27 | Summons 3 Felhounds every 10 s. Leak −2. |
 | Felhound (summon) | Light | 2 | 4.0 | 0.6 | Dreadlord summon, Dark element |
+| Guardian (element pick) | Boss | 8 | 2.0 | Set by the pick (§7.3) | Summoned by an element pick; grants that element's level when it dies. No bounty. Leak −3. |
 
 Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom-out, and walk / hit / death animations.
 
@@ -258,7 +310,20 @@ Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom
 | 9 | 12 Footmen + 4 Priestesses | Aqua | Armor + heal |
 | 10 | Ogre Chieftain + 8 Grunts | Flame | Boss aura, −2 leak |
 
-The full 40-row table is in `src/data/wave_defs.gd`. Elements rotate so each one appears 6–7 times.
+The full 40-row table is in `src/data/wave_defs.gd`. Elements rotate so each one appears 6–7 times. The counts above are the table's, which classic plays as written (8 to 24 creeps a wave); the default rules reshape every wave as below, to 11 to 36 creeps.
+
+### 9.1 Wave shapes
+
+Element TD sends long streams, so the default rules change each wave's shape but not its total HP or gold:
+
+| Rule | Value |
+|---|---|
+| Wave size | Every group except a boss has 1.5 times the creeps, rounded up (wave 1: 15 Grunts), entering 0.6 s apart (Wolf Riders 0.35 s; Stampede still halves the gap). Each creep has the matching share of the group's HP and bounty, so a wave's totals stay what the table gives. |
+| Composite waves | Waves 14, 27 and 34 wear composite armor (§6.5). |
+| Bulky waves | Waves 12, 18, 25 and 37 send half as many creeps, rounded up, each with twice the HP and twice the bounty, so a Bulky wave carries the HP of the wave it replaces. A Bulky creep that leaks costs 2 lives, like a boss, and is drawn 1.3 times larger. The next-wave chip, its tooltip, the banner and the Field Guide tag the wave Bulky. |
+| Preview | With 30 s between waves, the top bar shows the wave after next beside the next-wave chip. |
+
+Infinite's replays of waves 34 and 37 keep their composite and Bulky shapes. Classic: the table's counts, 0.9 s apart (Wolf Riders 0.5 s), no composite or Bulky waves.
 
 ## 10. Controls and camera
 
@@ -275,14 +340,16 @@ The full 40-row table is in `src/data/wave_defs.gd`. Elements rotate so each one
 | `R` | Hero view (reset to the default 3/4 camera) |
 | `C` / `B` | Cycle camera presets (full board, portal close-up, gate defense) / toggle boss tracking |
 | `H` | Field Guide (§11.1) |
-| Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag (Alt-drag on PC) orbit, `Q`/`E` rotate, trackpad two-finger pan and pinch zoom on Mac. Windows and Linux touchpads zoom with a two-finger swipe, scaled to the swipe's size. All damped. On Windows and Linux, `F11` or `Alt`+`Enter` toggles fullscreen. |
+| `E` | While an element pick waits: open the pick panel (§11.2). Otherwise it rotates the camera. |
+| Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag (Alt-drag on PC) orbit, `Q`/`E` rotate (`Q` only while a pick waits), trackpad two-finger pan and pinch zoom on Mac. Windows and Linux touchpads zoom with a two-finger swipe, scaled to the swipe's size. All damped. On Windows and Linux, `F11` or `Alt`+`Enter` toggles fullscreen. |
 
-The range ring shows only for the hovered or selected tower (and for the ghost while placing).
+A tower's reach shows only for the hovered or selected tower (and for the ghost while placing): a square around the 3 × 3 tiles it reaches, with pale dots along the straight line the flyers take. Classic: a range ring.
 
 ## 11. HUD
 
-- **Top bar:** gold · lives · wave n/40 with next-wave chip (icons, element, class, skull) · interest ring + next payout · speed · pause · mode · quality · camera presets · Field Guide.
-- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable. Epic cards light up when a fusion is possible.
+- **Top bar:** element levels and the pick chip (§11.2) · gold · lives · wave n/40 with next-wave chip (icons, element, class, skull, composite or Bulky tag) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
+- **Setup panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
+- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock. Epic cards light up when a fusion is possible.
 - **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
@@ -299,7 +366,13 @@ In the spirit of a Warcraft III map's quest log and timed hints. All advice is c
 | Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
 | Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
 
-The welcome card and the Field Guide are modal: no key reaches the game behind them, `Esc` closes the topmost, and `Space` or `Enter` also begin from the welcome. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it.
+The welcome card and the Field Guide are modal: no key reaches the game behind them, `Esc` closes the topmost, and `Space` or `Enter` also begin from the welcome. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
+
+### 11.2 Element picks on the HUD
+
+The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, the towers that level opens, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused.
+
+Locked cards are dimmed with a lock and can't be chosen ("Needs Aqua: pick an element (E)"), and a blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached. None of this appears under classic rules.
 
 ## 12. World life and juice (checklist)
 
@@ -339,4 +412,4 @@ All presets: soft-shadow filter "low" with plain PCF (no PCSS blocker search), l
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per mode (Twists runs keep their own: `normal_twists`, `hard_twists_infinite`, …; `eletd` runs end in `_eletd`, from `easy_eletd` to `very_hard_eletd`), quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per map, rule set and mode (default-rules runs end in `_eletd`, from `easy_eletd` to `very_hard_eletd`; classic runs keep the keys from before the rule sets existed, such as `normal` and `hard`; Twists runs keep their own, such as `normal_twists_eletd` or `hard_twists_infinite`; maps other than the Citadel Plateau prefix the map, as in `causeway_normal_eletd`), the last map and rule set picked, quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.

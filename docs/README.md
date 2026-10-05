@@ -4,7 +4,7 @@
 
 ## Overview
 
-Maze Citadel is a single-player maze tower defense game for Apple silicon Macs, built with Godot 4.7. You wall a plateau with towers to stretch the road that creeps have to walk from a demon portal to the town gate, and you hold that gate for forty waves. The [README](../README.md) has the full introduction and a guide to playing.
+Maze Citadel is a single-player maze tower defense game for Mac, Windows and Linux, built with Godot 4.7. You wall a plateau with towers to stretch the road that creeps have to walk from a demon portal to the town gate, and you hold that gate for forty waves. It plays by Element TD's rules: each tower reaches only the tiles around it, and you earn the elements your towers need through eight element picks, most of which summon a Guardian you have to kill first. There are three maps and four difficulties, and the classic rules of version 0.3.1 are one click away. The [README](../README.md) has the full introduction and a guide to playing.
 
 This folder holds everything else that's written down about the game. If you want to get it running, start with the install guide. If you want to read the code, start with the architecture page.
 
@@ -18,8 +18,8 @@ This folder holds everything else that's written down about the game. If you wan
 
 | Document | Read it when |
 |---|---|
-| [GDD.md](GDD.md) | You want the exact rules: every tower, creep, wave and mode, with the numbers |
-| [maps.md](maps.md) | You want to know how the two maps differ, or how a map is defined in the code |
+| [GDD.md](GDD.md) | You want the exact rules: every tower, creep, wave, element pick and difficulty, with the numbers, and how the classic rules differ |
+| [maps.md](maps.md) | You want to know how the three maps differ, or how a map is defined in the code |
 
 ## How it's built and shipped
 
