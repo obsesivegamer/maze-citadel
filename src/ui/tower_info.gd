@@ -101,6 +101,8 @@ static func blurb(id: StringName) -> String:
 	var text: String = BLURBS.get(id, "")
 	if not adjacent_reach:
 		return text
+	if id == &"archer":
+		text += " Strong against Air: keep some beside the flight line."
 	return text.replace(" Can't hit closer than 4 m.", "").replace(" Level 3 fires two arrows.", "")
 
 
@@ -186,7 +188,13 @@ static func counter_parts(id: StringName) -> Array:
 	else:
 		out.append([&"strong", "Strong vs " + ELEMENT_NAMES[strong_against(def.element)]])
 		out.append([&"weak", "Weak vs " + ELEMENT_NAMES[weak_against(def.element)]])
-	var bonus := _class_names(classes_by_mult(def.attack, true))
+	var better := classes_by_mult(def.attack, true)
+	# eletd: flyers are a wave's own problem, so a tower that hits them hard says so first.
+	if adjacent_reach and def.get("air", false) and &"air" in better:
+		better.erase(&"air")
+		var m := Damage.class_mult(def.attack, &"air")
+		out.append([&"strong", "Strong vs Air: %s" % Counsel.pct(m, false)])
+	var bonus := _class_names(better)
 	if bonus != "":
 		out.append([&"bonus", "Bonus vs " + bonus])
 	var poor := _class_names(classes_by_mult(def.attack, false))
@@ -265,6 +273,27 @@ static func next_level_preview(id: StringName, level: int) -> String:
 		if a != b:
 			parts.append("%s %s → %s" % [row[2], fmt_value(a, row[3]), fmt_value(b, row[3])])
 	return SEP.join(parts) if not parts.is_empty() else "Stronger effect"
+
+
+## The plaque's damage line: "12.3k dmg", and under eletd its share of all
+## the damage towers have dealt this game, "12.3k dmg · 8% of all".
+static func damage_text(sim: GameSim, t: SimTower) -> String:
+	var text := fmt_big(t.damage_dealt) + " dmg"
+	if not sim.adjacent_reach() or t.damage_dealt <= 0.0:
+		return text
+	var total := 0.0
+	for other: SimTower in sim.towers.values():
+		total += other.damage_dealt
+	return text + "%s%d%% of all" % [SEP, roundi(100.0 * t.damage_dealt / total)]
+
+
+## The plaque's line on flyers for a wing-icon tower under eletd, or "".
+static func air_note(sim: GameSim, t: SimTower) -> String:
+	if not sim.adjacent_reach() or not t.stat("air", false):
+		return ""
+	if AirCover.chord(sim.grid, t.tile) > 0.0:
+		return "Beside the flight line: meets every flyer"
+	return "Away from the flight line: flyers never come in reach"
 
 
 static func fmt_value(v: float, fmt: String) -> String:

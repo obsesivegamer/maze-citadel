@@ -256,3 +256,47 @@ func test_only_a_wing_icon_choice_tints_the_tiles() -> void:
 		check(AirCover.tints_for(id), "%s hits air" % id)
 	for id in [&"cannon", &"bard", &"demolisher", &"roots", &"shadow", &""]:
 		check(not AirCover.tints_for(id), "%s doesn't" % id)
+
+
+func test_the_archer_says_it_is_strong_against_air() -> void:
+	TowerInfo.adjacent_reach = true
+	TowerInfo.composite = true
+	var archer := TowerInfo.counters(&"archer")
+	var blurb := TowerInfo.blurb(&"archer")
+	var ballista := TowerInfo.counters(&"ballista")
+	var frost := TowerInfo.counters(&"frost")
+	TowerInfo.adjacent_reach = false
+	TowerInfo.composite = false
+	check_eq(archer, "100% against everything · Strong vs Air: 175% · Bonus vs Light")
+	check_eq(blurb, "Cheap maze filler. Strong against Air: keep some beside the flight line.")
+	check(ballista.contains("Strong vs Air: 175%"), ballista)
+	check(not frost.contains("Air"), "magic hits air at 100%: " + frost)
+	check_eq(
+		TowerInfo.counters(&"archer"),
+		"Strong vs Dark · Weak vs Stone · Bonus vs Air/Light",
+		"classic as released"
+	)
+
+
+func test_the_plaque_says_what_a_tower_did_and_whether_it_meets_flyers() -> void:
+	var sim := _eletd()
+	for tile in [Vector2i(9, 10), Vector2i(15, 10), Vector2i(10, 14)]:
+		check_eq(sim.build(tile, &"archer" if tile.y < 14 else &"cannon"), Placement.Result.OK)
+	var near := sim.tower_at(Vector2i(9, 10))
+	var far := sim.tower_at(Vector2i(15, 10))
+	var cannon := sim.tower_at(Vector2i(10, 14))
+	check_eq(TowerInfo.air_note(sim, near), "Beside the flight line: meets every flyer")
+	check_eq(TowerInfo.air_note(sim, far), "Away from the flight line: flyers never come in reach")
+	check_eq(TowerInfo.air_note(sim, cannon), "", "a ground-only tower says nothing")
+	check_eq(TowerInfo.damage_text(sim, near), "0 dmg", "nothing dealt yet")
+	near.damage_dealt = 300.0
+	far.damage_dealt = 100.0
+	check_eq(TowerInfo.damage_text(sim, near), "300 dmg · 75% of all")
+	near.damage_dealt = 15_000.0
+	check_eq(TowerInfo.damage_text(sim, near), "15.0k dmg · 99% of all")
+	var classic := GameSim.new()
+	classic.build(Vector2i(9, 10), &"archer")
+	var t := classic.tower_at(Vector2i(9, 10))
+	t.damage_dealt = 300.0
+	check_eq(TowerInfo.damage_text(classic, t), "300 dmg", "classic as released")
+	check_eq(TowerInfo.air_note(classic, t), "")
