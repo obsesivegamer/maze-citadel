@@ -192,10 +192,16 @@ func _build_welcome() -> void:
 	outro.text = (
 		(
 			"For the first %d waves a counsel card names the next wave's counters and lights up the"
-			+ " towers to build. The Field Guide (H) keeps the rules at hand."
+			+ " towers to build. The Field Guide (H) keeps the rules at hand, and Esc opens"
+			+ " the menu."
 		)
 		% Counsel.TUTORIAL_WAVES
 	)
+	if _game.sim.adjacent_reach():
+		outro.text += (
+			"\n[b]Flyers skip the maze[/b] and follow the pale blue arrows straight to the gate:"
+			+ " only towers with the wing icon beside that line hit them."
+		)
 	if _game.sim.elements.enabled:
 		outro.text += (
 			(
