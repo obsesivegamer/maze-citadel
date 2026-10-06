@@ -359,7 +359,7 @@ A tower's reach shows only for the hovered or selected tower (and for the ghost 
 - **Selected tower:** a small plaque floating above the tower: upgrade, sell, fuse, counters, kills and damage dealt, and under eletd the damage's share of all the towers' and, for a tower that hits air, whether it stands beside the flight line. No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
-- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (a second click confirms; the map, rules and mode stay), New game setup (the same, but opening on the setup panel, §5), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Settings and the Field Guide open over it and `Esc` returns to it.
+- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (the map, rules and mode stay), New game setup (the same, but opening on the setup panel, §5), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Restart, New game setup and Quit end the game, so each first asks for a second click ("Click again to restart"); any other button, or closing the menu, takes the question back. Settings and the Field Guide open over it and `Esc` returns to it.
 
 ### 11.1 Teaching the counters
 

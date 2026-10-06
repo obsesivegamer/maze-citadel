@@ -1,9 +1,10 @@
 class_name PauseMenu
 extends UiModal
 ## The pause menu (Esc with nothing open or selected, GDD §10): Resume,
-## Restart (a second click confirms), New game setup, Settings, the Field
-## Guide and Quit to desktop. It pauses the game while open; Settings and the
-## Field Guide open over it and return to it.
+## Restart, New game setup, Settings, the Field Guide and Quit to desktop.
+## Restart, New game setup and Quit end the game, so each asks for a second
+## click first. It pauses the game while open; Settings and the Field Guide
+## open over it and return to it.
 
 signal settings_requested
 signal guide_requested
@@ -19,10 +20,17 @@ const BUTTONS := [
 	[&"guide", "Field Guide (H)"],
 	[&"quit", "Quit to desktop"],
 ]
+## What a button that ends the game reads while it waits for the second click.
+const CONFIRM := {
+	&"restart": "Click again to restart",
+	&"setup": "Click again for a new setup",
+	&"quit": "Click again to quit",
+}
 
 var _mode := UiKit.label("", &"Caption", UiTheme.SIZE_SMALL)
 var _buttons := {}
-var _confirming := false
+## The button waiting for its second click, or &"".
+var _confirming: StringName = &""
 
 
 func setup(game: Game) -> void:
@@ -38,11 +46,6 @@ func setup(game: Game) -> void:
 		_buttons[b[0]] = button
 
 
-## Restart's label: a first click asks before the game is thrown away.
-static func restart_text(confirming: bool) -> String:
-	return "Click again to restart" if confirming else "Restart"
-
-
 func open() -> void:
 	var sim := _game.sim
 	_mode.text = (
@@ -55,7 +58,7 @@ func open() -> void:
 		)
 		. to_upper()
 	)
-	_set_confirming(false)
+	_set_confirming(&"")
 	open_modal()
 
 
@@ -72,16 +75,15 @@ func button_text(action: StringName) -> String:
 
 ## What each button does; the HUD's keys and the tests press them here.
 func press(action: StringName) -> void:
-	if action != &"restart":
-		_set_confirming(false)
+	if action in CONFIRM and _confirming != action:
+		_set_confirming(action)
+		return
+	_set_confirming(&"")
 	match action:
 		&"resume":
 			close_modal()
 		&"restart":
-			if _confirming:
-				_game.play_again()
-			else:
-				_set_confirming(true)
+			_game.play_again()
 		&"setup":
 			_game.change_setup()
 		&"settings":
@@ -92,6 +94,10 @@ func press(action: StringName) -> void:
 			_game.quit()
 
 
-func _set_confirming(on: bool) -> void:
-	_confirming = on
-	(_buttons[&"restart"] as Button).text = restart_text(on)
+## A first click on a button that ends the game asks before it is thrown
+## away; any other button, or closing the menu, takes the question back.
+func _set_confirming(action: StringName) -> void:
+	_confirming = action
+	for b in BUTTONS:
+		if b[0] in CONFIRM:
+			(_buttons[b[0]] as Button).text = CONFIRM[b[0]] if b[0] == action else b[1]
