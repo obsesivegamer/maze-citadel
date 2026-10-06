@@ -190,6 +190,10 @@ func test_estimate_is_rate_times_time_in_reach_over_hp() -> void:
 	var est := AirCover.estimate(sim, 5)
 	check_near(est.ratio, rate * (air.span + 6.0 / flyers[0].speed) / hp, 1e-6)
 	check_near(est.hp, hp, 1e-6)
+	sim.build(Vector2i(10, 16), &"archer")
+	var kept := AirCover.estimate(sim, 5, air)
+	check_eq(kept, AirCover.estimate(sim, 5), "the top bar's kept flyers give the same estimate")
+	check_eq(AirCover.estimate(sim, 4, AirCover.wave_flyers(sim, 4)), {}, "and none for wave 4")
 
 
 func test_verdicts_and_wording() -> void:
