@@ -59,6 +59,8 @@ var is_booted := false
 ## This match's record (docs/playtests.md); null until boot, and for the
 ## warm-up stage, which never boots.
 var play_log: PlayLog
+## False for a scripted run (records_for), which writes no record.
+var records := true
 
 var world: World
 var camera: CameraRig
@@ -108,6 +110,7 @@ func _init() -> void:
 			"--difficulty=%s is not offered under %s rules; playing normal" % [level, sim.rules]
 		)
 	_apply_cli_picks()
+	records = records_for(Cli.args())
 	_carry = {}
 
 
@@ -303,9 +306,19 @@ func _flush() -> void:
 
 
 ## A bot's game is not recorded: it acts on the sim directly, and the balance
-## tool already measures it.
+## tool already measures it. Nor is a scripted run's (records_for).
 func _recording() -> bool:
-	return play_log != null and autoplay == null
+	return records and play_log != null and autoplay == null
+
+
+## Captures, benchmarks, launch probes and warps (Tutorial.SCRIPTED_FLAGS)
+## would fill the playtests folder with games nobody played. --no-tutorial
+## is left out: a person can launch with it and play.
+static func records_for(args: Dictionary) -> bool:
+	for flag in Tutorial.SCRIPTED_FLAGS:
+		if flag != "no-tutorial" and args.has(flag):
+			return false
+	return true
 
 
 ## Writes the match's record so far, unless the player turned the files off

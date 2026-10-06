@@ -159,9 +159,10 @@ func test_the_file_is_written_once_something_happened() -> void:
 
 ## A booted Game's record, without the tree: the player's actions go through
 ## the Game the way the HUD sends them.
-func _played_game() -> Game:
+func _played_game(records := true) -> Game:
 	Game._carry = {"rules": &"eletd", "difficulty": &"very_hard"}
 	var game := Game.new()
+	game.records = records
 	game.play_log = PlayLog.new()
 	game.build_choice = &"archer"
 	# Paused at the start: several actions on one step.
@@ -217,6 +218,24 @@ func test_no_file_when_records_are_off_or_a_bot_plays() -> void:
 	Save.set_setting(PlayLog.SETTING, true)
 	game.autoplay = Bot.new(game.sim, &"smart")
 	check_eq(game.save_play_log(), "", "a bot's game")
+	game.free()
+	_restore()
+
+
+## A capture, benchmark or launch probe with no bot still plays a Game:
+## its flags keep it out of the playtests folder.
+func test_no_file_from_a_scripted_run() -> void:
+	PlayLog.dir = "user://test_playtests"
+	Save.path = "user://test_play_log.cfg"
+	Save._cfg = ConfigFile.new()
+	for flag in ["shot", "bench", "first-frame-out", "warp-wave", "autoplay"]:
+		check(not Game.records_for({flag: "true"}), "--%s writes no record" % flag)
+	check(Game.records_for({}), "a player's launch does")
+	check(Game.records_for({"map": "rampart", "difficulty": "hard"}), "with a map or level")
+	check(Game.records_for({"no-tutorial": "true"}), "and one that only skips the tutorial")
+	var game := _played_game(false)
+	check_eq(game.save_play_log(), "", "a scripted run's game")
+	check(not FileAccess.file_exists(game.play_log.file_path(game.sim)), "nothing written")
 	game.free()
 	_restore()
 

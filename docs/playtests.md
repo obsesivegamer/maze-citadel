@@ -14,7 +14,7 @@ Each game gets one file in the `playtests` folder inside the game's data folder:
 
 **Settings → Playtest → Open the records folder** opens it for you. A file is named after the moment the game began, the map and the difficulty, for example `2026-10-05T21-14-03_citadel_very_hard.json`.
 
-The game writes the file again when a wave starts, when a wave is cleared, when the game ends and when you quit or restart, so a game you leave halfway keeps its record up to that point. A game in which you did nothing and no wave started leaves no file. Games the autoplay bot plays aren't recorded.
+The game writes the file again when a wave starts, when a wave is cleared, when the game ends and when you quit or restart, so a game you leave halfway keeps its record up to that point. A game in which you did nothing and no wave started leaves no file. Games the autoplay bot plays aren't recorded, and neither are scripted runs: a launch with `--shot`, `--bench`, `--first-frame-out` or `--warp-wave` (captures, benchmarks and launch probes) writes no file.
 
 To stop the files, turn off **Settings → Playtest → Game records**. Files already written stay until you delete them, and deleting them is always safe.
 
