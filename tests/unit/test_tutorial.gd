@@ -93,20 +93,103 @@ func test_modals_keep_keys_from_the_game() -> void:
 	var h := _key(KEY_H)
 	var n := _key(KEY_N)
 	var one := _key(KEY_1)
-	check_eq(Hud.modal_action(n, false, false), &"", "no modal: keys reach the game")
-	check_eq(Hud.modal_action(esc, false, false), &"", "Esc still deselects")
-	check_eq(Hud.modal_action(h, false, false), &"open_guide")
-	for k in [space, n, one]:
-		check_eq(Hud.modal_action(k, true, false), &"swallow", "guide blocks %s" % k.as_text())
-		check_eq(Hud.modal_action(k, true, true), &"swallow", "guide over welcome")
-	check_eq(Hud.modal_action(esc, true, false), &"close_guide")
-	check_eq(Hud.modal_action(h, true, false), &"close_guide")
-	check_eq(Hud.modal_action(esc, true, true), &"close_guide", "topmost first")
+	var f10 := _key(KEY_F10)
+	check_eq(Hud.modal_action(n, &"", true), &"", "no modal: keys reach the game")
+	check_eq(Hud.modal_action(f10, &"", true), &"settings", "F10, as the gear's tooltip says")
+	check_eq(Hud.modal_action(esc, &"", false), &"", "Esc still deselects or cancels first")
+	check_eq(Hud.modal_action(esc, &"", true), &"open_menu", "then opens the pause menu")
+	check_eq(Hud.modal_action(h, &"", true), &"open_guide")
+	for top in [&"guide", &"settings", &"menu", &"setup", &"welcome", &"end"]:
+		for k in [space, n, one]:
+			if not (top in [&"welcome", &"setup"] and k == space):
+				check_eq(
+					Hud.modal_action(k, top, true), &"swallow", "%s blocks %s" % [top, k.as_text()]
+				)
+	for top in [&"guide", &"settings", &"menu"]:
+		check_eq(Hud.modal_action(esc, top, true), &"close", "Esc closes the %s" % top)
+	check_eq(Hud.modal_action(h, &"guide", true), &"close", "H closes the guide")
+	check_eq(Hud.modal_action(f10, &"guide", true), &"swallow", "no Settings over the guide")
+	check_eq(Hud.modal_action(f10, &"settings", true), &"close", "F10 closes Settings")
+	check_eq(Hud.modal_action(h, &"settings", true), &"swallow", "no guide over Settings")
+	check_eq(Hud.modal_action(h, &"menu", true), &"open_guide", "the menu opens the guide")
+	check_eq(Hud.modal_action(f10, &"menu", true), &"settings", "and Settings")
 	for k in [esc, space, enter]:
-		check_eq(Hud.modal_action(k, false, true), &"begin", "%s begins" % k.as_text())
-	check_eq(Hud.modal_action(h, false, true), &"open_guide", "guide over the welcome")
-	check_eq(Hud.modal_action(n, false, true), &"swallow", "no early wave")
-	check_eq(Hud.modal_action(one, false, true), &"swallow", "no build pick")
+		check_eq(Hud.modal_action(k, &"welcome", true), &"begin", "%s begins" % k.as_text())
+	check_eq(Hud.modal_action(h, &"welcome", true), &"open_guide", "guide over the welcome")
+	check_eq(Hud.modal_action(f10, &"welcome", true), &"swallow", "no Settings over the welcome")
+	for k in [space, enter]:
+		check_eq(Hud.modal_action(k, &"setup", true), &"start", "%s starts" % k.as_text())
+	check_eq(Hud.modal_action(esc, &"setup", true), &"swallow", "Esc can't skip the setup")
+	check_eq(Hud.modal_action(h, &"setup", true), &"open_guide", "guide over the setup")
+	check_eq(Hud.modal_action(f10, &"setup", true), &"settings", "and Settings")
+	for k in [esc, h, f10]:
+		check_eq(
+			Hud.modal_action(k, &"end", true), &"swallow", "the end screen keeps %s" % k.as_text()
+		)
+	check_eq(Hud.topmost({}), &"", "nothing open")
+	check_eq(Hud.topmost({&"guide": true, &"welcome": true}), &"guide", "guide over welcome")
+	check_eq(Hud.topmost({&"menu": true, &"settings": true}), &"settings", "Settings over menu")
+	check_eq(Hud.topmost({&"menu": true, &"guide": true}), &"guide", "guide over the menu")
+	check_eq(Hud.topmost({&"menu": true, &"guide": false}), &"menu", "closing returns to it")
+	check_eq(Hud.topmost({&"setup": true, &"settings": true}), &"settings", "Settings over setup")
+	check_eq(Hud.topmost({&"setup": true, &"welcome": true}), &"setup", "setup over the welcome")
+	check_eq(Hud.topmost({&"menu": true, &"setup": true}), &"setup", "drawn over the menu")
+	check_eq(Hud.topmost({&"menu": true, &"end": true}), &"end", "the end screen is drawn over all")
+
+
+## The HUD and the builder are up frames before the loading screen goes:
+## until boot no key starts, pauses or opens anything under it, and the
+## camera's WASD and Q/E (polled, so past the HUD) hold under every modal.
+func test_nothing_takes_keys_until_boot_and_the_camera_holds_under_modals() -> void:
+	InputSetup.register()
+	var keys := [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_H, KEY_N, KEY_1, KEY_F10]
+	for code: Key in keys:
+		var k := _key(code)
+		check_eq(
+			Hud.modal_action(k, &"loading", true), &"swallow", "loading keeps %s" % k.as_text()
+		)
+	check_eq(Hud.topmost({&"loading": true, &"setup": true}), &"loading", "over everything")
+	Game._carry = {"rules": &"eletd"}
+	var game := Game.new()
+	game.camera = CameraRig.new()
+	var hud := Hud.new()
+	hud.setup(game)
+	game.hud = hud
+	check_eq(hud._top_modal(), &"loading", "the HUD's keys wait for boot")
+	var builder := BuildController.new()
+	Game._carry = {"rules": &"eletd"}
+	var bare := Game.new()
+	builder.setup(bare)
+	for code: Key in [KEY_N, KEY_SPACE, KEY_1]:
+		builder._unhandled_input(_key(code))
+	check(bare.sim.wave == 0 and not bare.paused, "N and Space do nothing while loading")
+	check_eq(bare.build_choice, &"archer", "nor a build key")
+	bare.is_booted = true
+	builder._unhandled_input(_key(KEY_N))
+	check_eq(bare.sim.wave, 1, "after boot N calls the wave")
+	var rig := CameraRig.new()
+	rig._game = game
+	check(not rig.keys_steer(), "the camera holds under the loading screen")
+	game.is_booted = true
+	check_eq(hud._top_modal(), &"", "booted, nothing up")
+	check(rig.keys_steer(), "WASD and Q/E steer in play")
+	var modals := {&"menu": hud._menu, &"setup": hud._setup, &"settings": hud._settings}
+	modals[&"guide"] = hud._guide
+	modals[&"end"] = hud._end
+	for m: StringName in modals:
+		(modals[m] as Control).visible = true
+		check(not rig.keys_steer(), "and hold under the %s" % m)
+		(modals[m] as Control).visible = false
+		check(rig.keys_steer(), "until it closes")
+	builder.free()
+	bare.free()
+	rig.camera.free()
+	rig.free()
+	hud.free()
+	game.camera.camera.free()
+	game.camera.free()
+	game.free()
+	Game._carry = {}
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:

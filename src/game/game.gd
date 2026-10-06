@@ -25,7 +25,12 @@ const PREWARM_PER_TYPE := 2
 ## GameSim keeps classic, so tests and tools that build one are unchanged.
 const DEFAULT_RULES: StringName = &"eletd"
 
-## Map, rules and mode carried across the scene reload that switches map or rules.
+## The mode a player gets unless they pick another, and the settings keys
+## set_mode saves it under for the next launch.
+const DEFAULT_MODE := {"difficulty": "normal", "infinite": false, "twists": false}
+
+## Map, rules and mode carried across the scene reload that switches map or
+## rules, or plays again.
 static var _carry := {}
 
 var sim: GameSim
@@ -54,6 +59,8 @@ var is_booted := false
 ## This match's record (docs/playtests.md); null until boot, and for the
 ## warm-up stage, which never boots.
 var play_log: PlayLog
+## False for a scripted run (records_for), which writes no record.
+var records := true
 
 var world: World
 var camera: CameraRig
@@ -70,8 +77,10 @@ var _loading: LoadingScreen
 
 
 ## The map comes from a map switch in progress, else --map, else the last
-## pick; the rules the same way (choose_rules). A map the rules don't offer
-## (MapDefs.offered) gives way to the default one.
+## pick; the rules the same way (choose_rules), and the mode too
+## (choose_mode). A map the rules don't offer (MapDefs.offered) gives way to
+## the default one, and a difficulty they don't offer to Normal. Twists
+## without a seed deal a fresh schedule.
 func _init() -> void:
 	var rules := choose_rules(_carry.get("rules"), Cli.get_str("rules"), Save.setting("rules", ""))
 	var map := StringName(_carry.get("map", Cli.get_str("map", Save.setting("map", ""))))
@@ -80,17 +89,28 @@ func _init() -> void:
 	if not MapDefs.has(map) or not MapDefs.offered(map, rules):
 		map = MapDefs.DEFAULT
 	sim = GameSim.new(map)
-	sim.infinite = _carry.get("infinite", false)
-	sim.twists = _carry.get("twists", false)
-	sim.twist_seed = _carry.get("twist_seed", 0)
+	var saved := {}
+	for key: String in DEFAULT_MODE:
+		saved[key] = Save.setting(key, DEFAULT_MODE[key])
+	var scripted := DisplayServer.get_name() == "headless"
+	for flag in Tutorial.SCRIPTED_FLAGS:
+		scripted = scripted or Cli.has(flag)
+	var mode := choose_mode(_carry, Cli.args(), saved, scripted)
+	sim.infinite = mode.infinite
+	sim.twists = mode.twists
+	sim.twist_seed = mode.twist_seed
+	if sim.twists and sim.twist_seed == 0:
+		sim.twist_seed = randi() | 1
 	sim.rules = rules
-	var level := StringName(_carry.get("difficulty", Cli.get_str("difficulty", "normal")))
+	var level: StringName = mode.difficulty
 	sim.difficulty = offered_difficulty(level, sim.rules)
-	if sim.difficulty != level and not _carry.has("difficulty"):
+	var flagged := Cli.get_str("difficulty") == level and not _carry.has("difficulty")
+	if sim.difficulty != level and flagged:
 		push_warning(
 			"--difficulty=%s is not offered under %s rules; playing normal" % [level, sim.rules]
 		)
 	_apply_cli_picks()
+	records = records_for(Cli.args())
 	_carry = {}
 
 
@@ -101,6 +121,28 @@ static func choose_rules(carried: Variant, flag: String, saved: String) -> Strin
 		if r != null and StringName(r) in GameSim.RULES:
 			return StringName(r)
 	return DEFAULT_RULES
+
+
+## Difficulty, Infinite, Twists and the Twists seed for the next match. A
+## carry (a map or rules switch, Play again, a tool setting a match up) gives
+## all of it, else the player's last choice (`saved`, which set_mode keeps);
+## --difficulty beats all but a carried difficulty. A `scripted` run
+## (headless, or a flag in Tutorial.SCRIPTED_FLAGS) passes the saved mode
+## over, so bots, benchmarks and captures play what their flags say.
+static func choose_mode(
+	carry: Dictionary, args: Dictionary, saved: Dictionary, scripted := false
+) -> Dictionary:
+	var mode := DEFAULT_MODE.duplicate()
+	mode["twist_seed"] = 0
+	if carry.is_empty() and not scripted:
+		for key: String in DEFAULT_MODE:
+			mode[key] = saved.get(key, mode[key])
+	if args.has("difficulty"):
+		mode.difficulty = args.difficulty
+	for key: String in mode:
+		mode[key] = carry.get(key, mode[key])
+	mode.difficulty = StringName(mode.difficulty)
+	return mode
 
 
 ## `level` if rule set `rules` offers it, else Normal: Easy and Very Hard
@@ -264,9 +306,19 @@ func _flush() -> void:
 
 
 ## A bot's game is not recorded: it acts on the sim directly, and the balance
-## tool already measures it.
+## tool already measures it. Nor is a scripted run's (records_for).
 func _recording() -> bool:
-	return play_log != null and autoplay == null
+	return records and play_log != null and autoplay == null
+
+
+## Captures, benchmarks, launch probes and warps (Tutorial.SCRIPTED_FLAGS)
+## would fill the playtests folder with games nobody played. --no-tutorial
+## is left out: a person can launch with it and play.
+static func records_for(args: Dictionary) -> bool:
+	for flag in Tutorial.SCRIPTED_FLAGS:
+		if flag != "no-tutorial" and args.has(flag):
+			return false
+	return true
 
 
 ## Writes the match's record so far, unless the player turned the files off
@@ -402,8 +454,9 @@ func set_quality(preset: Quality.Preset, remember := true) -> void:
 
 
 ## Mode can change only before wave 1 spawns (GDD §5). Turning Twists on
-## deals a fresh schedule unless a seed was already given (--seed).
-func set_mode(difficulty: StringName, infinite: bool, twists := false) -> bool:
+## deals a fresh schedule unless a seed was already given (--seed). The mode
+## is remembered for the next launch unless `remember` is false (--twists).
+func set_mode(difficulty: StringName, infinite: bool, twists := false, remember := true) -> bool:
 	if sim.wave > 0 or not difficulty in EletdRules.difficulties(sim.rules):
 		return false
 	sim.difficulty = difficulty
@@ -411,6 +464,10 @@ func set_mode(difficulty: StringName, infinite: bool, twists := false) -> bool:
 	if twists and not sim.twists and sim.twist_seed == 0:
 		sim.twist_seed = randi() | 1
 	sim.twists = twists
+	if remember:
+		Save.set_setting("difficulty", String(difficulty))
+		Save.set_setting("infinite", infinite)
+		Save.set_setting("twists", twists)
 	return true
 
 
@@ -443,6 +500,31 @@ func change_rules(rules: StringName) -> bool:
 	_carry = _carry_with({"rules": rules})
 	restart()
 	return true
+
+
+## A new match on the same map, under the same rules and mode (the end
+## screen's Play again). Twists deal a fresh schedule, as on a new launch.
+func play_again() -> void:
+	_carry = _carry_with({"twist_seed": 0})
+	restart()
+
+
+## A new match on the same setup, opening on the setup panel so it can be
+## changed before the clock starts (the pause menu's New game setup and the
+## end screen's Change setup).
+func change_setup() -> void:
+	SetupPanel.pending = true
+	play_again()
+
+
+## Quit to desktop (the pause menu and the end screen), keeping the record.
+func quit() -> void:
+	save_play_log()
+	_quit_tree()
+
+
+func _quit_tree() -> void:
+	get_tree().quit()
 
 
 ## This match's map, rules and mode with `changes`, for the next _init.

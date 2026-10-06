@@ -30,6 +30,9 @@ var obstacles := {}
 ## The fixed lane in walking order (MapDefs.lane); empty where the player
 ## builds the maze.
 var lane: Array[Vector2i] = []
+## Rows at the portal edge where nothing may be built (EletdRules.PORTAL_ROWS
+## under the Element TD rules, set by GameSim.rules); 0 leaves the board open.
+var portal_rows := 0
 
 var _blocked := PackedByteArray()
 ## Each tile's kind with nothing built on it: OPEN, or GROUND beside a lane.
@@ -75,8 +78,14 @@ static func tile_at(p: Vector2) -> Vector2i:
 	return Vector2i(floori(p.x / TILE), floori(p.y / TILE))
 
 
+## The portal, the gate or a tile of the band by the portal: nothing is built here.
 func is_reserved(t: Vector2i) -> bool:
-	return t in spawn_tiles or t in goal_tiles
+	return near_portal(t) or t in spawn_tiles or t in goal_tiles
+
+
+## A tile in the no-build band of `portal_rows` rows at the portal edge.
+func near_portal(t: Vector2i) -> bool:
+	return t.y < portal_rows
 
 
 func is_obstacle(t: Vector2i) -> bool:

@@ -11,7 +11,8 @@ extends SceneTree
 ## It plays the game's default rules, Element TD (Game.DEFAULT_RULES), where
 ## --only also takes smart:easy or smart:very_hard. --rules=classic plays the
 ## classic rules, which every classic table in docs/balance.md was measured on.
-## --per-wave also prints the unspent gold at each wave's start.
+## --per-wave also prints the unspent gold at each wave's start and the first
+## wave without a boss that leaked.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
 const RUNS := [
@@ -20,6 +21,8 @@ const RUNS := [
 	[&"archers", &"normal"],
 	[&"no_air", &"normal"],
 	[&"novice", &"normal"],
+	[&"camper", &"normal"],
+	[&"idle", &"normal"],
 ]
 const MAX_GAME_SECONDS := 6000.0
 ## A wave is a close call when some creep walked this much of its route.
@@ -93,6 +96,7 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 	var bot := Bot.new(sim, strategy, bot_seed)
 	var lost_at := {}
 	var walked := {}
+	var leaked := {}
 	var boss_walked := {}
 	var start := {}
 	var banked := {}
@@ -119,6 +123,7 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 					guardians.lives += e.cost
 					continue
 				walked[c.wave] = 1.0
+				leaked[c.wave] = true
 				if c.boss:
 					boss_walked[c.wave] = 1.0
 		for c in sim.creeps:
@@ -142,6 +147,10 @@ func _play(strategy: StringName, difficulty: StringName, bot_seed: int, twists: 
 		printerr("    walked %: ", ", ".join(cells))
 		var gold := banked.keys().map(func(w: int) -> String: return "%d:%d" % [w, banked[w]])
 		printerr("    unspent gold: ", ", ".join(gold))
+		var plain := leaked.keys().filter(func(w: int) -> bool: return not WaveDefs.has_boss(w))
+		printerr(
+			"    first non-boss leak: ", "w%d" % plain.min() if not plain.is_empty() else "none"
+		)
 	var close := 0
 	for w in walked:
 		if walked[w] >= CLOSE_CALL:

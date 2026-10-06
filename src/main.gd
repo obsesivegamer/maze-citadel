@@ -1,5 +1,6 @@
 extends Node3D
-## Entry point: opens straight into the citadel (GDD §1).
+## Entry point: opens into the citadel, behind the setup panel in a real
+## window (GDD §1, §5).
 ##
 ## User args (after `--`):
 ##   --scene=spike                              M1 render spike instead of the game
@@ -12,11 +13,14 @@ extends Node3D
 ##   --rules=eletd|classic                      rule set (default: the last pick, else eletd)
 ##   --difficulty=easy|normal|hard|very_hard    difficulty; classic offers normal and hard
 ##   --picks=aqua,dark,dark,interest            eletd: element levels set at the start, no Guardians
-##   --tutorial / --no-tutorial                 force the first-run tutorial on / off
+##   --tutorial / --no-tutorial                 force the first-run tutorial on / off;
+##                                              --no-tutorial also skips the setup panel
 ##   --warp-wave=<n> [--warp-into=<s>]          fast-forward to wave n (+ s seconds)
 ##   --select=<x,y|tower id>                    select a tower (the first of that kind)
-##   --open=pick|guide|elements|settings        open the pick panel (eletd), the Field Guide,
-##                                              its Elements and picks page (eletd) or Settings
+##   --open=pick|guide|elements|settings|menu|setup
+##                                              open the pick panel (eletd), the Field Guide,
+##                                              its Elements and picks page (eletd), Settings,
+##                                              the pause menu or the setup panel
 ##   --shot=<path prefix> --views=a,b,c          save one PNG per view, quit
 ##     [--shot-frames=<n>] [--shot-freeze]       n consecutive frames per view, game time stopped
 ##   --bench=<seconds> --bench-out=<json>        measure frame pacing, quit
@@ -51,8 +55,9 @@ func _ready() -> void:
 		game.autoplay = AutoplayBot.new(game.sim, StringName(Cli.get_str("strategy", "smart")))
 		game.choose_build(&"")
 	if Cli.has("twists"):
-		game.sim.twist_seed = int(Cli.get_str("seed", "0"))
-		game.set_mode(game.sim.difficulty, game.sim.infinite, true)
+		if Cli.has("seed"):
+			game.sim.twist_seed = int(Cli.get_str("seed"))
+		game.set_mode(game.sim.difficulty, game.sim.infinite, true, false)
 	if Cli.has("speed"):
 		game.speed = int(Cli.get_str("speed"))
 	# Diagnostic: hide whole subsystems to price them (--pf-hide=world,hud,...).

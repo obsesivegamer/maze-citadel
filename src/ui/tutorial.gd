@@ -171,6 +171,8 @@ func _build_welcome() -> void:
 			"\n[b]A tower reaches only the eight tiles around it[/b], so build the maze along the"
 			+ " road: every tile the creeps walk beside a tower is time under fire."
 		)
+	if _game.sim.grid.portal_rows > 0:
+		intro.text += " Nothing can be built on the red rows by the portal."
 	box.add_child(intro)
 	var row := UiKit.hbox(18)
 	var wheel := ElementWheel.new(WHEEL_PX, false)
@@ -192,10 +194,16 @@ func _build_welcome() -> void:
 	outro.text = (
 		(
 			"For the first %d waves a counsel card names the next wave's counters and lights up the"
-			+ " towers to build. The Field Guide (H) keeps the rules at hand."
+			+ " towers to build. The Field Guide (H) keeps the rules at hand, and Esc opens"
+			+ " the menu."
 		)
 		% Counsel.TUTORIAL_WAVES
 	)
+	if _game.sim.adjacent_reach():
+		outro.text += (
+			"\n[b]Flyers skip the maze[/b] and follow the pale blue arrows straight to the gate:"
+			+ " only towers with the wing icon beside that line hit them."
+		)
 	if _game.sim.elements.enabled:
 		outro.text += (
 			(

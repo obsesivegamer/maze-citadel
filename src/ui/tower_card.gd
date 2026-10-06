@@ -3,7 +3,8 @@ extends Button
 ## One bottom-bar card (GDD §11): icon, name, cost, hotkey, attack/element
 ## pips and an air icon. Draws itself and redraws only when its state changes;
 ## the shapes between two texts go out as one draw call (UiMesh).
-## Dims when unaffordable; Epic cards pulse when a fusion is possible.
+## Dims when unaffordable; Epic cards pulse when a fusion is possible. A
+## locked card says which pick opens it, in place of its cost, while one waits.
 
 const SIZE := Vector2(88, 112)
 const ICON_PX := 44.0
@@ -35,6 +36,10 @@ var lit := false:
 ## eletd: the tower's element isn't picked yet. Dimmed with a lock.
 var locked := false:
 	set = set_locked
+## eletd: shown in place of the cost while a pick that opens it waits
+## (ElementPicks.card_hint), e.g. "Pick Aqua".
+var hint := "":
+	set = set_hint
 
 var _hover := false
 var _warm_size := -Vector2.ONE
@@ -71,6 +76,12 @@ func set_chosen(value: bool) -> void:
 func set_locked(value: bool) -> void:
 	if value != locked:
 		locked = value
+		queue_redraw()
+
+
+func set_hint(value: String) -> void:
+	if value != hint:
+		hint = value
 		queue_redraw()
 
 
@@ -133,6 +144,12 @@ func _draw() -> void:
 	meshes[2].submit(self)
 	if locked:
 		UiMesh.cached([&"card_lock", size], _build_lock).submit(self)
+	if hint != "":
+		var c := UiTheme.element_color(TowerInfo.element_of(id))
+		draw_string(
+			font, Vector2(0, COST_Y), hint, HORIZONTAL_ALIGNMENT_CENTER, size.x, NAME_SIZE, c
+		)
+		return
 	var ok := lit if epic else (affordable and not locked)
 	var color := UiTheme.GOLD_BRIGHT if ok else UiTheme.BAD
 	draw_string(
@@ -150,10 +167,11 @@ func _draw() -> void:
 ## glyph; the air badge; attack/element pips and the cost coin.
 func _meshes(tint: Color, cost_x: float) -> Array[UiMesh]:
 	var key := [id, size, tint, cost_x, TowerInfo.element_of(id)]
+	var coin := hint == ""
 	return [
 		UiMesh.cached([&"card_icon"] + key, _build_icon.bind(tint)),
 		UiMesh.cached([&"card_air"] + key, _build_air.bind(tint)),
-		UiMesh.cached([&"card_tail"] + key, _build_tail.bind(tint, cost_x)),
+		UiMesh.cached([&"card_tail", coin] + key, _build_tail.bind(tint, cost_x, coin)),
 	]
 
 
@@ -178,7 +196,7 @@ func _build_air(mesh: UiMesh, tint: Color) -> void:
 		UiGlyphs.draw(mesh, &"cls_air", air, tint)
 
 
-func _build_tail(mesh: UiMesh, tint: Color, cost_x: float) -> void:
+func _build_tail(mesh: UiMesh, tint: Color, cost_x: float, coin: bool) -> void:
 	var def: Dictionary = TowerDefs.TOWERS[id]
 	var glyphs: Array[StringName] = []
 	if def.has("attack"):
@@ -191,8 +209,9 @@ func _build_tail(mesh: UiMesh, tint: Color, cost_x: float) -> void:
 	for g in glyphs:
 		UiGlyphs.draw(mesh, g, Rect2(Vector2(x, PIPS_Y), Vector2(PIP_PX, PIP_PX)), tint)
 		x += PIP_PX + 4.0
-	var coin := Rect2(Vector2(cost_x, COST_Y - COIN_PX + 1.0), Vector2(COIN_PX, COIN_PX))
-	UiGlyphs.coin(mesh, coin, tint)
+	if coin:
+		var rect := Rect2(Vector2(cost_x, COST_Y - COIN_PX + 1.0), Vector2(COIN_PX, COIN_PX))
+		UiGlyphs.coin(mesh, rect, tint)
 
 
 func _draw_glow() -> void:

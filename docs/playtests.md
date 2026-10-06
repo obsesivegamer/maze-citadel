@@ -14,7 +14,7 @@ Each game gets one file in the `playtests` folder inside the game's data folder:
 
 **Settings → Playtest → Open the records folder** opens it for you. A file is named after the moment the game began, the map and the difficulty, for example `2026-10-05T21-14-03_citadel_very_hard.json`.
 
-The game writes the file again when a wave starts, when a wave is cleared, when the game ends and when you quit or restart, so a game you leave halfway keeps its record up to that point. A game in which you did nothing and no wave started leaves no file. Games the autoplay bot plays aren't recorded.
+The game writes the file again when a wave starts, when a wave is cleared, when the game ends and when you quit or restart, so a game you leave halfway keeps its record up to that point. A game in which you did nothing and no wave started leaves no file. Games the autoplay bot plays aren't recorded, and neither are scripted runs: a launch with `--shot`, `--bench`, `--first-frame-out` or `--warp-wave` (captures, benchmarks and launch probes) writes no file.
 
 To stop the files, turn off **Settings → Playtest → Game records**. Files already written stay until you delete them, and deleting them is always safe.
 
@@ -43,8 +43,8 @@ The game's rules run on a fixed 30 steps per second and use no randomness outsid
 godot --headless --path . --script res://tests/bots/replay.gd -- --file=path/to/record.json
 ```
 
-Give several files separated by commas to replay them in turn. Under the numbers the game was recorded with, the tool ends with "Same game as recorded." Under changed numbers it shows how the same player's choices would have fared: the first place the two games part, and how many of the recorded moves the game turned down (for example an upgrade the player could no longer afford). `--difficulty=very_hard` replays the same moves on another difficulty.
+Give several files separated by commas to replay them in turn. Under the numbers the game was recorded with, the tool ends with "Same game as recorded." Under changed numbers it shows how the same player's choices would have fared: the first place the two games part, and how many of the recorded moves it came to were turned down (for example an upgrade the player could no longer afford). When the replay ends sooner than the recorded game, say on a loss, the tool also says how many moves it never came to; those were not refused, just never tried. `--difficulty=very_hard` replays the same moves on another difficulty.
 
-A replay stops at the step the record ends on. Records are expected to replay the same on another operating system; if one ever parts from its replay under unchanged numbers, the tool names the first wave where it does. A record made by a different version of the game can part from its replay for the plain reason that the numbers changed in between; the `game_version` in the file says which version made it.
+A replay stops at the step the record ends on, or sooner if its game ends first. Records are expected to replay the same on another operating system; if one ever parts from its replay under unchanged numbers, the tool names the first wave where it does. A record made by a different version of the game can part from its replay for the plain reason that the numbers changed in between; the `game_version` in the file says which version made it.
 
 The unit tests in `tests/unit/test_play_log.gd` hold the promise: a bot's game under each rule set, and a player's game sent through the same calls the HUD makes, replay to the same waves, the same end and the same board.

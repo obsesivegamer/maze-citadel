@@ -1,6 +1,6 @@
 # Balance log
 
-This is the record of how Maze Citadel's numbers were tuned. Four bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
+This is the record of how Maze Citadel's numbers were tuned. Six bots play full games with no window and report how far they got. This page keeps their results, the targets they're measured against, and the reasoning behind each change. After the targets come the Element TD rules' sections, in the order the work was done, and then the classic game's history. The rules and numbers as they are now are in [GDD.md](GDD.md).
 
 The game has two rule sets. The Element TD rules (`eletd` in the code) are the default a player gets, and every section headed "Element TD rules" tuned them. The classic rules are the game as released in 0.3.1; the sections without that heading tuned them, and they no longer change. Every change under the Element TD rules is checked against the classic game, which must still play exactly as released: the smart bot on Normal, seed 0, wins with 20 lives, 2 close calls and 12,110 gold at 34:09.
 
@@ -14,9 +14,9 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 
 | Option | What it does |
 |---|---|
-| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic`. The rows the latest tables use are `smart:normal,smart:hard,smart:easy,smart:very_hard,archers:normal,no_air:normal,novice:normal,novice:easy` |
+| `--only=smart:hard` | Runs a single row, or several separated by commas. The difficulty can also be `easy` or `very_hard`, except under `--rules=classic`. The rows the latest tables use are `smart:normal,smart:hard,smart:easy,smart:very_hard,archers:normal,no_air:normal,novice:normal,novice:easy,camper:normal,idle:normal,camper:very_hard,idle:very_hard` |
 | `--seeds=N` | Sets how many games each row plays |
-| `--per-wave` | Prints how far each wave got and the unspent gold at each wave's start |
+| `--per-wave` | Prints how far each wave got, the unspent gold at each wave's start and the first wave without a boss that leaked |
 | `--twists` | Plays Twists mode, with bot seed n on twist schedule n + 1 |
 | `--map=rampart` | Plays on Fallen Rampart; `--map=causeway` plays on the Winding Causeway, under the Element TD rules only |
 | `--rules=classic` | Plays the classic rule set instead of the Element TD one |
@@ -31,6 +31,8 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
+| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, its first wall closed to the east edge where the band by the portal takes his corner tower, all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05), [closing the wall](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)) |
+| idle | The camper's opening from the starting gold, then nothing at all |
 
 Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its decision timing, which wall tile it fills next and which counter it prefers, so one lucky or unlucky trajectory doesn't decide a target. Columns:
 
@@ -43,20 +45,34 @@ Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its deci
 
 ### Element TD rules
 
-The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of the [retune after element picks](#element-td-rules-retune-after-element-picks-2026-10-04), 4 seeds per row on the Citadel Plateau and the Fallen Rampart.
+The default rules are tuned to be harder than classic and to make the element picks matter. The status is from the final table of [a harder opening for a person](#element-td-rules-a-harder-opening-for-a-person-2026-10-05), 4 seeds per row on the Citadel Plateau unless a row names another map.
 
 | Target | Status |
 |---|---|
-| The smart bot wins Normal with about 12 lives, losing them across the game rather than all at once | Met: 4/4 on both maps, 12.0 lives on the Citadel and 13.0 on the Rampart (12–14), lost to the Ogre waves 10, 20 and 30 and once to wave 29; the Dreadlord dies on its first pass in every game |
-| Hard is beatable but tight | Met: 2/4 on each map, with 4.0 and 3.2 lives; the lost games end on waves 39 and 40 |
-| Very Hard: a good player reaches wave 30, and the last ten waves are the wall | Met: 0/4 on both maps, every game lost on waves 38 to 40 after the whole game has been played |
-| Easy is comfortable | Met: 4/4 on both maps, 15.2 and 18.5 lives |
-| The picks matter: elemental towers do most of the damage | Met: they deal 55% to 65% of all damage in the smart bot's Normal games, which end with three or four elements |
-| Guardians are a fair price for a level | Met: none of the 32 smart games' Guardians got through |
-| The novice, with no thought for the next wave, loses on Normal but can win on Easy | Met: it loses on wave 30 on both maps on Normal; on Easy it wins on the Citadel with 14.2 lives and loses on wave 40 on the Rampart |
-| The archers-only bot fails without counters | Met: it loses on wave 35 on the Citadel and 28 on the Rampart |
-| The ground-only bot dies at the Harpy waves | Met: it loses on wave 5 on both maps |
-| The Winding Causeway plays about as hard as the Citadel on Normal | Met: 4/4 with 11.2 lives (9–14), lost in every third of the game, set by its own creep HP multiplier ([re-set after the retune](#re-set-after-the-retune)). Hard is easier there (4/4, 4.2 lives) and Easy keeps 19.5 lives |
+| The smart bot wins Normal with about 12 lives, losing them across the game rather than all at once | Met, a little lower: 4/4 with 9.2 lives (8–10) on the Citadel, 12.2 (9–16) on the Rampart and 8.8 (5–13) on the Causeway, lost to the Ogre waves 10, 20 and 30 and once to waves 25 and 26 |
+| Hard is beatable but tight | Met: 2/4 with 3.0 lives; the lost games end on waves 23 and 30 |
+| Very Hard: a good player gets well into the game, and the last waves are the wall | Partly met: 1 game won with 2 lives, the others lost on waves 21, 25 and 38. All but one get to wave 25 |
+| Easy is comfortable | Met: 4/4 with 19.5 lives |
+| The picks matter: elemental towers do most of the damage | Met: they deal 81% to 88% of all damage in the smart bot's Normal games |
+| Guardians are a fair price for a level | Met: none of the 24 smart games' Guardians got through |
+| The novice, with no thought for the next wave, loses on Normal but can win on Easy | Met: it loses on wave 6 on Normal and wins on Easy with 15.8 lives |
+| The archers-only bot fails without counters | Met: it loses on wave 35 |
+| The ground-only bot dies at the Harpy waves | Met: it loses on wave 5 |
+| The Winding Causeway plays about as hard as the Citadel on Normal | Met: 4/4 with 8.8 lives against 9.2 on the Citadel |
+
+**Targets for a person's opening (issue #33, 0.4.2).** The owner's first recorded game found the opening far too easy for a person: his creeps died within the first tenth of the route on every wave before the wave-10 boss. These targets measure the opening with the camper and idle bots, which play his habits.
+
+| Target | Status |
+|---|---|
+| T1: against the camper on Normal, waves 1 to 5 walk at least 35% of the route on average | Not met as meant: 22, 26, 32, 26 and 100% (41% on average), but only because wave 5 leaks 3 lives; waves 1 to 4 average 26%. Where creeps first meet the wall sets this, not their HP ([below](#what-hp-can-and-cant-do)) |
+| T2: the idle bot's first leak outside a boss wave comes on wave 3 to 5 | Met: wave 3 (9 lives), lost on wave 6 |
+| T3: Very Hard has at least 1.5 times Normal's HP on waves 1 to 5, and the camper fares clearly worse there | Met: 1.5 times, and the camper loses on wave 3 against wave 28 to 34 on Normal |
+| T4: the smart bot wins Normal 4 games in 4, losing 5 to 12 lives | Met: 4/4, 10.8 lives lost (10 to 12) |
+| T5: the smart bot loses most Very Hard games, but at wave 25 or later; it wins about half its Hard games | Partly met: Very Hard as in the table above, one loss on wave 21; Hard 2/4 |
+| T6: the starting gold can't close a whole row under the band | Met: 400 gold buys 16 Archers, and a row with a gap needs 19 |
+| T7: the novice survives Easy to wave 15 or later, and the archers-only bot loses Normal | Met: the novice wins Easy 4/4; the archers bot loses on wave 35 |
+| T8: the smart bot wins Normal on the Rampart and the Causeway, losing at least 3 lives | Met: 4/4 on both, 7.8 and 11.2 lives lost |
+| T9: wave 5, the first Harpies, needs about four level-1 Archers beside the flight line on Normal | Met: one, two or three Archers let 14 to 18 leaks through, four hold it |
 
 **Known gap: weak elements.** Aqua, Stone and Verdant are weak picks. Their towers, the Frost Spire, the Runesmith Forge and the Ancient of Roots, pay about a third of a Ballista's damage per gold or less, and their slows, shred and roots, which the smart bot's price model counts only as a flat bonus, don't make up the difference. So the smart bot builds every game around Dark, Flame and Light, takes Aqua at most as a late extra pick and never takes Stone or Verdant. A later release addresses it.
 
@@ -585,6 +601,167 @@ What it shows:
 - **Hard** wins all four games with 2 to 7 lives, against 2 of 4 on each mazing map, so it misses its target of 2 or 3 wins. Its lives are no higher than the Citadel's (4.2 against 4.0); the difference is that on the Causeway it loses them in the same places in every game, the bosses and the Dreadlord, without the late collapse that ends half the Hard games on the mazing maps on waves 39 and 40. A second map number for Hard alone would close the gap, but the map's two numbers are already spent on the shape of the curve, so Hard is left where it falls.
 - **Easy** keeps 18 to 20 lives, three games of four keeping all 20, half a life above its target band of 15 to 19. **Very Hard** is lost in every game, on waves 38 and 40, after the whole game has been played.
 - **The novice** does better here than on the mazing maps, as before the re-set: it loses on waves 34 to 36 on Normal and plays all 40 waves on Easy, though it loses on wave 40, where it wins on the Citadel. **The archers-only bot** loses on wave 23, earlier than on the Citadel (35) and the Rampart (28), since a row of Archers beside the road meets less of each wave than a maze does. **The ground-only bot** loses on wave 5, the first Harpies, on every map.
+
+## Element TD rules: two human yardsticks (2026-10-05)
+
+The 0.4.x opening was tuned against the novice bot, and no bot played it the way a person does. The owner's first recorded game ([playtests.md](playtests.md), issue #33) showed the gap. He spent his 400 starting gold on 16 Archers in two serpentine rows right under the portal, where every creep, ground or air, passes first. The creeps of waves 1 to 9 died within the first tenth of the route. The smart bot never builds there, because its plan starts with the wall on row 3. So two bots now measure what a human gets out of the early game.
+
+- **camper** replays his habits rather than his moves. It builds on the 137 tiles he built on, in the order he first built there, putting down whatever he first put on each tile. That means Archers, with a Cannon, Frost, Plague or Bard where he chose one, and an Archer instead while that tower's element isn't picked. It spends every coin as it arrives, and builds nothing but Archers before wave 1. It repeats his 36 sell-and-rebuild swaps on the waves he made them, starting with Frost on the portal wall at wave 2. It takes his five picks (Aqua, Dark, Interest, Interest, Flame) as they come and leaves the other three unspent. It upgrades nothing before wave 21, and after that it upgrades Cannons, Bards and Archers with all its gold. If the top of the board is reserved, it moves his whole pattern down so that his first row lands on the first row free of reserved tiles. Any tile that is still reserved or refused, it skips.
+- **idle** builds the camper's opening from the starting gold and never acts again: no picks, no upgrades, no more towers. It shows how long a wave-1 build left alone holds.
+
+Off the Citadel both bots put Archers along the other bots' maze plan. Their seeds vary only the timing of their decisions, so the idle bot plays the same game on every seed. The camper matches his game closely through wave 20. After that it drifts, because he stopped building and banked over 3,000 gold, while the camper keeps spending. Read it for the first half of the game.
+
+Measured on 0.4.1's numbers, 2 seeds each, on the Citadel:
+
+| Bot | Mode | Walked %, waves 1–10 | First leak | First non-boss leak | Result |
+|---|---|---|---|---|---|
+| camper | normal | 2, 5, 4, 2, 3, 4, 9, 4, 7, 56 | w20 (Ogre, 2 lives) | w31 | lost on w34 and w36 |
+| camper | very_hard | 2, 5, 4, 2, 3, 4, 9, 4, 7, 100 | w10 (2 lives) | w25 | lost on w30 and w28 |
+| idle | normal | 2, 5, 2, 2, 1, 5, 28, 5, 12, 100 | w10 (10 lives) | w16 | lost on w18 |
+| idle | very_hard | 2, 5, 2, 2, 1, 5, 30, 5, 14, 100 | w10 (10 lives) | w16 | lost on w16 |
+
+His own game walked 2, 5, 7, 2, 3, 4, 9, 4, 7 and 52% on waves 1 to 10 and was lost on wave 36, so the camper stands in for him. Both seeds of each row agree on waves 1 to 10. What the table says about the early game:
+
+- Against the camper, no wave before the wave-10 boss gets past the first tenth of the route. Sixteen level-1 Archers left alone let wave 7 walk under a third of it, and hold every ordinary wave up to wave 15.
+- Very Hard plays the same as Normal for the first nine waves. It only shows from the wave-10 boss on.
+
+`--only=camper:normal,idle:very_hard --per-wave` runs them.
+
+## Element TD rules: the band by the portal (2026-10-05)
+
+In the owner's game the creeps of the opening waves died within 3 m of the portal. His Archers stood on five of the six tiles touching the two portal tiles, which every creep and every flyer passes first, and one arrow kills a wave-1 creep. Under the Element TD rules the top three rows of every map, along the portal edge, now take no towers (`EletdRules.PORTAL_ROWS`, [GDD §2](GDD.md#2-pathing-rules)). No tower can reach a creep, on the ground or in the air, until it is at least 5.5 m from the portal. The bots' first Citadel wall already stood on row 3, just below the band, so their plans still fit there. Two rows would leave about 3.5 m, and four would take 80 build tiles. The plateau shows the band as a faint red strip, and a build there is refused with "Too close to the portal". Classic has no band.
+
+The band only moves where the one-shot kills happen. The investigation behind it found that an opening built on row 3 kills waves 1 to 4 about 14 m along the route with or without the band. So the band takes away the ring round the portal, but it can't make the opening waves hard on its own. That is the HP and gold retune's job.
+
+The Rampart's first two walls moved from rows 2 and 4 to rows 3 and 5. On the Causeway the band takes 11 of the 226 tiles beside the road. The bots were run again with the band and the numbers otherwise unchanged, on Normal:
+
+| Map | Bot | Seeds | Before the band | With the band |
+|---|---|---|---|---|
+| Citadel | smart | 2 | Won with 12 lives, 11,322 and 11,248 gold | The same games |
+| Citadel | novice | 2 | Lost on wave 30, leaks {3: 9, 5: 3, 10: 2, 20: 2, 30: 4} | The same game |
+| Citadel | camper | 2 | Lost on waves 34 and 36; first leak wave 20 | Lost on wave 3 in both games: 7 lives on wave 2, 13 on wave 3 |
+| Citadel | idle | 2 | Lost on wave 18 | Lost on wave 3, the same as the camper |
+| Rampart | smart | 4 | 13.0 lives (12–14) | 4/4, 14.0 lives (14–14), 2 lives on each Ogre wave |
+| Rampart | archers | 1 | Lost on wave 28 | The same: lost on wave 28 with the same leaks |
+| Rampart | novice | 1 | Lost on wave 30, 9 lives on wave 2 | Lost on wave 36, 2 lives on wave 2 |
+| Causeway | smart | 4 | 11.2 lives (9–14) | 4/4, 12.2 lives (7–14); seed 0 lost 5 lives to the Dreadlord |
+
+The camper and idle rows aren't a fair yardstick under the band. The owner's opening used the board's north edge: an Archer at (11, 0), beside the portal, and a wall along row 1 from column 1 to 11 sent every creep west along row 0, down the west edge, and back along row 2, an 89.5 m route past all sixteen towers. The camper moves that pattern down to row 3. That puts the (11, 0) Archer in the band, so it is dropped, and the edge is no longer there to lean on. Creeps now walk east round the end of the row-3 wall and straight down column 12. That route is 62.7 m long and passes only one Archer. A person would close the end of the wall instead. So the band breaks the owner's shape, not the opening as such. The rows above were measured before the camper learned to do that. It now builds the rest of his first row out to the east edge where the band takes his corner tile, so its 16 starting Archers stand on columns 4 to 19 of row 3 and creeps go round the west end, past the whole wall ([next section](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)).
+
+Records made before the band don't replay as the same game. Replaying the owner's 0.4.1 record refuses 14 of the first 19 of its 271 actions, starting with his first builds, and loses all 20 lives on wave 1, so the other 252 are never reached.
+
+## Element TD rules: a harder opening for a person (2026-10-05)
+
+This is the 0.4.2 retune for issue #33. With the [band by the portal](#element-td-rules-the-band-by-the-portal-2026-10-05) in place, one Archer arrow still killed every creep of the opening, Very Hard played the same as Normal until the wave-10 boss, and one Archer anywhere on the flight line held the first Harpies. Three tuning runs tried different levers: creep HP first, starting gold first, and the shape of the difficulty curves. The numbers below take the HP-first run's set, checked against what the other two found.
+
+### Closing the camper's wall
+
+The band took the owner's corner Archer at (11, 0), so the camper's first wall on row 3 stopped at column 11 and creeps walked round its open east end past one Archer. The camper now closes that end, as a person would: where the band takes the corner tile, it builds the rest of his row out to the east edge instead, and the 16 starting Archers stand on columns 4 to 19, with the gap at the west end. Creeps then walk the length of the wall. On the numbers before this retune, with the band (4 seeds; the open-wall row is the band section's, 2 seeds):
+
+| Bot | Mode | Walked %, waves 1–5 | First non-boss leak | Result |
+|---|---|---|---|---|
+| camper, wall open | normal | 13, 100, 100 | w2 | lost on w3 |
+| camper, wall closed | normal | 22, 26, 32, 26, 10 | w25, w28, w3, w31 | lost on w34, w34, w30, w34 |
+| idle, wall closed | normal | 22, 22, 100, 22, 10 | w3 (9 lives) | lost on w7 |
+| camper, wall closed | very_hard | 22, 26, 32, 26, 10 | w25, w23, w3, w23 | lost on w28 in all four |
+| idle, wall closed | very_hard | 22, 22, 100, 22, 10 | w3 | lost on w6 |
+
+Very Hard and Normal walked almost exactly the same through wave 9.
+
+### What changed
+
+| Number | Before | Now | Why |
+|---|---|---|---|
+| Plain creeps' HP share (`HP_FLOOR`) | 0.10 on wave 1, rising in a line to 0.68 | The same line, never below 0.35; the line passes the floor on wave 18 | A Normal Grunt of the opening now takes two Archer arrows (14 HP against 12.7 per arrow); the Wolf Riders of wave 2 still take one |
+| Armored creeps' share | A squared curve to 0.70, never below the plain line | A straight line from 0.10 to 0.70, without the floor | The Footmen of wave 3 and the Steam Tanks of wave 7 keep their HP (within 3% on every wave); on the floor the novice lost to the Footmen even on Easy |
+| Wave-10 Ogre (`BOSS_HP`) | 2.1 × its share | 1.4 × | The same HP as before: 1,906 against 1,911 |
+| Guardians | The plain share | The share's line, without the floor | On the floor the Guardians of waves 5 to 10 had 1.5 to 2.2 times the HP they were tuned with |
+| Wave-5 Harpies (`HARPY_HP`) | × 1 | × 2.7, Harpies only | Four level-1 Archers beside the flight line now hold wave 5 on Normal, where one did before; Easy needs two, Hard four, Very Hard five |
+| Easy | 0.7 × Normal's HP | 0.4 on wave 1 rising to 0.7 on wave 40 | Keeps the raised opening gentle: at a flat 0.7 the novice lost to the Ghouls of wave 6 |
+| Hard | 1.06 rising to 1.28 | 1.25 on waves 1 to 5, easing onto the old ramp by wave 11, then the old ramp | Harder from the first wave without moving the late game |
+| Very Hard | 1.1 rising to 1.55, squared | 1.5 on waves 1 to 5, easing onto the old ramp by wave 11, then the old ramp | The same; Very Hard's opening had about Normal's HP |
+| Starting gold | 400 | 400 | Unchanged: under the band a whole row with a gap takes 19 Archers, more than 400 buys |
+
+The difficulty chips' tooltips read these numbers from `EletdRules`, so they say, for example, "Very Hard: creeps have 50% more HP to wave 5, easing to 13% more by wave 11, then rising to 55% more by wave 40, score ×1.6".
+
+### Final results
+
+4 seeds per row. The camper, idle and novice bots play the same game on every seed but for timing.
+
+| Map | Strategy | Mode | Wins | Lives (mean, min–max) | Close calls | Walked w1–5 | Walked, non-boss median | Boss walked w10 / w20 / w30 / w40 | Losses |
+|---|---|---|---|---|---|---|---|---|---|
+| Citadel | smart | easy | 4/4 | 19.5, 19–20 | 1.5 | 29% | 37% | 72% / 92% / 69% / 65% | – |
+| Citadel | smart | normal | 4/4 | 9.2, 8–10 | 4.8 | 20% | 31% | 100% / 100% / 100% / 43% | – |
+| Citadel | smart | hard | 2/4 | 3.0, 0–8 | 4.5 | 22% | 31% | 100% / 100% / 100% / 69% | w30, w23 |
+| Citadel | smart | very_hard | 1/4 | 0.5, 0–2 | 5.8 | 26% | 32% | 100% / 100% / 100% / 79% | w21, w25, w38 |
+| Citadel | archers | normal | 0/4 | 0.0, 0–0 | 7.8 | 35% | 26% | 100% / 100% / 100% / – | w35, w35, w35, w35 |
+| Citadel | no_air | normal | 0/4 | 0.0, 0–0 | 3.0 | 67% | 100% | – / – / – / – | w5, w5, w5, w5 |
+| Citadel | novice | normal | 0/4 | 0.0, 0–0 | 2.0 | 35% | 24% | – / – / – / – | w6, w6, w6, w6 |
+| Citadel | novice | easy | 4/4 | 15.8, 15–16 | 2.0 | 19% | 22% | 36% / 62% / 62% / 86% | – |
+| Citadel | camper | normal | 0/4 | 0.0, 0–0 | 6.8 | 45% | 26% | 100% / 100% / 100% / – | w34, w31, w28, w34 |
+| Citadel | idle | normal | 0/4 | 0.0, 0–0 | 2.0 | 35% | 22% | – / – / – / – | w6, w6, w6, w6 |
+| Citadel | camper | very_hard | 0/4 | 0.0, 0–0 | 2.0 | 74% | 100% | – / – / – / – | w3, w3, w3, w3 |
+| Citadel | idle | very_hard | 0/4 | 0.0, 0–0 | 2.0 | 74% | 100% | – / – / – / – | w3, w3, w3, w3 |
+| Rampart | smart | normal | 4/4 | 12.2, 9–16 | 5.2 | 21% | 34% | 100% / 100% / 92% / 66% | – |
+| Rampart | camper | normal | 0/4 | 0.0, 0–0 | 2.0 | 43% | 35% | – / – / – / – | w6, w6, w6, w6 |
+| Causeway | smart | normal | 4/4 | 8.8, 5–13 | 4.5 | 19% | 24% | 100% / 100% / 100% / 100% | – |
+| Causeway | camper | normal | 0/4 | 0.0, 0–0 | 4.0 | 5% | 13% | 100% / 100% / – / – | w23, w23, w23, w23 |
+
+The classic check is unchanged: seed 0 wins with 20 lives, 2 close calls and 12,110 gold at 34:09.
+
+Lives lost per wave, all 4 seeds:
+
+| Row | Lives lost per wave |
+|---|---|
+| Citadel smart, easy | {40: 2} |
+| Citadel smart, normal | {10: 8, 20: 16, 25: 2, 26: 1, 30: 16} |
+| Citadel smart, hard | {10: 10, 20: 18, 21: 9, 23: 9, 25: 10, 30: 12} |
+| Citadel smart, very hard | {10: 12, 20: 18, 21: 27, 23: 2, 25: 8, 30: 8, 38: 2, 40: 1} |
+| Citadel archers | {2: 11, 10: 8, 20: 8, 30: 12, 33: 24, 35: 17} |
+| Citadel no_air | {2: 19, 4: 4, 5: 57} |
+| Citadel novice, normal | {3: 36, 5: 12, 6: 32} |
+| Citadel novice, easy | {39: 13, 40: 4} |
+| Citadel camper, normal | {3: 9, 5: 12, 10: 8, 20: 8, 25: 2, 28: 10, 30: 12, 31: 13, 34: 6} |
+| Citadel idle, normal | {3: 36, 6: 44} |
+| Citadel camper and idle, very hard | {2: 44, 3: 36} |
+| Rampart smart, normal | {10: 8, 20: 8, 30: 15} |
+| Rampart camper, normal | {3: 36, 5: 12, 6: 32} |
+| Causeway smart, normal | {10: 8, 20: 8, 30: 14, 40: 15} |
+| Causeway camper, normal | {10: 16, 20: 24, 21: 32, 23: 8} |
+
+What it shows:
+
+- **The camper on Normal** walks exactly as far on waves 1 to 4 as before (22, 26, 32 and 26%) and still loses between waves 28 and 34. The new cost is wave 5: after his wave-2 and wave-3 swaps of wall Archers for Frost Spires too few Archers stand by the flight line, and three Harpies get through in every game. **The idle bot** first leaks on wave 3, 9 lives to the Footmen, and loses to the Ghouls of wave 6 instead of the Steam Tanks of wave 7.
+- **Very Hard** is now clearly harder from wave 1. The camper and the idle bot lose on wave 3: the Wolf Riders of wave 2 have 15 HP there, two arrows, and they take 11 lives. The smart bot's opening holds (26% walked on waves 1 to 5).
+- **The smart bot** opens with Light now, for Ballistas against the tougher wave-5 Harpies, where it opened with Dark before; elemental towers deal 81% to 88% of its damage on Normal. On Hard and Very Hard, games where it holds back its picks on waves 15 and 20 (one taken late, or none) lose 3 to 10 lives to the Steam Tanks of wave 21, armored and Aqua. Before this retune, with the band, the same bot lost Hard on waves 39 and 40 (2/4) and every Very Hard game on waves 38 and 39.
+- **The novice** loses Normal on wave 6, where it reached wave 30 before: the Ghouls of wave 6, on the floor, have twice the HP they had. On Easy it wins every game.
+- **Off the Citadel** the camper plays Archers along the smart bot's plan rather than the owner's tiles, so its Rampart and Causeway rows measure that plan left mostly to Archers, not a person.
+
+### What HP can and can't do
+
+All three tuning runs found the same limit. How far creeps walk on waves 1 to 4 is set by where they first meet a tower, about a quarter of the route below the band, and not by their HP. More HP moves the point where they start to leak, not how far the survivors get: on the camper, every HP set from 0.30 to 0.43 walked 22 to 34%. So T1 can't be met with numbers. It would take an opening a person builds further down the board, or towers that reach further.
+
+### Tried on the way
+
+| Change | Seeds | Result |
+|---|---|---|
+| A straight line from 0.35 or 0.45 to 0.68 | 2–4 | Waves 20 to 30 a quarter harder; the smart bot lost Normal games on waves 21 to 30. With armored creeps from 0.2, the novice lost to the wave-3 Footmen even on Easy |
+| A floor of 0.42 | 4 | Wolf Riders take two arrows too, but the smart bot lost one Normal game in four (20 lives on wave 30) and the novice leaked on Easy |
+| Starting gold 350, 300 or 275 | 2–4 | Broke the camper and the novice (leaks from wave 3) and bought nothing measurable |
+| Very Hard from 3.5 times on wave 1, falling to a straight 1.5 to 1.6 ramp by wave 10 (the curve-shape run) | 4 | Smart lost every game, on waves 25 to 40. Not taken: 3.5 times is far past the 1.5 the targets ask for, and the new ramp moves the late game |
+| Harpies × 6 on the line alone, without the floor | – | Also four Archers on the flight line; on the floor 2.7 is enough |
+| Guardians on the floor | 4 | Hard and Very Hard games identical to the final ones; Normal 9.8 lives. Kept off the floor so they keep their tuned HP |
+
+### The owner's record
+
+Replaying `tests/playtests/owner_0.4.1_citadel_normal.json` on these numbers parts from the record on wave 1, as it already did with the band: 14 of the first 19 of its 271 actions are refused, his first builds by the portal among them, and wave 1 takes all 20 lives, so the other 252 are never reached. It can't judge these numbers. A fresh game on Normal and one on Very Hard can.
+
+### Known gaps
+
+- **T1 is out of reach for HP**, as above.
+- **Very Hard may be too hard for a person's opening.** A single wall of 16 Archers, the owner's shape, loses on wave 3. The smart bot's opening holds, so a stronger first build is possible, but no person has played it yet.
+- **One Very Hard game in four ends on wave 21**, and Hard loses on waves 23 and 30. In those games the bot skipped its picks on waves 15 and 20. Bot seeds swing widely from wave 21 on, so 4 seeds are weak evidence either way.
+- **Weak elements**: unchanged ([Targets](#element-td-rules)). The bot now opens with Light and still never takes Stone or Verdant.
 
 ## Latest run (2026-10-02)
 

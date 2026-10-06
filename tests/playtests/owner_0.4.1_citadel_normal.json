@@ -1,0 +1,4807 @@
+{
+  "format": 1,
+  "game_version": "0.4.1",
+  "started": "2026-10-05T16:20:16",
+  "setup": {
+    "map": "citadel",
+    "rules": "eletd",
+    "difficulty": "normal",
+    "infinite": false,
+    "twists": false,
+    "twist_seed": 0,
+    "picks": []
+  },
+  "actions": [
+    {
+      "step": 337,
+      "t": 11.23,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        10,
+        1
+      ],
+      "id": "archer",
+      "gold": 375
+    },
+    {
+      "step": 360,
+      "t": 12.0,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        9,
+        1
+      ],
+      "id": "archer",
+      "gold": 350
+    },
+    {
+      "step": 395,
+      "t": 13.17,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        11,
+        1
+      ],
+      "id": "archer",
+      "gold": 325
+    },
+    {
+      "step": 430,
+      "t": 14.33,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        11,
+        0
+      ],
+      "id": "archer",
+      "gold": 300
+    },
+    {
+      "step": 460,
+      "t": 15.33,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        8,
+        1
+      ],
+      "id": "archer",
+      "gold": 281
+    },
+    {
+      "step": 482,
+      "t": 16.07,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        7,
+        1
+      ],
+      "id": "archer",
+      "gold": 256
+    },
+    {
+      "step": 505,
+      "t": 16.83,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        6,
+        1
+      ],
+      "id": "archer",
+      "gold": 231
+    },
+    {
+      "step": 532,
+      "t": 17.73,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        5,
+        1
+      ],
+      "id": "archer",
+      "gold": 206
+    },
+    {
+      "step": 558,
+      "t": 18.6,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        4,
+        1
+      ],
+      "id": "archer",
+      "gold": 181
+    },
+    {
+      "step": 815,
+      "t": 27.17,
+      "wave": 0,
+      "do": "pick",
+      "choice": "aqua",
+      "gold": 181
+    },
+    {
+      "step": 943,
+      "t": 31.43,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        3,
+        1
+      ],
+      "id": "archer",
+      "gold": 159
+    },
+    {
+      "step": 962,
+      "t": 32.07,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        2,
+        1
+      ],
+      "id": "archer",
+      "gold": 134
+    },
+    {
+      "step": 979,
+      "t": 32.63,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        1,
+        1
+      ],
+      "id": "archer",
+      "gold": 109
+    },
+    {
+      "step": 1026,
+      "t": 34.2,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        0,
+        3
+      ],
+      "id": "archer",
+      "gold": 84
+    },
+    {
+      "step": 1054,
+      "t": 35.13,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        1,
+        3
+      ],
+      "id": "archer",
+      "gold": 59
+    },
+    {
+      "step": 1079,
+      "t": 35.97,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        2,
+        3
+      ],
+      "id": "archer",
+      "gold": 34
+    },
+    {
+      "step": 1149,
+      "t": 38.3,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        3,
+        3
+      ],
+      "id": "archer",
+      "gold": 9
+    },
+    {
+      "step": 1249,
+      "t": 41.63,
+      "wave": 0,
+      "do": "sell",
+      "tile": [
+        8,
+        1
+      ],
+      "gold": 27
+    },
+    {
+      "step": 1315,
+      "t": 43.83,
+      "wave": 0,
+      "do": "build",
+      "tile": [
+        8,
+        1
+      ],
+      "id": "archer",
+      "gold": 2
+    },
+    {
+      "step": 3224,
+      "t": 107.47,
+      "wave": 2,
+      "do": "sell",
+      "tile": [
+        9,
+        1
+      ],
+      "gold": 171
+    },
+    {
+      "step": 3242,
+      "t": 108.07,
+      "wave": 2,
+      "do": "build",
+      "tile": [
+        9,
+        1
+      ],
+      "id": "frost",
+      "gold": 121
+    },
+    {
+      "step": 3444,
+      "t": 114.8,
+      "wave": 2,
+      "do": "sell",
+      "tile": [
+        11,
+        0
+      ],
+      "gold": 139
+    },
+    {
+      "step": 3461,
+      "t": 115.37,
+      "wave": 2,
+      "do": "build",
+      "tile": [
+        11,
+        0
+      ],
+      "id": "frost",
+      "gold": 89
+    },
+    {
+      "step": 3510,
+      "t": 117.0,
+      "wave": 2,
+      "do": "sell",
+      "tile": [
+        6,
+        1
+      ],
+      "gold": 107
+    },
+    {
+      "step": 3529,
+      "t": 117.63,
+      "wave": 2,
+      "do": "build",
+      "tile": [
+        6,
+        1
+      ],
+      "id": "frost",
+      "gold": 57
+    },
+    {
+      "step": 3663,
+      "t": 122.1,
+      "wave": 2,
+      "do": "sell",
+      "tile": [
+        4,
+        1
+      ],
+      "gold": 76
+    },
+    {
+      "step": 3683,
+      "t": 122.77,
+      "wave": 2,
+      "do": "build",
+      "tile": [
+        4,
+        1
+      ],
+      "id": "frost",
+      "gold": 26
+    },
+    {
+      "step": 3719,
+      "t": 123.97,
+      "wave": 3,
+      "do": "sell",
+      "tile": [
+        1,
+        1
+      ],
+      "gold": 44
+    },
+    {
+      "step": 3766,
+      "t": 125.53,
+      "wave": 3,
+      "do": "build",
+      "tile": [
+        1,
+        1
+      ],
+      "id": "frost",
+      "gold": 3
+    },
+    {
+      "step": 4905,
+      "t": 163.5,
+      "wave": 4,
+      "do": "build",
+      "tile": [
+        4,
+        3
+      ],
+      "id": "cannon",
+      "gold": 1
+    },
+    {
+      "step": 5115,
+      "t": 170.5,
+      "wave": 4,
+      "do": "build",
+      "tile": [
+        5,
+        3
+      ],
+      "id": "archer",
+      "gold": 27
+    },
+    {
+      "step": 5137,
+      "t": 171.23,
+      "wave": 4,
+      "do": "build",
+      "tile": [
+        6,
+        3
+      ],
+      "id": "archer",
+      "gold": 7
+    },
+    {
+      "step": 5232,
+      "t": 174.4,
+      "wave": 4,
+      "do": "build",
+      "tile": [
+        7,
+        3
+      ],
+      "id": "archer",
+      "gold": 3
+    },
+    {
+      "step": 6598,
+      "t": 219.93,
+      "wave": 5,
+      "do": "build",
+      "tile": [
+        8,
+        3
+      ],
+      "id": "archer",
+      "gold": 79
+    },
+    {
+      "step": 6621,
+      "t": 220.7,
+      "wave": 5,
+      "do": "build",
+      "tile": [
+        9,
+        3
+      ],
+      "id": "archer",
+      "gold": 54
+    },
+    {
+      "step": 6644,
+      "t": 221.47,
+      "wave": 5,
+      "do": "build",
+      "tile": [
+        10,
+        3
+      ],
+      "id": "archer",
+      "gold": 29
+    },
+    {
+      "step": 6666,
+      "t": 222.2,
+      "wave": 5,
+      "do": "build",
+      "tile": [
+        11,
+        3
+      ],
+      "id": "archer",
+      "gold": 4
+    },
+    {
+      "step": 7195,
+      "t": 239.83,
+      "wave": 5,
+      "do": "pick",
+      "choice": "dark",
+      "gold": 4
+    },
+    {
+      "step": 7623,
+      "t": 254.1,
+      "wave": 6,
+      "do": "build",
+      "tile": [
+        12,
+        3
+      ],
+      "id": "archer",
+      "gold": 21
+    },
+    {
+      "step": 7682,
+      "t": 256.07,
+      "wave": 6,
+      "do": "build",
+      "tile": [
+        13,
+        3
+      ],
+      "id": "archer",
+      "gold": 12
+    },
+    {
+      "step": 7747,
+      "t": 258.23,
+      "wave": 6,
+      "do": "build",
+      "tile": [
+        13,
+        2
+      ],
+      "id": "archer",
+      "gold": 3
+    },
+    {
+      "step": 8203,
+      "t": 273.43,
+      "wave": 6,
+      "do": "build",
+      "tile": [
+        13,
+        1
+      ],
+      "id": "archer",
+      "gold": 16
+    },
+    {
+      "step": 9165,
+      "t": 305.5,
+      "wave": 7,
+      "do": "build",
+      "tile": [
+        15,
+        0
+      ],
+      "id": "frost",
+      "gold": 47
+    },
+    {
+      "step": 9504,
+      "t": 316.8,
+      "wave": 7,
+      "do": "build",
+      "tile": [
+        15,
+        1
+      ],
+      "id": "plague",
+      "gold": 2
+    },
+    {
+      "step": 10310,
+      "t": 343.67,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        15,
+        2
+      ],
+      "id": "archer",
+      "gold": 91
+    },
+    {
+      "step": 10450,
+      "t": 348.33,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        15,
+        3
+      ],
+      "id": "archer",
+      "gold": 116
+    },
+    {
+      "step": 10552,
+      "t": 351.73,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        15,
+        4
+      ],
+      "id": "archer",
+      "gold": 109
+    },
+    {
+      "step": 10826,
+      "t": 360.87,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        14,
+        5
+      ],
+      "id": "archer",
+      "gold": 86
+    },
+    {
+      "step": 10885,
+      "t": 362.83,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        13,
+        5
+      ],
+      "id": "archer",
+      "gold": 61
+    },
+    {
+      "step": 10943,
+      "t": 364.77,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        12,
+        5
+      ],
+      "id": "archer",
+      "gold": 36
+    },
+    {
+      "step": 11011,
+      "t": 367.03,
+      "wave": 8,
+      "do": "build",
+      "tile": [
+        11,
+        5
+      ],
+      "id": "archer",
+      "gold": 11
+    },
+    {
+      "step": 11670,
+      "t": 389.0,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        10,
+        5
+      ],
+      "id": "archer",
+      "gold": 40
+    },
+    {
+      "step": 11713,
+      "t": 390.43,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        9,
+        5
+      ],
+      "id": "archer",
+      "gold": 21
+    },
+    {
+      "step": 11747,
+      "t": 391.57,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        8,
+        5
+      ],
+      "id": "archer",
+      "gold": 14
+    },
+    {
+      "step": 11789,
+      "t": 392.97,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        7,
+        5
+      ],
+      "id": "archer",
+      "gold": 1
+    },
+    {
+      "step": 11892,
+      "t": 396.4,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        6,
+        5
+      ],
+      "id": "archer",
+      "gold": 24
+    },
+    {
+      "step": 11937,
+      "t": 397.9,
+      "wave": 9,
+      "do": "build",
+      "tile": [
+        5,
+        5
+      ],
+      "id": "archer",
+      "gold": 5
+    },
+    {
+      "step": 13792,
+      "t": 459.73,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        4,
+        5
+      ],
+      "id": "archer",
+      "gold": 62
+    },
+    {
+      "step": 13831,
+      "t": 461.03,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        3,
+        5
+      ],
+      "id": "archer",
+      "gold": 37
+    },
+    {
+      "step": 13874,
+      "t": 462.47,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        2,
+        5
+      ],
+      "id": "archer",
+      "gold": 12
+    },
+    {
+      "step": 14603,
+      "t": 486.77,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        1,
+        5
+      ],
+      "id": "archer",
+      "gold": 87
+    },
+    {
+      "step": 14791,
+      "t": 493.03,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        0,
+        7
+      ],
+      "id": "archer",
+      "gold": 62
+    },
+    {
+      "step": 14829,
+      "t": 494.3,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        1,
+        7
+      ],
+      "id": "archer",
+      "gold": 37
+    },
+    {
+      "step": 14868,
+      "t": 495.6,
+      "wave": 10,
+      "do": "build",
+      "tile": [
+        2,
+        7
+      ],
+      "id": "archer",
+      "gold": 12
+    },
+    {
+      "step": 17498,
+      "t": 583.27,
+      "wave": 12,
+      "do": "pick",
+      "choice": "interest",
+      "gold": 335
+    },
+    {
+      "step": 17852,
+      "t": 595.07,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        3,
+        7
+      ],
+      "id": "archer",
+      "gold": 320
+    },
+    {
+      "step": 17885,
+      "t": 596.17,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        4,
+        7
+      ],
+      "id": "archer",
+      "gold": 295
+    },
+    {
+      "step": 17923,
+      "t": 597.43,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        5,
+        7
+      ],
+      "id": "archer",
+      "gold": 270
+    },
+    {
+      "step": 17958,
+      "t": 598.6,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        6,
+        7
+      ],
+      "id": "archer",
+      "gold": 245
+    },
+    {
+      "step": 18002,
+      "t": 600.07,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        7,
+        7
+      ],
+      "id": "archer",
+      "gold": 227
+    },
+    {
+      "step": 18040,
+      "t": 601.33,
+      "wave": 12,
+      "do": "build",
+      "tile": [
+        8,
+        7
+      ],
+      "id": "archer",
+      "gold": 202
+    },
+    {
+      "step": 18078,
+      "t": 602.6,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        9,
+        7
+      ],
+      "id": "archer",
+      "gold": 177
+    },
+    {
+      "step": 18170,
+      "t": 605.67,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        10,
+        7
+      ],
+      "id": "archer",
+      "gold": 181
+    },
+    {
+      "step": 18208,
+      "t": 606.93,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        11,
+        7
+      ],
+      "id": "archer",
+      "gold": 171
+    },
+    {
+      "step": 18309,
+      "t": 610.3,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        12,
+        7
+      ],
+      "id": "archer",
+      "gold": 182
+    },
+    {
+      "step": 18364,
+      "t": 612.13,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        13,
+        7
+      ],
+      "id": "archer",
+      "gold": 179
+    },
+    {
+      "step": 18412,
+      "t": 613.73,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        14,
+        7
+      ],
+      "id": "archer",
+      "gold": 176
+    },
+    {
+      "step": 18516,
+      "t": 617.2,
+      "wave": 13,
+      "do": "build",
+      "tile": [
+        15,
+        7
+      ],
+      "id": "archer",
+      "gold": 193
+    },
+    {
+      "step": 19475,
+      "t": 649.17,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        16,
+        6
+      ],
+      "id": "archer",
+      "gold": 202
+    },
+    {
+      "step": 19592,
+      "t": 653.07,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        5
+      ],
+      "id": "archer",
+      "gold": 236
+    },
+    {
+      "step": 19643,
+      "t": 654.77,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        4
+      ],
+      "id": "archer",
+      "gold": 240
+    },
+    {
+      "step": 19684,
+      "t": 656.13,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        3
+      ],
+      "id": "archer",
+      "gold": 237
+    },
+    {
+      "step": 19738,
+      "t": 657.93,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        2
+      ],
+      "id": "archer",
+      "gold": 241
+    },
+    {
+      "step": 19796,
+      "t": 659.87,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        1
+      ],
+      "id": "archer",
+      "gold": 260
+    },
+    {
+      "step": 19856,
+      "t": 661.87,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        0
+      ],
+      "id": "archer",
+      "gold": 264
+    },
+    {
+      "step": 19898,
+      "t": 663.27,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        1
+      ],
+      "id": "archer",
+      "gold": 247
+    },
+    {
+      "step": 19935,
+      "t": 664.5,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        2
+      ],
+      "id": "archer",
+      "gold": 222
+    },
+    {
+      "step": 19980,
+      "t": 666.0,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        3
+      ],
+      "id": "archer",
+      "gold": 197
+    },
+    {
+      "step": 20033,
+      "t": 667.77,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        4
+      ],
+      "id": "archer",
+      "gold": 172
+    },
+    {
+      "step": 20075,
+      "t": 669.17,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        5
+      ],
+      "id": "archer",
+      "gold": 147
+    },
+    {
+      "step": 20181,
+      "t": 672.7,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        6
+      ],
+      "id": "archer",
+      "gold": 122
+    },
+    {
+      "step": 20471,
+      "t": 682.37,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        19,
+        7
+      ],
+      "id": "archer",
+      "gold": 100
+    },
+    {
+      "step": 20547,
+      "t": 684.9,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        6
+      ],
+      "id": "archer",
+      "gold": 75
+    },
+    {
+      "step": 20607,
+      "t": 686.9,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        7
+      ],
+      "id": "archer",
+      "gold": 50
+    },
+    {
+      "step": 20716,
+      "t": 690.53,
+      "wave": 14,
+      "do": "build",
+      "tile": [
+        17,
+        8
+      ],
+      "id": "archer",
+      "gold": 26
+    },
+    {
+      "step": 20808,
+      "t": 693.6,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        8
+      ],
+      "id": "archer",
+      "gold": 1
+    },
+    {
+      "step": 21037,
+      "t": 701.23,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        17,
+        9
+      ],
+      "id": "archer",
+      "gold": 16
+    },
+    {
+      "step": 21089,
+      "t": 702.97,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        17,
+        10
+      ],
+      "id": "archer",
+      "gold": 15
+    },
+    {
+      "step": 21137,
+      "t": 704.57,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        17,
+        11
+      ],
+      "id": "archer",
+      "gold": 6
+    },
+    {
+      "step": 21178,
+      "t": 705.93,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        17,
+        12
+      ],
+      "id": "archer",
+      "gold": 5
+    },
+    {
+      "step": 21230,
+      "t": 707.67,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        9
+      ],
+      "id": "archer",
+      "gold": 4
+    },
+    {
+      "step": 21272,
+      "t": 709.07,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        10
+      ],
+      "id": "archer",
+      "gold": 19
+    },
+    {
+      "step": 21308,
+      "t": 710.27,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        11
+      ],
+      "id": "archer",
+      "gold": 18
+    },
+    {
+      "step": 21337,
+      "t": 711.23,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        12
+      ],
+      "id": "archer",
+      "gold": 25
+    },
+    {
+      "step": 21371,
+      "t": 712.37,
+      "wave": 15,
+      "do": "build",
+      "tile": [
+        19,
+        13
+      ],
+      "id": "archer",
+      "gold": 16
+    },
+    {
+      "step": 23065,
+      "t": 768.83,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        13
+      ],
+      "id": "archer",
+      "gold": 189
+    },
+    {
+      "step": 23099,
+      "t": 769.97,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        14
+      ],
+      "id": "archer",
+      "gold": 164
+    },
+    {
+      "step": 23156,
+      "t": 771.87,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        15
+      ],
+      "id": "archer",
+      "gold": 139
+    },
+    {
+      "step": 23199,
+      "t": 773.3,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        16
+      ],
+      "id": "archer",
+      "gold": 114
+    },
+    {
+      "step": 23278,
+      "t": 775.93,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        18
+      ],
+      "id": "archer",
+      "gold": 89
+    },
+    {
+      "step": 23320,
+      "t": 777.33,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        17
+      ],
+      "id": "archer",
+      "gold": 64
+    },
+    {
+      "step": 23356,
+      "t": 778.53,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        19
+      ],
+      "id": "archer",
+      "gold": 39
+    },
+    {
+      "step": 23385,
+      "t": 779.5,
+      "wave": 16,
+      "do": "build",
+      "tile": [
+        17,
+        20
+      ],
+      "id": "archer",
+      "gold": 14
+    },
+    {
+      "step": 24220,
+      "t": 807.33,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        21
+      ],
+      "id": "archer",
+      "gold": 145
+    },
+    {
+      "step": 24260,
+      "t": 808.67,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        22
+      ],
+      "id": "archer",
+      "gold": 137
+    },
+    {
+      "step": 24331,
+      "t": 811.03,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        23
+      ],
+      "id": "archer",
+      "gold": 142
+    },
+    {
+      "step": 24371,
+      "t": 812.37,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        24
+      ],
+      "id": "archer",
+      "gold": 143
+    },
+    {
+      "step": 24416,
+      "t": 813.87,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        25
+      ],
+      "id": "archer",
+      "gold": 127
+    },
+    {
+      "step": 24886,
+      "t": 829.53,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        16,
+        27
+      ],
+      "id": "archer",
+      "gold": 105
+    },
+    {
+      "step": 24928,
+      "t": 830.93,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        17,
+        27
+      ],
+      "id": "archer",
+      "gold": 80
+    },
+    {
+      "step": 24959,
+      "t": 831.97,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        18,
+        27
+      ],
+      "id": "archer",
+      "gold": 55
+    },
+    {
+      "step": 25002,
+      "t": 833.4,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        19,
+        27
+      ],
+      "id": "archer",
+      "gold": 30
+    },
+    {
+      "step": 25137,
+      "t": 837.9,
+      "wave": 17,
+      "do": "build",
+      "tile": [
+        15,
+        27
+      ],
+      "id": "archer",
+      "gold": 5
+    },
+    {
+      "step": 25661,
+      "t": 855.37,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        26
+      ],
+      "id": "archer",
+      "gold": 15
+    },
+    {
+      "step": 25709,
+      "t": 856.97,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        25
+      ],
+      "id": "archer",
+      "gold": 24
+    },
+    {
+      "step": 25757,
+      "t": 858.57,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        24
+      ],
+      "id": "archer",
+      "gold": 35
+    },
+    {
+      "step": 25793,
+      "t": 859.77,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        23
+      ],
+      "id": "archer",
+      "gold": 44
+    },
+    {
+      "step": 25828,
+      "t": 860.93,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        22
+      ],
+      "id": "archer",
+      "gold": 37
+    },
+    {
+      "step": 25874,
+      "t": 862.47,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        21
+      ],
+      "id": "archer",
+      "gold": 44
+    },
+    {
+      "step": 25901,
+      "t": 863.37,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        20
+      ],
+      "id": "archer",
+      "gold": 53
+    },
+    {
+      "step": 25944,
+      "t": 864.8,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        19
+      ],
+      "id": "archer",
+      "gold": 60
+    },
+    {
+      "step": 25979,
+      "t": 865.97,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        18
+      ],
+      "id": "archer",
+      "gold": 35
+    },
+    {
+      "step": 26024,
+      "t": 867.47,
+      "wave": 18,
+      "do": "build",
+      "tile": [
+        15,
+        17
+      ],
+      "id": "archer",
+      "gold": 10
+    },
+    {
+      "step": 26943,
+      "t": 898.1,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        16
+      ],
+      "id": "archer",
+      "gold": 11
+    },
+    {
+      "step": 26999,
+      "t": 899.97,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        15
+      ],
+      "id": "archer",
+      "gold": 3
+    },
+    {
+      "step": 27117,
+      "t": 903.9,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        14
+      ],
+      "id": "archer",
+      "gold": 81
+    },
+    {
+      "step": 27151,
+      "t": 905.03,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        13
+      ],
+      "id": "archer",
+      "gold": 83
+    },
+    {
+      "step": 27181,
+      "t": 906.03,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        12
+      ],
+      "id": "archer",
+      "gold": 75
+    },
+    {
+      "step": 27399,
+      "t": 913.3,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        11
+      ],
+      "id": "archer",
+      "gold": 146
+    },
+    {
+      "step": 27429,
+      "t": 914.3,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        10
+      ],
+      "id": "archer",
+      "gold": 121
+    },
+    {
+      "step": 27463,
+      "t": 915.43,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        15,
+        9
+      ],
+      "id": "archer",
+      "gold": 99
+    },
+    {
+      "step": 27762,
+      "t": 925.4,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        14,
+        9
+      ],
+      "id": "archer",
+      "gold": 74
+    },
+    {
+      "step": 27820,
+      "t": 927.33,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        13,
+        9
+      ],
+      "id": "archer",
+      "gold": 49
+    },
+    {
+      "step": 27855,
+      "t": 928.5,
+      "wave": 19,
+      "do": "build",
+      "tile": [
+        12,
+        9
+      ],
+      "id": "archer",
+      "gold": 24
+    },
+    {
+      "step": 28876,
+      "t": 962.53,
+      "wave": 20,
+      "do": "sell",
+      "tile": [
+        13,
+        5
+      ],
+      "gold": 159
+    },
+    {
+      "step": 29009,
+      "t": 966.97,
+      "wave": 20,
+      "do": "build",
+      "tile": [
+        13,
+        5
+      ],
+      "id": "frost",
+      "gold": 109
+    },
+    {
+      "step": 29384,
+      "t": 979.47,
+      "wave": 20,
+      "do": "sell",
+      "tile": [
+        9,
+        5
+      ],
+      "gold": 130
+    },
+    {
+      "step": 29414,
+      "t": 980.47,
+      "wave": 20,
+      "do": "build",
+      "tile": [
+        9,
+        5
+      ],
+      "id": "frost",
+      "gold": 80
+    },
+    {
+      "step": 29521,
+      "t": 984.03,
+      "wave": 20,
+      "do": "sell",
+      "tile": [
+        5,
+        5
+      ],
+      "gold": 98
+    },
+    {
+      "step": 29544,
+      "t": 984.8,
+      "wave": 20,
+      "do": "build",
+      "tile": [
+        5,
+        5
+      ],
+      "id": "frost",
+      "gold": 48
+    },
+    {
+      "step": 29629,
+      "t": 987.63,
+      "wave": 20,
+      "do": "sell",
+      "tile": [
+        2,
+        5
+      ],
+      "gold": 66
+    },
+    {
+      "step": 29659,
+      "t": 988.63,
+      "wave": 20,
+      "do": "build",
+      "tile": [
+        2,
+        5
+      ],
+      "id": "frost",
+      "gold": 16
+    },
+    {
+      "step": 37297,
+      "t": 1243.23,
+      "wave": 21,
+      "do": "sell",
+      "tile": [
+        8,
+        3
+      ],
+      "gold": 210
+    },
+    {
+      "step": 37401,
+      "t": 1246.7,
+      "wave": 21,
+      "do": "build",
+      "tile": [
+        8,
+        3
+      ],
+      "id": "cannon",
+      "gold": 150
+    },
+    {
+      "step": 37509,
+      "t": 1250.3,
+      "wave": 21,
+      "do": "sell",
+      "tile": [
+        12,
+        3
+      ],
+      "gold": 172
+    },
+    {
+      "step": 37544,
+      "t": 1251.47,
+      "wave": 21,
+      "do": "build",
+      "tile": [
+        12,
+        3
+      ],
+      "id": "cannon",
+      "gold": 112
+    },
+    {
+      "step": 37636,
+      "t": 1254.53,
+      "wave": 21,
+      "do": "sell",
+      "tile": [
+        1,
+        3
+      ],
+      "gold": 130
+    },
+    {
+      "step": 37664,
+      "t": 1255.47,
+      "wave": 21,
+      "do": "build",
+      "tile": [
+        1,
+        3
+      ],
+      "id": "cannon",
+      "gold": 70
+    },
+    {
+      "step": 37756,
+      "t": 1258.53,
+      "wave": 21,
+      "do": "upgrade",
+      "tile": [
+        2,
+        3
+      ],
+      "gold": 55
+    },
+    {
+      "step": 37841,
+      "t": 1261.37,
+      "wave": 21,
+      "do": "upgrade",
+      "tile": [
+        2,
+        3
+      ],
+      "gold": 20
+    },
+    {
+      "step": 38062,
+      "t": 1268.73,
+      "wave": 21,
+      "do": "upgrade",
+      "tile": [
+        5,
+        3
+      ],
+      "gold": 5
+    },
+    {
+      "step": 38874,
+      "t": 1295.8,
+      "wave": 22,
+      "do": "pick",
+      "choice": "interest",
+      "gold": 127
+    },
+    {
+      "step": 38974,
+      "t": 1299.13,
+      "wave": 22,
+      "do": "pick",
+      "choice": "flame",
+      "gold": 187
+    },
+    {
+      "step": 39335,
+      "t": 1311.17,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        5,
+        3
+      ],
+      "gold": 221
+    },
+    {
+      "step": 39422,
+      "t": 1314.07,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        8,
+        3
+      ],
+      "gold": 176
+    },
+    {
+      "step": 39446,
+      "t": 1314.87,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        8,
+        3
+      ],
+      "gold": 96
+    },
+    {
+      "step": 39526,
+      "t": 1317.53,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        12,
+        3
+      ],
+      "gold": 51
+    },
+    {
+      "step": 39587,
+      "t": 1319.57,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        13,
+        3
+      ],
+      "gold": 36
+    },
+    {
+      "step": 39610,
+      "t": 1320.33,
+      "wave": 22,
+      "do": "upgrade",
+      "tile": [
+        13,
+        3
+      ],
+      "gold": 1
+    },
+    {
+      "step": 42169,
+      "t": 1405.63,
+      "wave": 23,
+      "do": "sell",
+      "tile": [
+        11,
+        5
+      ],
+      "gold": 274
+    },
+    {
+      "step": 42343,
+      "t": 1411.43,
+      "wave": 23,
+      "do": "build",
+      "tile": [
+        11,
+        5
+      ],
+      "id": "plague",
+      "gold": 229
+    },
+    {
+      "step": 42460,
+      "t": 1415.33,
+      "wave": 23,
+      "do": "sell",
+      "tile": [
+        7,
+        5
+      ],
+      "gold": 256
+    },
+    {
+      "step": 42511,
+      "t": 1417.03,
+      "wave": 23,
+      "do": "build",
+      "tile": [
+        7,
+        5
+      ],
+      "id": "plague",
+      "gold": 211
+    },
+    {
+      "step": 42638,
+      "t": 1421.27,
+      "wave": 24,
+      "do": "sell",
+      "tile": [
+        4,
+        5
+      ],
+      "gold": 229
+    },
+    {
+      "step": 42769,
+      "t": 1425.63,
+      "wave": 24,
+      "do": "build",
+      "tile": [
+        4,
+        5
+      ],
+      "id": "bard",
+      "gold": 159
+    },
+    {
+      "step": 43109,
+      "t": 1436.97,
+      "wave": 24,
+      "do": "sell",
+      "tile": [
+        2,
+        5
+      ],
+      "gold": 302
+    },
+    {
+      "step": 43245,
+      "t": 1441.5,
+      "wave": 24,
+      "do": "build",
+      "tile": [
+        2,
+        5
+      ],
+      "id": "plague",
+      "gold": 317
+    },
+    {
+      "step": 43431,
+      "t": 1447.7,
+      "wave": 24,
+      "do": "sell",
+      "tile": [
+        1,
+        5
+      ],
+      "gold": 388
+    },
+    {
+      "step": 43501,
+      "t": 1450.03,
+      "wave": 24,
+      "do": "build",
+      "tile": [
+        1,
+        5
+      ],
+      "id": "frost",
+      "gold": 358
+    },
+    {
+      "step": 43786,
+      "t": 1459.53,
+      "wave": 24,
+      "do": "upgrade",
+      "tile": [
+        4,
+        3
+      ],
+      "gold": 461
+    },
+    {
+      "step": 43796,
+      "t": 1459.87,
+      "wave": 24,
+      "do": "upgrade",
+      "tile": [
+        4,
+        3
+      ],
+      "gold": 381
+    },
+    {
+      "step": 43807,
+      "t": 1460.23,
+      "wave": 24,
+      "do": "sell",
+      "tile": [
+        4,
+        3
+      ],
+      "gold": 519
+    },
+    {
+      "step": 44041,
+      "t": 1468.03,
+      "wave": 24,
+      "do": "build",
+      "tile": [
+        4,
+        3
+      ],
+      "id": "plague",
+      "gold": 474
+    },
+    {
+      "step": 44145,
+      "t": 1471.5,
+      "wave": 24,
+      "do": "sell",
+      "tile": [
+        3,
+        3
+      ],
+      "gold": 492
+    },
+    {
+      "step": 44302,
+      "t": 1476.73,
+      "wave": 24,
+      "do": "build",
+      "tile": [
+        3,
+        3
+      ],
+      "id": "cannon",
+      "gold": 451
+    },
+    {
+      "step": 44379,
+      "t": 1479.3,
+      "wave": 24,
+      "do": "upgrade",
+      "tile": [
+        3,
+        3
+      ],
+      "gold": 406
+    },
+    {
+      "step": 44414,
+      "t": 1480.47,
+      "wave": 24,
+      "do": "upgrade",
+      "tile": [
+        3,
+        3
+      ],
+      "gold": 326
+    },
+    {
+      "step": 45130,
+      "t": 1504.33,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        3,
+        5
+      ],
+      "gold": 337
+    },
+    {
+      "step": 45155,
+      "t": 1505.17,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        3,
+        5
+      ],
+      "gold": 302
+    },
+    {
+      "step": 45265,
+      "t": 1508.83,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        6,
+        5
+      ],
+      "gold": 351
+    },
+    {
+      "step": 45278,
+      "t": 1509.27,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        6,
+        5
+      ],
+      "gold": 316
+    },
+    {
+      "step": 45409,
+      "t": 1513.63,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        4,
+        5
+      ],
+      "gold": 298
+    },
+    {
+      "step": 45440,
+      "t": 1514.67,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        4,
+        5
+      ],
+      "gold": 230
+    },
+    {
+      "step": 45923,
+      "t": 1530.77,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        1,
+        3
+      ],
+      "gold": 365
+    },
+    {
+      "step": 45933,
+      "t": 1531.1,
+      "wave": 25,
+      "do": "upgrade",
+      "tile": [
+        1,
+        3
+      ],
+      "gold": 285
+    },
+    {
+      "step": 47829,
+      "t": 1594.3,
+      "wave": 26,
+      "do": "sell",
+      "tile": [
+        11,
+        3
+      ],
+      "gold": 669
+    },
+    {
+      "step": 47999,
+      "t": 1599.97,
+      "wave": 26,
+      "do": "build",
+      "tile": [
+        11,
+        3
+      ],
+      "id": "bard",
+      "gold": 589
+    },
+    {
+      "step": 48098,
+      "t": 1603.27,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        11,
+        3
+      ],
+      "gold": 529
+    },
+    {
+      "step": 48131,
+      "t": 1604.37,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        11,
+        3
+      ],
+      "gold": 439
+    },
+    {
+      "step": 48216,
+      "t": 1607.2,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        10,
+        3
+      ],
+      "gold": 424
+    },
+    {
+      "step": 48227,
+      "t": 1607.57,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        10,
+        3
+      ],
+      "gold": 389
+    },
+    {
+      "step": 48337,
+      "t": 1611.23,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        9,
+        3
+      ],
+      "gold": 389
+    },
+    {
+      "step": 48349,
+      "t": 1611.63,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        9,
+        3
+      ],
+      "gold": 354
+    },
+    {
+      "step": 48490,
+      "t": 1616.33,
+      "wave": 26,
+      "do": "sell",
+      "tile": [
+        10,
+        5
+      ],
+      "gold": 372
+    },
+    {
+      "step": 48635,
+      "t": 1621.17,
+      "wave": 26,
+      "do": "build",
+      "tile": [
+        10,
+        5
+      ],
+      "id": "cannon",
+      "gold": 312
+    },
+    {
+      "step": 48698,
+      "t": 1623.27,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        10,
+        5
+      ],
+      "gold": 279
+    },
+    {
+      "step": 48709,
+      "t": 1623.63,
+      "wave": 26,
+      "do": "upgrade",
+      "tile": [
+        10,
+        5
+      ],
+      "gold": 199
+    },
+    {
+      "step": 48915,
+      "t": 1630.5,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        10,
+        1
+      ],
+      "gold": 184
+    },
+    {
+      "step": 48925,
+      "t": 1630.83,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        10,
+        1
+      ],
+      "gold": 149
+    },
+    {
+      "step": 49004,
+      "t": 1633.47,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        11,
+        1
+      ],
+      "gold": 134
+    },
+    {
+      "step": 49014,
+      "t": 1633.8,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        11,
+        1
+      ],
+      "gold": 99
+    },
+    {
+      "step": 49144,
+      "t": 1638.13,
+      "wave": 27,
+      "do": "sell",
+      "tile": [
+        8,
+        1
+      ],
+      "gold": 191
+    },
+    {
+      "step": 49497,
+      "t": 1649.9,
+      "wave": 27,
+      "do": "build",
+      "tile": [
+        8,
+        1
+      ],
+      "id": "cannon",
+      "gold": 381
+    },
+    {
+      "step": 49614,
+      "t": 1653.8,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        8,
+        1
+      ],
+      "gold": 374
+    },
+    {
+      "step": 49624,
+      "t": 1654.13,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        8,
+        1
+      ],
+      "gold": 294
+    },
+    {
+      "step": 49885,
+      "t": 1662.83,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        8,
+        5
+      ],
+      "gold": 279
+    },
+    {
+      "step": 49895,
+      "t": 1663.17,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        8,
+        5
+      ],
+      "gold": 244
+    },
+    {
+      "step": 50022,
+      "t": 1667.4,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        13,
+        1
+      ],
+      "gold": 229
+    },
+    {
+      "step": 50032,
+      "t": 1667.73,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        13,
+        1
+      ],
+      "gold": 194
+    },
+    {
+      "step": 50194,
+      "t": 1673.13,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        13,
+        2
+      ],
+      "gold": 186
+    },
+    {
+      "step": 50204,
+      "t": 1673.47,
+      "wave": 27,
+      "do": "upgrade",
+      "tile": [
+        13,
+        2
+      ],
+      "gold": 151
+    },
+    {
+      "step": 51508,
+      "t": 1716.93,
+      "wave": 28,
+      "do": "sell",
+      "tile": [
+        14,
+        5
+      ],
+      "gold": 473
+    },
+    {
+      "step": 52366,
+      "t": 1745.53,
+      "wave": 29,
+      "do": "build",
+      "tile": [
+        14,
+        5
+      ],
+      "id": "shadow",
+      "gold": 421
+    },
+    {
+      "step": 56322,
+      "t": 1877.4,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        19,
+        3
+      ],
+      "gold": 1192
+    },
+    {
+      "step": 56380,
+      "t": 1879.33,
+      "wave": 30,
+      "do": "build",
+      "tile": [
+        19,
+        3
+      ],
+      "id": "frost",
+      "gold": 1182
+    },
+    {
+      "step": 56501,
+      "t": 1883.37,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        19,
+        6
+      ],
+      "gold": 1200
+    },
+    {
+      "step": 56576,
+      "t": 1885.87,
+      "wave": 30,
+      "do": "build",
+      "tile": [
+        19,
+        6
+      ],
+      "id": "frost",
+      "gold": 1330
+    },
+    {
+      "step": 56761,
+      "t": 1892.03,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        19,
+        8
+      ],
+      "gold": 1348
+    },
+    {
+      "step": 56810,
+      "t": 1893.67,
+      "wave": 30,
+      "do": "build",
+      "tile": [
+        19,
+        8
+      ],
+      "id": "frost",
+      "gold": 1338
+    },
+    {
+      "step": 56904,
+      "t": 1896.8,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        19,
+        12
+      ],
+      "gold": 1356
+    },
+    {
+      "step": 56957,
+      "t": 1898.57,
+      "wave": 30,
+      "do": "build",
+      "tile": [
+        19,
+        12
+      ],
+      "id": "frost",
+      "gold": 1306
+    },
+    {
+      "step": 57729,
+      "t": 1924.3,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        17,
+        4
+      ],
+      "gold": 1584
+    },
+    {
+      "step": 57775,
+      "t": 1925.83,
+      "wave": 30,
+      "do": "build",
+      "tile": [
+        17,
+        4
+      ],
+      "id": "plague",
+      "gold": 1539
+    },
+    {
+      "step": 57912,
+      "t": 1930.4,
+      "wave": 30,
+      "do": "sell",
+      "tile": [
+        17,
+        8
+      ],
+      "gold": 1557
+    },
+    {
+      "step": 57950,
+      "t": 1931.67,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        17,
+        8
+      ],
+      "id": "plague",
+      "gold": 1512
+    },
+    {
+      "step": 58070,
+      "t": 1935.67,
+      "wave": 31,
+      "do": "sell",
+      "tile": [
+        17,
+        11
+      ],
+      "gold": 1542
+    },
+    {
+      "step": 58111,
+      "t": 1937.03,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        17,
+        11
+      ],
+      "id": "plague",
+      "gold": 1509
+    },
+    {
+      "step": 58206,
+      "t": 1940.2,
+      "wave": 31,
+      "do": "sell",
+      "tile": [
+        17,
+        14
+      ],
+      "gold": 1579
+    },
+    {
+      "step": 58262,
+      "t": 1942.07,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        17,
+        14
+      ],
+      "id": "plague",
+      "gold": 1534
+    },
+    {
+      "step": 58379,
+      "t": 1945.97,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        19,
+        14
+      ],
+      "id": "archer",
+      "gold": 1605
+    },
+    {
+      "step": 58419,
+      "t": 1947.3,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        19,
+        15
+      ],
+      "id": "archer",
+      "gold": 1628
+    },
+    {
+      "step": 58532,
+      "t": 1951.07,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        19,
+        16
+      ],
+      "id": "frost",
+      "gold": 1698
+    },
+    {
+      "step": 58630,
+      "t": 1954.33,
+      "wave": 31,
+      "do": "sell",
+      "tile": [
+        17,
+        17
+      ],
+      "gold": 1804
+    },
+    {
+      "step": 58676,
+      "t": 1955.87,
+      "wave": 31,
+      "do": "build",
+      "tile": [
+        17,
+        17
+      ],
+      "id": "plague",
+      "gold": 1771
+    },
+    {
+      "step": 59571,
+      "t": 1985.7,
+      "wave": 32,
+      "do": "upgrade",
+      "tile": [
+        6,
+        3
+      ],
+      "gold": 1836
+    },
+    {
+      "step": 59582,
+      "t": 1986.07,
+      "wave": 32,
+      "do": "upgrade",
+      "tile": [
+        6,
+        3
+      ],
+      "gold": 1801
+    },
+    {
+      "step": 59591,
+      "t": 1986.37,
+      "wave": 32,
+      "do": "sell",
+      "tile": [
+        6,
+        3
+      ],
+      "gold": 1857
+    },
+    {
+      "step": 59769,
+      "t": 1992.3,
+      "wave": 32,
+      "do": "build",
+      "tile": [
+        6,
+        3
+      ],
+      "id": "plague",
+      "gold": 1812
+    },
+    {
+      "step": 60087,
+      "t": 2002.9,
+      "wave": 32,
+      "do": "upgrade",
+      "tile": [
+        7,
+        3
+      ],
+      "gold": 1938
+    },
+    {
+      "step": 60110,
+      "t": 2003.67,
+      "wave": 32,
+      "do": "upgrade",
+      "tile": [
+        7,
+        3
+      ],
+      "gold": 1941
+    },
+    {
+      "step": 60531,
+      "t": 2017.7,
+      "wave": 32,
+      "do": "sell",
+      "tile": [
+        0,
+        3
+      ],
+      "gold": 2303
+    },
+    {
+      "step": 60584,
+      "t": 2019.47,
+      "wave": 32,
+      "do": "build",
+      "tile": [
+        0,
+        3
+      ],
+      "id": "plague",
+      "gold": 2271
+    },
+    {
+      "step": 63726,
+      "t": 2124.2,
+      "wave": 33,
+      "do": "sell",
+      "tile": [
+        3,
+        7
+      ],
+      "gold": 2949
+    },
+    {
+      "step": 63784,
+      "t": 2126.13,
+      "wave": 33,
+      "do": "build",
+      "tile": [
+        3,
+        7
+      ],
+      "id": "cannon",
+      "gold": 2889
+    },
+    {
+      "step": 63884,
+      "t": 2129.47,
+      "wave": 33,
+      "do": "sell",
+      "tile": [
+        6,
+        7
+      ],
+      "gold": 2907
+    },
+    {
+      "step": 63936,
+      "t": 2131.2,
+      "wave": 34,
+      "do": "build",
+      "tile": [
+        6,
+        7
+      ],
+      "id": "cannon",
+      "gold": 2847
+    },
+    {
+      "step": 64062,
+      "t": 2135.4,
+      "wave": 34,
+      "do": "upgrade",
+      "tile": [
+        3,
+        7
+      ],
+      "gold": 2868
+    },
+    {
+      "step": 64072,
+      "t": 2135.73,
+      "wave": 34,
+      "do": "upgrade",
+      "tile": [
+        3,
+        7
+      ],
+      "gold": 2788
+    },
+    {
+      "step": 64222,
+      "t": 2140.73,
+      "wave": 34,
+      "do": "upgrade",
+      "tile": [
+        6,
+        7
+      ],
+      "gold": 2769
+    },
+    {
+      "step": 64232,
+      "t": 2141.07,
+      "wave": 34,
+      "do": "upgrade",
+      "tile": [
+        6,
+        7
+      ],
+      "gold": 2702
+    },
+    {
+      "step": 67902,
+      "t": 2263.4,
+      "wave": 35,
+      "do": "build",
+      "tile": [
+        9,
+        9
+      ],
+      "id": "bard",
+      "gold": 3595
+    },
+    {
+      "step": 67987,
+      "t": 2266.23,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        9,
+        9
+      ],
+      "gold": 3575
+    },
+    {
+      "step": 67999,
+      "t": 2266.63,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        9,
+        9
+      ],
+      "gold": 3485
+    },
+    {
+      "step": 68114,
+      "t": 2270.47,
+      "wave": 36,
+      "do": "build",
+      "tile": [
+        10,
+        9
+      ],
+      "id": "cannon",
+      "gold": 3425
+    },
+    {
+      "step": 68281,
+      "t": 2276.03,
+      "wave": 36,
+      "do": "build",
+      "tile": [
+        8,
+        9
+      ],
+      "id": "cannon",
+      "gold": 3365
+    },
+    {
+      "step": 68327,
+      "t": 2277.57,
+      "wave": 36,
+      "do": "build",
+      "tile": [
+        11,
+        9
+      ],
+      "id": "frost",
+      "gold": 3315
+    },
+    {
+      "step": 68372,
+      "t": 2279.07,
+      "wave": 36,
+      "do": "build",
+      "tile": [
+        7,
+        9
+      ],
+      "id": "frost",
+      "gold": 3305
+    },
+    {
+      "step": 68567,
+      "t": 2285.57,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        10,
+        9
+      ],
+      "gold": 3419
+    },
+    {
+      "step": 68577,
+      "t": 2285.9,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        10,
+        9
+      ],
+      "gold": 3339
+    },
+    {
+      "step": 68670,
+      "t": 2289.0,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        8,
+        9
+      ],
+      "gold": 3374
+    },
+    {
+      "step": 68680,
+      "t": 2289.33,
+      "wave": 36,
+      "do": "upgrade",
+      "tile": [
+        8,
+        9
+      ],
+      "gold": 3294
+    }
+  ],
+  "waves": [
+    {
+      "wave": 1,
+      "t": 45.0,
+      "gold": 2,
+      "lives": 20,
+      "towers": 16,
+      "invested": 400,
+      "earned_before": 9,
+      "walked": 0.022,
+      "died_at": 0.022,
+      "deaths": 15,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 54.47
+    },
+    {
+      "wave": 2,
+      "t": 84.47,
+      "gold": 64,
+      "lives": 20,
+      "towers": 16,
+      "invested": 400,
+      "earned_before": 71,
+      "walked": 0.046,
+      "died_at": 0.033,
+      "deaths": 21,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 93.03
+    },
+    {
+      "wave": 3,
+      "t": 123.03,
+      "gold": 26,
+      "lives": 20,
+      "towers": 16,
+      "invested": 500,
+      "earned_before": 161,
+      "walked": 0.069,
+      "died_at": 0.032,
+      "deaths": 12,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 131.3
+    },
+    {
+      "wave": 4,
+      "t": 161.3,
+      "gold": 52,
+      "lives": 20,
+      "towers": 16,
+      "invested": 525,
+      "earned_before": 219,
+      "walked": 0.022,
+      "died_at": 0.019,
+      "deaths": 20,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 174.6
+    },
+    {
+      "wave": 5,
+      "t": 204.6,
+      "gold": 8,
+      "lives": 20,
+      "towers": 20,
+      "invested": 660,
+      "earned_before": 310,
+      "walked": 0.029,
+      "died_at": 0.022,
+      "deaths": 18,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 216.47
+    },
+    {
+      "wave": 6,
+      "t": 246.47,
+      "gold": 4,
+      "lives": 20,
+      "towers": 24,
+      "invested": 760,
+      "earned_before": 406,
+      "walked": 0.039,
+      "died_at": 0.021,
+      "deaths": 21,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 261.93
+    },
+    {
+      "wave": 7,
+      "t": 291.93,
+      "gold": 16,
+      "lives": 20,
+      "towers": 28,
+      "invested": 860,
+      "earned_before": 518,
+      "walked": 0.088,
+      "died_at": 0.043,
+      "deaths": 15,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 305.37
+    },
+    {
+      "wave": 8,
+      "t": 335.37,
+      "gold": 2,
+      "lives": 20,
+      "towers": 30,
+      "invested": 955,
+      "earned_before": 599,
+      "walked": 0.035,
+      "died_at": 0.022,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 350.17
+    },
+    {
+      "wave": 9,
+      "t": 380.17,
+      "gold": 11,
+      "lives": 20,
+      "towers": 37,
+      "invested": 1130,
+      "earned_before": 783,
+      "walked": 0.067,
+      "died_at": 0.035,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 396.63
+    },
+    {
+      "wave": 10,
+      "t": 426.63,
+      "gold": 5,
+      "lives": 20,
+      "towers": 43,
+      "invested": 1280,
+      "earned_before": 927,
+      "walked": 0.518,
+      "died_at": 0.054,
+      "deaths": 13,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 484.63
+    },
+    {
+      "wave": 11,
+      "t": 514.63,
+      "gold": 12,
+      "lives": 20,
+      "towers": 50,
+      "invested": 1455,
+      "earned_before": 1109,
+      "walked": 0.038,
+      "died_at": 0.028,
+      "deaths": 21,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 528.57
+    },
+    {
+      "wave": 12,
+      "t": 558.57,
+      "gold": 160,
+      "lives": 20,
+      "towers": 50,
+      "invested": 1455,
+      "earned_before": 1257,
+      "walked": 0.16,
+      "died_at": 0.09,
+      "deaths": 12,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 572.1
+    },
+    {
+      "wave": 13,
+      "t": 602.1,
+      "gold": 202,
+      "lives": 20,
+      "towers": 56,
+      "invested": 1605,
+      "earned_before": 1449,
+      "walked": 0.038,
+      "died_at": 0.035,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 617.93
+    },
+    {
+      "wave": 14,
+      "t": 647.93,
+      "gold": 220,
+      "lives": 20,
+      "towers": 63,
+      "invested": 1780,
+      "earned_before": 1642,
+      "walked": 0.044,
+      "died_at": 0.023,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 662.23
+    },
+    {
+      "wave": 15,
+      "t": 692.23,
+      "gold": 26,
+      "lives": 20,
+      "towers": 80,
+      "invested": 2205,
+      "earned_before": 1873,
+      "walked": 0.068,
+      "died_at": 0.049,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 711.83
+    },
+    {
+      "wave": 16,
+      "t": 741.83,
+      "gold": 16,
+      "lives": 20,
+      "towers": 90,
+      "invested": 2455,
+      "earned_before": 2113,
+      "walked": 0.156,
+      "died_at": 0.101,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 764.0
+    },
+    {
+      "wave": 17,
+      "t": 794.0,
+      "gold": 14,
+      "lives": 20,
+      "towers": 98,
+      "invested": 2655,
+      "earned_before": 2311,
+      "walked": 0.111,
+      "died_at": 0.092,
+      "deaths": 27,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 812.97
+    },
+    {
+      "wave": 18,
+      "t": 842.97,
+      "gold": 5,
+      "lives": 20,
+      "towers": 108,
+      "invested": 2905,
+      "earned_before": 2552,
+      "walked": 0.137,
+      "died_at": 0.099,
+      "deaths": 15,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 864.03
+    },
+    {
+      "wave": 19,
+      "t": 894.03,
+      "gold": 10,
+      "lives": 20,
+      "towers": 118,
+      "invested": 3155,
+      "earned_before": 2807,
+      "walked": 0.109,
+      "died_at": 0.06,
+      "deaths": 33,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 911.2
+    },
+    {
+      "wave": 20,
+      "t": 941.2,
+      "gold": 24,
+      "lives": 20,
+      "towers": 129,
+      "invested": 3430,
+      "earned_before": 3096,
+      "walked": 1.0,
+      "died_at": 0.101,
+      "deaths": 12,
+      "leaks": 1,
+      "lives_lost": 2,
+      "cleared_t": 1145.7
+    },
+    {
+      "wave": 21,
+      "t": 1175.7,
+      "gold": 16,
+      "lives": 18,
+      "towers": 129,
+      "invested": 3530,
+      "earned_before": 3216,
+      "walked": 0.47,
+      "died_at": 0.279,
+      "deaths": 18,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1242.2
+    },
+    {
+      "wave": 22,
+      "t": 1272.2,
+      "gold": 5,
+      "lives": 18,
+      "towers": 129,
+      "invested": 3700,
+      "earned_before": 3396,
+      "walked": 0.14,
+      "died_at": 0.122,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1323.13
+    },
+    {
+      "wave": 23,
+      "t": 1353.13,
+      "gold": 1,
+      "lives": 18,
+      "towers": 129,
+      "invested": 3955,
+      "earned_before": 3647,
+      "walked": 0.232,
+      "died_at": 0.157,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1391.23
+    },
+    {
+      "wave": 24,
+      "t": 1421.23,
+      "gold": 211,
+      "lives": 18,
+      "towers": 129,
+      "invested": 3995,
+      "earned_before": 3911,
+      "walked": 0.133,
+      "died_at": 0.092,
+      "deaths": 36,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1458.83
+    },
+    {
+      "wave": 25,
+      "t": 1488.83,
+      "gold": 339,
+      "lives": 18,
+      "towers": 129,
+      "invested": 4215,
+      "earned_before": 4340,
+      "walked": 0.295,
+      "died_at": 0.205,
+      "deaths": 14,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1530.27
+    },
+    {
+      "wave": 26,
+      "t": 1560.27,
+      "gold": 307,
+      "lives": 18,
+      "towers": 129,
+      "invested": 4590,
+      "earned_before": 4683,
+      "walked": 0.446,
+      "died_at": 0.196,
+      "deaths": 27,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1594.13
+    },
+    {
+      "wave": 27,
+      "t": 1624.13,
+      "gold": 199,
+      "lives": 18,
+      "towers": 129,
+      "invested": 5055,
+      "earned_before": 5054,
+      "walked": 0.182,
+      "died_at": 0.119,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1650.7
+    },
+    {
+      "wave": 28,
+      "t": 1680.7,
+      "gold": 151,
+      "lives": 18,
+      "towers": 129,
+      "invested": 5465,
+      "earned_before": 5423,
+      "walked": 0.154,
+      "died_at": 0.118,
+      "deaths": 24,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1712.63
+    },
+    {
+      "wave": 29,
+      "t": 1742.63,
+      "gold": 491,
+      "lives": 18,
+      "towers": 128,
+      "invested": 5440,
+      "earned_before": 5745,
+      "walked": 0.126,
+      "died_at": 0.079,
+      "deaths": 33,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1773.97
+    },
+    {
+      "wave": 30,
+      "t": 1803.97,
+      "gold": 910,
+      "lives": 18,
+      "towers": 129,
+      "invested": 5540,
+      "earned_before": 6264,
+      "walked": 0.562,
+      "died_at": 0.191,
+      "deaths": 11,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1900.93
+    },
+    {
+      "wave": 31,
+      "t": 1930.93,
+      "gold": 1557,
+      "lives": 18,
+      "towers": 128,
+      "invested": 5635,
+      "earned_before": 7048,
+      "walked": 0.262,
+      "died_at": 0.179,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 1954.67
+    },
+    {
+      "wave": 32,
+      "t": 1984.67,
+      "gold": 1851,
+      "lives": 18,
+      "towers": 132,
+      "invested": 5840,
+      "earned_before": 7568,
+      "walked": 0.252,
+      "died_at": 0.116,
+      "deaths": 36,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 2017.97
+    },
+    {
+      "wave": 33,
+      "t": 2047.97,
+      "gold": 2351,
+      "lives": 18,
+      "towers": 132,
+      "invested": 5930,
+      "earned_before": 8184,
+      "walked": 0.232,
+      "died_at": 0.123,
+      "deaths": 30,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 2099.63
+    },
+    {
+      "wave": 34,
+      "t": 2129.63,
+      "gold": 2907,
+      "lives": 18,
+      "towers": 131,
+      "invested": 5940,
+      "earned_before": 8764,
+      "walked": 1.0,
+      "died_at": 0.151,
+      "deaths": 24,
+      "leaks": 12,
+      "lives_lost": 12,
+      "cleared_t": 2161.8
+    },
+    {
+      "wave": 35,
+      "t": 2191.8,
+      "gold": 3075,
+      "lives": 6,
+      "towers": 132,
+      "invested": 6250,
+      "earned_before": 9242,
+      "walked": 0.253,
+      "died_at": 0.184,
+      "deaths": 33,
+      "leaks": 0,
+      "lives_lost": 0,
+      "cleared_t": 2234.33
+    },
+    {
+      "wave": 36,
+      "t": 2264.33,
+      "gold": 3595,
+      "lives": 6,
+      "towers": 133,
+      "invested": 6330,
+      "earned_before": 9842,
+      "walked": 1.0,
+      "died_at": 0.131,
+      "deaths": 27,
+      "leaks": 6,
+      "lives_lost": 6,
+      "cleared_t": null
+    }
+  ],
+  "result": {
+    "outcome": "defeat",
+    "steps": 69034,
+    "time": 2301.13,
+    "wave": 36,
+    "lives": 0,
+    "gold": 3453,
+    "gold_earned": 10320,
+    "kills": 856,
+    "score": 12013,
+    "towers": [
+      {
+        "tile": [
+          10,
+          1
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          11,
+          1
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          7,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          5,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          3,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          2,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          2,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          9,
+          1
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          11,
+          0
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          6,
+          1
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          4,
+          1
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          1,
+          1
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          5,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          7,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          9,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          10,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          13,
+          3
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          13,
+          2
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          13,
+          1
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          15,
+          0
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          1
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          2
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          3
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          4
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          12,
+          5
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          8,
+          5
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          6,
+          5
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          3,
+          5
+        ],
+        "id": "archer",
+        "level": 3
+      },
+      {
+        "tile": [
+          0,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          1,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          2,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          4,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          5,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          7,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          8,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          9,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          10,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          11,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          12,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          13,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          14,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          16,
+          6
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          5
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          3
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          2
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          0
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          1
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          2
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          4
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          5
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          6
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          7
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          10
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          12
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          10
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          11
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          13
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          13
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          15
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          16
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          18
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          19
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          20
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          21
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          22
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          23
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          24
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          25
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          16,
+          27
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          27
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          18,
+          27
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          27
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          27
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          26
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          25
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          24
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          23
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          22
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          21
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          20
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          19
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          18
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          17
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          16
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          15
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          14
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          13
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          12
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          11
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          10
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          15,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          14,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          13,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          12,
+          9
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          13,
+          5
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          9,
+          5
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          5,
+          5
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          8,
+          3
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          12,
+          3
+        ],
+        "id": "cannon",
+        "level": 2
+      },
+      {
+        "tile": [
+          1,
+          3
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          11,
+          5
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          7,
+          5
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          4,
+          5
+        ],
+        "id": "bard",
+        "level": 3
+      },
+      {
+        "tile": [
+          2,
+          5
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          1,
+          5
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          4,
+          3
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          3,
+          3
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          11,
+          3
+        ],
+        "id": "bard",
+        "level": 3
+      },
+      {
+        "tile": [
+          10,
+          5
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          8,
+          1
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          14,
+          5
+        ],
+        "id": "shadow",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          3
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          6
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          8
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          12
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          4
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          8
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          11
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          14
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          14
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          15
+        ],
+        "id": "archer",
+        "level": 1
+      },
+      {
+        "tile": [
+          19,
+          16
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          17,
+          17
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          6,
+          3
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          0,
+          3
+        ],
+        "id": "plague",
+        "level": 1
+      },
+      {
+        "tile": [
+          3,
+          7
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          6,
+          7
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          9,
+          9
+        ],
+        "id": "bard",
+        "level": 3
+      },
+      {
+        "tile": [
+          10,
+          9
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          8,
+          9
+        ],
+        "id": "cannon",
+        "level": 3
+      },
+      {
+        "tile": [
+          11,
+          9
+        ],
+        "id": "frost",
+        "level": 1
+      },
+      {
+        "tile": [
+          7,
+          9
+        ],
+        "id": "frost",
+        "level": 1
+      }
+    ]
+  }
+}

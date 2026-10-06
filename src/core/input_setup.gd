@@ -15,6 +15,7 @@ const KEYS := {
 	&"camera_preset": [KEY_C],
 	&"boss_track": [KEY_B],
 	&"field_guide": [KEY_H],
+	&"settings": [KEY_F10],
 	&"cam_left": [KEY_A, KEY_LEFT],
 	&"cam_right": [KEY_D, KEY_RIGHT],
 	&"cam_forward": [KEY_W, KEY_UP],

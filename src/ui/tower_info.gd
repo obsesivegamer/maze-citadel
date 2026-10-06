@@ -101,6 +101,8 @@ static func blurb(id: StringName) -> String:
 	var text: String = BLURBS.get(id, "")
 	if not adjacent_reach:
 		return text
+	if id == &"archer":
+		text += " Strong against Air: keep some beside the flight line."
 	return text.replace(" Can't hit closer than 4 m.", "").replace(" Level 3 fires two arrows.", "")
 
 
@@ -186,7 +188,13 @@ static func counter_parts(id: StringName) -> Array:
 	else:
 		out.append([&"strong", "Strong vs " + ELEMENT_NAMES[strong_against(def.element)]])
 		out.append([&"weak", "Weak vs " + ELEMENT_NAMES[weak_against(def.element)]])
-	var bonus := _class_names(classes_by_mult(def.attack, true))
+	var better := classes_by_mult(def.attack, true)
+	# eletd: flyers are a wave's own problem, so a tower that hits them hard says so first.
+	if adjacent_reach and def.get("air", false) and &"air" in better:
+		better.erase(&"air")
+		var m := Damage.class_mult(def.attack, &"air")
+		out.append([&"strong", "Strong vs Air: %s" % Counsel.pct(m, false)])
+	var bonus := _class_names(better)
 	if bonus != "":
 		out.append([&"bonus", "Bonus vs " + bonus])
 	var poor := _class_names(classes_by_mult(def.attack, false))
@@ -267,6 +275,27 @@ static func next_level_preview(id: StringName, level: int) -> String:
 	return SEP.join(parts) if not parts.is_empty() else "Stronger effect"
 
 
+## The plaque's damage line: "12.3k dmg", and under eletd its share of all
+## the damage towers have dealt this game, "12.3k dmg · 8% of all".
+static func damage_text(sim: GameSim, t: SimTower) -> String:
+	var text := fmt_big(t.damage_dealt) + " dmg"
+	if not sim.adjacent_reach() or t.damage_dealt <= 0.0:
+		return text
+	var total := 0.0
+	for other: SimTower in sim.towers.values():
+		total += other.damage_dealt
+	return text + "%s%d%% of all" % [SEP, roundi(100.0 * t.damage_dealt / total)]
+
+
+## The plaque's line on flyers for a wing-icon tower under eletd, or "".
+static func air_note(sim: GameSim, t: SimTower) -> String:
+	if not sim.adjacent_reach() or not t.stat("air", false):
+		return ""
+	if AirCover.chord(sim.grid, t.tile) > 0.0:
+		return "Beside the flight line: meets every flyer"
+	return "Away from the flight line: flyers never come in reach"
+
+
 static func fmt_value(v: float, fmt: String) -> String:
 	if v == 0.0:
 		return "—"
@@ -303,6 +332,16 @@ static func fmt_big(v: float) -> String:
 	return str(roundi(v))
 
 
+## Gold as written in sentences: 1000 → "1,000".
+static func fmt_gold(n: int) -> String:
+	var digits := str(absi(n))
+	var out := ""
+	while digits.length() > 3:
+		out = "," + digits.right(3) + out
+		digits = digits.left(-3)
+	return ("-" if n < 0 else "") + digits + out
+
+
 static func fmt_time(seconds: float) -> String:
 	var s := maxi(int(seconds), 0)
 	if s >= 3600:
@@ -330,6 +369,56 @@ static func rules_name(rules: StringName) -> String:
 
 static func difficulty_name(difficulty: StringName) -> String:
 	return String(difficulty).capitalize()
+
+
+## One line on what a difficulty does, for its top-bar chip and the setup
+## panel. Classic's keep their released text; eletd's read the creep HP
+## multiplier EletdRules gives on wave 1 and on the last wave, so a retune
+## rewrites them.
+static func difficulty_tip(level: StringName, rules: StringName) -> String:
+	if level == &"normal":
+		return "Normal: base creep HP and bounty"
+	if rules != &"eletd":
+		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
+	var last := WaveDefs.count()
+	var score := "score ×%s" % fmt_num(EletdRules.SCORE_MULT[level])
+	var at := func(w: int) -> String: return _hp_change(EletdRules.difficulty_hp(level, w))
+	if level == &"easy":
+		return (
+			"Easy: creeps have %s HP on wave 1, %s by wave %d, %s"
+			% [at.call(1), at.call(last), last, score]
+		)
+	# Hard and Very Hard open high, ease onto their ramp, then climb (EletdRules).
+	return (
+		"%s: creeps have %s HP to wave %d, easing to %s by wave %d, then rising to %s by wave %d, %s"
+		% [
+			difficulty_name(level),
+			at.call(1),
+			EletdRules.EARLY_HOLD,
+			at.call(EletdRules.EARLY_UNTIL),
+			EletdRules.EARLY_UNTIL,
+			at.call(last),
+			last,
+			score,
+		]
+	)
+
+
+## A creep HP multiplier as "30% less" or "25% more".
+static func _hp_change(mult: float) -> String:
+	var pct := roundi(mult * 100.0 - 100.0)
+	return "%d%% less" % -pct if pct < 0 else "%d%% more" % pct
+
+
+static func infinite_tip() -> String:
+	return "Infinite: waves continue after %d" % WaveDefs.count()
+
+
+static func twists_tip() -> String:
+	return (
+		"Twists: from wave %d most waves get a random creep ability, shown a wave ahead. Score ×%s"
+		% [WaveTwists.FIRST_WAVE, fmt_num(WaveTwists.SCORE_MULT)]
+	)
 
 
 static func epic_requirement(epic: StringName) -> String:
@@ -416,6 +505,43 @@ static func bulky_text() -> String:
 	)
 
 
+## True when wave `wave` sends flyers and towers reach only the tiles around
+## them (eletd), so where a tower stands decides whether it meets them.
+static func flying(wave: int, rules: StringName) -> bool:
+	if rules != &"eletd":
+		return false
+	for g in wave_groups(wave, rules):
+		if CreepDefs.CREEPS[g[0]].get("flying", false):
+			return true
+	return false
+
+
+## What a flying wave asks of the maze, after "FLYING: ".
+static func flying_text() -> String:
+	return (
+		"ignores your maze and flies straight from portal to gate;"
+		+ " only wing-icon towers beside the flight line hit it"
+	)
+
+
+## True on an eletd wave in composite armor (EletdWaves).
+static func composite_wave(wave: int, rules: StringName) -> bool:
+	return rules == &"eletd" and &"composite" in WaveDefs.elements(wave, rules)
+
+
+## What composite armor changes, after "Composite armor: ", e.g. "elements
+## don't matter this wave: Archers and Cannons hit at full strength, element
+## towers 90%".
+static func composite_text() -> String:
+	var names := PackedStringArray()
+	for id in EletdRules.COMPOSITE_TOWERS:
+		names.append(short_name(id) + "s")
+	return (
+		"elements don't matter this wave: %s hit at full strength, element towers %s"
+		% [" and ".join(names), Counsel.pct(EletdRules.COMPOSITE_DAMAGE, false)]
+	)
+
+
 ## Context-sensitive [key, action] hints for the strip above the cards.
 static func hints(state: StringName) -> Array:
 	match state:
@@ -441,4 +567,5 @@ static func hints(state: StringName) -> Array:
 		["R/C", "Camera"],
 		["B", "Boss"],
 		["H", "Field Guide"],
+		["Esc", "Menu"],
 	]

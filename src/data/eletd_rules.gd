@@ -5,19 +5,36 @@ extends RefCounted
 ## has the reasoning behind each value here.
 
 ## Creep HP as a share of classic, on a straight line from HP_FROM on wave 1
-## to HP_TO on wave 40 (and after), so each wave is at least as tough as the
-## one before. A tower that reaches only the tiles around it sees each creep
-## for about 2 s, so the bot loses on wave 2 at full HP. Since the starters
+## to HP_TO on wave 40 (and after), never below HP_FLOOR, so each wave is at
+## least as tough as the one before. A tower that reaches only the tiles
+## around it sees each creep for about 2 s, so the bot loses on wave 2 at full
+## HP. Since the starters
 ## deal composite damage the novice bot has no counters for the opening: at
 ## 0.15, and at 0.11 with HP_TO at 0.68, it lost to the Ghouls of wave 6; at
 ## HP_FROM it holds to wave 30. HP_TO keeps the smart bot near 12 lives on
 ## Normal with the stronger elemental towers: at 0.6 it kept 18 on the Rampart.
 const HP_FROM := 0.1
 const HP_TO := 0.68
-## Armored HP share: up to ARMORED_HP_TO on wave 40 on a squared curve, so
-## waves 3 and 7 barely change and late armor needs siege. It sits a little
-## above HP_TO, so armored creeps are never the easier ones at the end.
+## No creep but an armored one has less than this share. On the line alone one
+## Archer arrow killed any creep of the opening; at the floor a Grunt takes two
+## on Normal (the Wolf Riders of wave 2 still one). The line passes it on wave
+## 18 and is unchanged from there. A straight line from 0.35 to 0.68 made
+## waves 20 to 30 a quarter harder and the smart bot lost Normal games there;
+## a floor of 0.42 gave Wolf Riders two arrows too, but the smart bot lost one
+## game in four and the novice bot leaked on Easy.
+const HP_FLOOR := 0.35
+## Armored HP share: a straight line from HP_FROM to ARMORED_HP_TO on wave 40,
+## without HP_FLOOR, so the Footmen of wave 3 and the Tanks of wave 7 stay
+## where they were (within 3% of 0.4.1's share on every wave): at 0.2 on wave
+## 1 the novice bot lost to the Footmen even on Easy. It ends a little above
+## HP_TO, so armored creeps are never the easier ones once the line passes
+## the floor.
 const ARMORED_HP_TO := 0.7
+## Harpy HP per wave, on top of the rest. Wave 5 brings the first flyers:
+## before HP_FLOOR one Archer beside the flight line held them on Normal, two
+## on the floor alone, and at 2.7 it takes four (five on Very Hard). Only
+## Harpies: the bots' threat estimate reads hp_mult too.
+const HARPY_HP := {5: 2.7}
 ## Archer arrows per shot at every level: two at level 3 let a maze of
 ## archers alone win.
 const ARCHER_MULTISHOT := 1
@@ -25,6 +42,13 @@ const ARCHER_MULTISHOT := 1
 ## end and only the towers there reach them; at 220 the novice bot loses on
 ## wave 2 whatever the creep HP.
 const START_GOLD := 400
+## Rows at the portal (north) edge where nothing may be built (Grid.portal_rows).
+## With towers allowed beside the portal tiles, every creep passed a ring of
+## Archers on its first step and the opening waves died within 3 m of the
+## portal. Three rows keep every creep at least 5.5 m from the portal before
+## a tower can reach it and match the bots' first Citadel wall; four would
+## take 80 build tiles.
+const PORTAL_ROWS := 3
 ## Pause between waves: time to read the next waves and rebuild.
 const BREATHER := 30.0
 ## Hard creep HP multiplier, in place of classic's 1.1 to 1.4: HARD_FROM on
@@ -34,11 +58,22 @@ const BREATHER := 30.0
 ## 1.3 it won 1 game in 4 on each map.
 const HARD_FROM := 1.06
 const HARD_TO := 1.28
+## Hard and Very Hard open at these multipliers, held through wave EARLY_HOLD
+## and sliding onto their ramps by wave EARLY_UNTIL, so the harder levels are
+## harder from wave 1 without moving the late game they were tuned on. On the
+## ramps alone Very Hard's opening creeps had about Normal's HP.
+const HARD_EARLY := 1.25
+const VERY_HARD_EARLY := 1.5
+const EARLY_HOLD := 5
+const EARLY_UNTIL := 11
 ## Element TD's four difficulties; classic offers only Normal and Hard.
 const DIFFICULTIES: Array[StringName] = [&"easy", &"normal", &"hard", &"very_hard"]
-## Easy takes a flat share off creep HP, so the opening is gentler too. At
-## 0.75 the wave-10 Ogre still got through on the Citadel and Easy kept fewer
-## than 15 lives there.
+## Easy takes a share off creep HP: EASY_FROM times Normal's on wave 1 rising
+## to EASY_HP on wave 40, so the opening HP_FLOOR raised stays gentle. At a
+## flat 0.7 on the floor the novice bot lost to the Ghouls of wave 6. At 0.75
+## the wave-10 Ogre still got through on the Citadel and Easy kept fewer than
+## 15 lives there.
+const EASY_FROM := 0.4
 const EASY_HP := 0.7
 ## Very Hard's ramp, on a squared curve: just above Hard's until about wave
 ## 25, so a good player reaches wave 30, then steep, so the last ten waves are
@@ -49,11 +84,13 @@ const VERY_HARD_TO := 1.55
 ## Score multiplier per difficulty; Normal and Hard match classic's.
 const SCORE_MULT := {&"easy": 0.7, &"normal": 1.0, &"hard": 1.3, &"very_hard": 1.6}
 ## Boss HP per wave, on top of the wave table's boss_hp. The wave-10 Ogre is
-## the opening's test: at 1.0 nothing leaks before wave 20, and at 1.7 it got
-## through on the Citadel but seldom on the Rampart. The Dreadlord at full share
-## outlasts any maze, walks round four or five times and takes 7 to 13 lives;
-## at this share it mostly dies on its first pass.
-const BOSS_HP := {10: 2.1, 40: 0.3}
+## the opening's test. On the line's 0.234 share of wave 10, at 1.0 nothing
+## leaked before wave 20 and at 1.7 it got through on the Citadel but seldom on
+## the Rampart; 2.1 there was the tuned value, and 1.4 on HP_FLOOR gives it the
+## same HP. The Dreadlord at full share outlasts any maze, walks round four or
+## five times and takes 7 to 13 lives; at this share it mostly dies on its
+## first pass.
+const BOSS_HP := {10: 1.4, 40: 0.3}
 ## Element TD sends long streams, so coverage along the lane is what counts:
 ## every group but a boss has WAVE_SIZE times the creeps (rounded up), with
 ## HP and bounty shared out so the wave's totals stay the same (EletdWaves).
@@ -91,9 +128,9 @@ const INTEREST_PICK_CAP := 10
 ## every creep element, composite armor included. The Bard needs none either.
 const COMPOSITE_TOWERS: Array[StringName] = [&"archer", &"cannon"]
 ## A Guardian's HP for the element level it guards, as a share of a lone Ogre
-## of the current wave (without any wave's own boss tuning). A level-1
-## Guardian walks into a maze built for the other elements, and at 0.5 the
-## smart bot often never dared summon its third element's, taking Interest.
+## of the current wave (without HP_FLOOR or any wave's own boss tuning). A
+## level-1 Guardian walks into a maze built for the other elements, and at 0.5
+## the smart bot often never dared summon its third element's, taking Interest.
 const GUARDIAN_HP: Array[float] = [0.35, 0.8, 1.2]
 const GUARDIAN_LIVES := 3
 ## The Archer's damage per level as a share of the tower table's. At full
@@ -121,6 +158,8 @@ static func difficulties(rules: StringName) -> Array[StringName]:
 ## under these rules at `difficulty`.
 static func hp_mult(type: StringName, w: int, difficulty: StringName) -> float:
 	var m := difficulty_hp(difficulty, w)
+	if type == &"harpy":
+		m *= HARPY_HP.get(w, 1.0)
 	match CreepDefs.CREEPS[type].class:
 		&"armored":
 			return m * armored_hp(w)
@@ -133,23 +172,31 @@ static func difficulty_hp(difficulty: StringName, w: int) -> float:
 	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
 	match difficulty:
 		&"easy":
-			return EASY_HP
+			return lerpf(EASY_FROM, EASY_HP, f)
 		&"hard":
-			return lerpf(HARD_FROM, HARD_TO, f)
+			return _early(HARD_EARLY, lerpf(HARD_FROM, HARD_TO, f), w)
 		&"very_hard":
-			return lerpf(VERY_HARD_FROM, VERY_HARD_TO, f * f)
+			return _early(VERY_HARD_EARLY, lerpf(VERY_HARD_FROM, VERY_HARD_TO, f * f), w)
 	return 1.0
 
 
+static func _early(start: float, ramp: float, w: int) -> float:
+	return lerpf(start, ramp, clampf(float(w - EARLY_HOLD) / (EARLY_UNTIL - EARLY_HOLD), 0.0, 1.0))
+
+
 static func hp(w: int) -> float:
+	return maxf(HP_FLOOR, line_hp(w))
+
+
+## The plain share's straight line without HP_FLOOR.
+static func line_hp(w: int) -> float:
 	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
 	return lerpf(HP_FROM, HP_TO, f)
 
 
-## Never below hp(), so armored creeps are never the easier ones.
 static func armored_hp(w: int) -> float:
 	var f := clampf((w - 1) / float(WaveDefs.count() - 1), 0.0, 1.0)
-	return maxf(hp(w), lerpf(HP_FROM, ARMORED_HP_TO, f * f))
+	return lerpf(HP_FROM, ARMORED_HP_TO, f)
 
 
 ## The share of its table damage a tower of `id` deals at `level` under these
@@ -166,11 +213,12 @@ static func start_gold(rules: StringName) -> int:
 	return START_GOLD if rules == &"eletd" else GameSim.START_GOLD
 
 
-## A Grunt is the plain creep (HP × 1), so this is a lone Ogre of wave `w`,
-## Infinite's growth past the last wave included: a kept pick can be spent
-## there.
+## A Grunt is the plain creep (HP × 1), so this is a lone Ogre of wave `w` on
+## the share's line, Infinite's growth past the last wave included: a kept
+## pick can be spent there. HP_FLOOR is left out: on it the Guardians of waves
+## 5 to 10 had 1.5 to 2.2 times the HP they were tuned with.
 static func guardian_hp(level: int, w: int, difficulty: StringName) -> float:
 	var ogre: float = CreepDefs.max_hp(&"grunt", w) * CreepDefs.CREEPS[&"ogre"].hp
 	if w > WaveDefs.count():
 		ogre *= pow(GameSim.INFINITE_HP_GROWTH, w - WaveDefs.count())
-	return ogre * hp(w) * difficulty_hp(difficulty, w) * GUARDIAN_HP[level - 1]
+	return ogre * line_hp(w) * difficulty_hp(difficulty, w) * GUARDIAN_HP[level - 1]

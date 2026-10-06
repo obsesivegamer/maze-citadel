@@ -104,6 +104,13 @@ func _take_due() -> void:
 		log.observe(sim, sim.drain_events())
 
 
+## How many of the record's actions the replay came to, refused ones
+## included. A replay that ends sooner than the game it plays never tries
+## the rest.
+func reached() -> int:
+	return _next
+
+
 func over() -> bool:
 	return sim.phase == GameSim.Phase.DEFEAT or sim.phase == GameSim.Phase.VICTORY
 

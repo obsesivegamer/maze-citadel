@@ -2,7 +2,8 @@ class_name Hud
 extends CanvasLayer
 ## The HUD (GDD §11): top bar, 12 tower cards with tooltips, the pre-wave
 ## banner, the plaque over the selected tower, a key-hint strip, the
-## first-run tutorial, the Field Guide, settings and the end screen. Composes
+## first-run tutorial, the setup panel, the Field Guide, settings, the pause
+## menu and the end screen. Composes
 ## the components in src/ui/ and routes game signals to them; per-frame work
 ## is limited to values that changed.
 
@@ -15,6 +16,14 @@ const ANNOUNCE_LEAD := 3.0
 const SAY_GAP := 46.0
 const SAY_HOLD := 2.2
 const SAY_FADE := 0.6
+## How long the line holds a rule it teaches (HudNotices).
+const NOTICE_HOLD := 5.0
+## The modals that take the keys, topmost first as setup() stacks them
+## (modal_action): keys go to the one the player sees. The loading screen
+## counts as one until the game has booted.
+const MODALS: Array[StringName] = [
+	&"loading", &"end", &"settings", &"guide", &"setup", &"menu", &"welcome"
+]
 
 var _game: Game
 var _root := Control.new()
@@ -26,12 +35,15 @@ var _banner := WaveBanner.new()
 var _plaque := TowerPlaque.new()
 var _hints := UiKit.label("", &"Dim", UiTheme.SIZE_TINY)
 var _tutorial := Tutorial.new()
+var _menu := PauseMenu.new()
+var _setup := SetupPanel.new()
 var _guide := FieldGuide.new()
 var _settings := SettingsPanel.new()
 var _end := EndScreen.new()
 ## eletd only: the element pick panel and a line of text above the cards
-## for refusals and Guardian leaks.
+## for refusals, Guardian leaks and the rules HudNotices teaches.
 var _picks: PickPanel
+var _notices := HudNotices.new()
 var _say_line: Label
 var _say_tween: Tween
 var _announced := 0
@@ -66,6 +78,14 @@ func setup(game: Game) -> void:
 	_tutorial.setup(game, _cards)
 	if game.sim.elements.enabled:
 		_build_elements()
+	# Under the Field Guide and Settings, which open over it.
+	_root.add_child(_menu)
+	_menu.setup(game)
+	_menu.settings_requested.connect(_settings.open)
+	_menu.guide_requested.connect(_guide.open)
+	_root.add_child(_setup)
+	_setup.setup(game)
+	_setup.started.connect(_on_setup_started)
 	_root.add_child(_guide)
 	_guide.setup(game)
 	_tutorial.guide_requested.connect(_guide.open)
@@ -74,14 +94,16 @@ func setup(game: Game) -> void:
 	_root.add_child(_tooltip)
 	_root.add_child(_settings)
 	_settings.setup(game)
-	_settings.setting_changed.connect(_tutorial.on_setting)
+	_settings.setting_changed.connect(_on_setting)
 	_root.add_child(_end)
 	_end.setup(game)
 	_best_before = Save.best_wave(Save.sim_key(game.sim))
 	game.sim_event.connect(_on_sim_event)
 	game.build_choice_changed.connect(func(_id: StringName) -> void: _refresh_cards())
 	game.selection_changed.connect(_plaque.show_tile)
-	if Tutorial.wanted():
+	if SetupPanel.wanted():
+		_open_setup.call_deferred()
+	elif Tutorial.wanted():
 		_start_tutorial.call_deferred()
 
 
@@ -123,7 +145,7 @@ func _build_elements() -> void:
 
 
 ## Shows `text` above the cards for a moment, like a Warcraft III error line.
-func _say(text: String) -> void:
+func _say(text: String, hold := SAY_HOLD) -> void:
 	if _say_line == null:
 		return
 	_say_line.text = text
@@ -132,14 +154,20 @@ func _say(text: String) -> void:
 	if _say_tween != null:
 		_say_tween.kill()
 	_say_tween = _say_line.create_tween()
-	_say_tween.tween_interval(SAY_HOLD)
+	_say_tween.tween_interval(hold)
 	_say_tween.tween_property(_say_line, "modulate:a", 0.0, SAY_FADE)
 	_say_tween.tween_callback(_say_line.hide)
 
 
-## Guardians, element levels and element refusals (eletd's events).
+## Guardians, element levels, picks and eletd's refusals (a locked element, the
+## band by the portal), and the rules HudNotices teaches.
 func _on_element_event(e: Dictionary) -> void:
+	var line := _notices.line_for(_game.sim, e)
+	if line != "":
+		_say(line, NOTICE_HOLD)
 	match e.type:
+		&"pick_granted":
+			_banner.cleared(e.wave, ElementPicks.granted_text(_game.sim))
 		&"guardian_spawned":
 			var detail := ElementPicks.guardian_detail(e.element, e.level)
 			_banner.notice(ElementPicks.guardian_title(e.element), detail, e.element)
@@ -151,6 +179,8 @@ func _on_element_event(e: Dictionary) -> void:
 		&"build_refused":
 			if e.reason == Placement.Result.LOCKED:
 				_say(ElementPicks.locked_reason(_game.sim, e.get("id", _game.build_choice)))
+			elif e.reason == Placement.Result.NEAR_PORTAL:
+				_say(Placement.describe(e.reason))
 		&"leaked":
 			for c in _game.sim.creeps:
 				if c.id == e.id and c.type == &"guardian":
@@ -186,6 +216,7 @@ func _refresh_cards() -> void:
 		else:
 			card.affordable = sim.gold >= TowerDefs.build_cost(id)
 			card.locked = sim.elements.needs(id) != ""
+			card.hint = ElementPicks.card_hint(sim, id)
 
 
 func _on_sim_event(e: Dictionary) -> void:
@@ -205,10 +236,15 @@ func _on_sim_event(e: Dictionary) -> void:
 			_top.pulse_gold()
 		&"victory", &"defeat":
 			_tooltip.visible = false
+			# The pick panel leaves the game running, so a game can end under it.
+			if _picks != null:
+				_picks.close_modal()
 			_end.show_result(e.type == &"victory", _best_before)
 		&"built", &"sold", &"upgraded", &"fused", &"element_gained":
 			_refresh_cards()
 			_plaque.refresh()
+		&"pick_granted", &"pick_spent", &"guardian_spawned":
+			_refresh_cards()
 
 
 func _announce(wave: int) -> void:
@@ -244,8 +280,35 @@ func _start_tutorial() -> void:
 		_tutorial.start()
 
 
+## Once the loading screen is gone. Until then the HUD and the builder take
+## no keys (the "loading" modal, BuildController), so nothing pressed while
+## loading starts, pauses or opens anything under it.
+func _open_setup() -> void:
+	if not _game.is_booted:
+		await _game.booted
+	if _game.autoplay == null:
+		_setup.open()
+
+
+## Start on the setup panel: the welcome or the counsel follows at once if
+## the tutorial is on, so the clock doesn't run in between.
+func _on_setup_started(tutorial: bool) -> void:
+	if tutorial:
+		_start_tutorial()
+
+
+## While the setup panel is up, Settings → Tutorial moves its chip instead;
+## Start then begins the tutorial or not.
+func _on_setting(key: String, on: bool) -> void:
+	if _setup.visible:
+		_setup.on_setting(key, on)
+	else:
+		_tutorial.on_setting(key, on)
+
+
 ## Opens a panel for a screenshot (main.gd's --open): "pick" (eletd),
-## "guide", or "elements" (the Field Guide's eletd page).
+## "guide", "elements" (the Field Guide's eletd page), "settings", "menu" or
+## "setup".
 func open_panel(which: String) -> void:
 	match which:
 		"pick":
@@ -256,42 +319,124 @@ func open_panel(which: String) -> void:
 			_guide.show_page(which == "elements")
 		"settings":
 			_settings.open()
+		"menu":
+			_menu.open()
+		"setup":
+			_setup.open()
 
 
 ## The HUD gets input before the builder and camera, so keys stop here while
 ## a modal is up; under eletd E and the pick panel's keys stop here too.
 func _unhandled_input(event: InputEvent) -> void:
-	var action := modal_action(event, _guide.visible, _tutorial.welcome_visible())
-	match action:
+	var top := _top_modal()
+	match modal_action(event, top, _idle()):
 		&"":
 			if _picks != null and _picks.handle_key(event):
 				get_viewport().set_input_as_handled()
 			return
-		&"close_guide":
-			_guide.close_modal()
+		&"close":
+			_modal(top).close_modal()
 		&"open_guide":
 			_guide.open()
+		&"settings":
+			_settings.toggle()
+		&"open_menu":
+			_menu.open()
 		&"begin":
 			_tutorial.begin()
+		&"start":
+			_setup.start()
 	get_viewport().set_input_as_handled()
 
 
-## What a key does with the Field Guide or the welcome card up. Both are
-## modal: the topmost takes Esc and nothing else reaches the game behind
-## (&"swallow"); Space and Enter also begin from the welcome. Without either,
-## only H is the HUD's (&"" passes the key on).
-static func modal_action(event: InputEvent, guide_open: bool, welcome_open: bool) -> StringName:
+## Whether a modal or the loading screen has the keys; the camera rig asks,
+## since its WASD and Q/E polling never passes through _unhandled_input.
+func modal_up() -> bool:
+	return _top_modal() != &""
+
+
+func _top_modal() -> StringName:
+	return topmost(
+		{
+			&"loading": not _game.is_booted,
+			&"guide": _guide.visible,
+			&"settings": _settings.visible,
+			&"menu": _menu.visible,
+			&"setup": _setup.visible,
+			&"welcome": _tutorial.welcome_visible(),
+			&"end": _end.visible,
+		}
+	)
+
+
+func _modal(m: StringName) -> UiModal:
+	return {&"guide": _guide, &"settings": _settings, &"menu": _menu}[m]
+
+
+## Nothing chosen, selected or being fused and no pick panel up: Esc has
+## nothing to cancel, so it opens the pause menu.
+func _idle() -> bool:
+	if _picks != null and _picks.visible:
+		return false
+	return _game.build_choice == &"" and _game.selected == Game.NONE and not _fusing
+
+
+## The first of MODALS that `shown` marks visible, or &"" when none is.
+static func topmost(shown: Dictionary) -> StringName:
+	for m in MODALS:
+		if shown.get(m, false):
+			return m
+	return &""
+
+
+## What a key does under the topmost modal `top` (MODALS, or &"" for none).
+## No key reaches the game behind a modal (&"swallow"). Esc closes the
+## Field Guide, Settings and the pause menu (&"close"), and so do H and F10
+## their own panels; the menu opens either over itself. Esc, Space and Enter
+## begin from the welcome, where H opens the guide; Space and Enter start
+## from the setup panel, which opens the guide and Settings over itself but
+## doesn't close on Esc (Start is the way on). The end screen and the
+## loading screen keep every key. With no modal up, H opens the guide, F10
+## Settings, and Esc the pause menu once `idle` (nothing to cancel);
+## otherwise &"" passes the key on, so Esc deselects as before.
+static func modal_action(event: InputEvent, top: StringName, idle: bool) -> StringName:
+	var esc := event.is_action_pressed(&"deselect")
 	var guide_key := event.is_action_pressed(&"field_guide")
-	if guide_open:
-		return &"close_guide" if guide_key or event.is_action_pressed(&"deselect") else &"swallow"
-	if welcome_open:
-		if guide_key:
-			return &"open_guide"
-		for a in [&"deselect", &"pause", &"ui_accept"]:
-			if event.is_action_pressed(a):
-				return &"begin"
-		return &"swallow"
-	return &"open_guide" if guide_key else &""
+	var settings_key := event.is_action_pressed(&"settings")
+	match top:
+		&"guide":
+			return &"close" if esc or guide_key else &"swallow"
+		&"settings":
+			return &"close" if esc or settings_key else &"swallow"
+		&"menu":
+			if esc:
+				return &"close"
+			if guide_key:
+				return &"open_guide"
+			return &"settings" if settings_key else &"swallow"
+		&"setup":
+			if guide_key:
+				return &"open_guide"
+			if settings_key:
+				return &"settings"
+			for a in [&"pause", &"ui_accept"]:
+				if event.is_action_pressed(a):
+					return &"start"
+			return &"swallow"
+		&"welcome":
+			if guide_key:
+				return &"open_guide"
+			for a in [&"deselect", &"pause", &"ui_accept"]:
+				if event.is_action_pressed(a):
+					return &"begin"
+			return &"swallow"
+		&"end", &"loading":
+			return &"swallow"
+	if guide_key:
+		return &"open_guide"
+	if settings_key:
+		return &"settings"
+	return &"open_menu" if esc and idle else &""
 
 
 func _refresh_hints() -> void:

@@ -63,11 +63,13 @@ var infinite := false
 var twists := false
 var twist_seed := 0
 ## One of RULES. Set before wave 1: it moves gold by the difference in
-## starting gold, so gold a caller set beforehand keeps its offset.
+## starting gold, so gold a caller set beforehand keeps its offset, and sets
+## the grid's no-build band by the portal.
 var rules: StringName = &"classic":
 	set(value):
 		gold += EletdRules.start_gold(value) - EletdRules.start_gold(rules)
 		elements.enabled = value == &"eletd"
+		grid.portal_rows = EletdRules.PORTAL_ROWS if value == &"eletd" else 0
 		rules = value
 ## Last wave started; 0 before wave 1.
 var wave := 0

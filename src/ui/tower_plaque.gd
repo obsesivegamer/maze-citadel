@@ -1,7 +1,8 @@
 class_name TowerPlaque
 extends Control
 ## The small plaque floating above the selected tower (GDD §11): level, kills,
-## damage, counters, next-level preview, and upgrade / sell / fuse with their
+## damage and its share, counters, under eletd whether a wing-icon tower
+## stands where flyers pass, next-level preview, and upgrade / sell / fuse with their
 ## costs. Follows the tower on screen every frame (a position update only);
 ## text is rebuilt when the tower or the numbers it shows change.
 
@@ -28,6 +29,7 @@ var _kills := UiKit.label("", &"", UiTheme.SIZE_SMALL)
 var _damage := UiKit.label("", &"", UiTheme.SIZE_SMALL)
 var _aura := UiKit.label("", &"", UiTheme.SIZE_SMALL)
 var _counters := UiKit.rich(UiTheme.SIZE_TINY, WIDTH - 24.0)
+var _air := UiKit.label("", &"", UiTheme.SIZE_TINY)
 var _next := UiKit.label("", &"Dim", UiTheme.SIZE_TINY)
 var _upgrade: Button
 var _sell: Button
@@ -74,6 +76,8 @@ func setup(game: Game) -> void:
 	stats.add_child(_aura)
 	box.add_child(stats)
 	box.add_child(_counters)
+	_air.add_theme_color_override("font_color", UiTheme.CLASS_COLORS[&"air"])
+	box.add_child(_air)
 	_next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_next.custom_minimum_size.x = WIDTH - 24.0
 	box.add_child(_next)
@@ -134,7 +138,7 @@ func refresh() -> void:
 	var same_tower: bool = not _key.is_empty() and _key[0] == t.id and _key[1] == t.level
 	_key = key
 	_kills.text = "%d kills" % t.kills
-	_damage.text = TowerInfo.fmt_big(t.damage_dealt) + " dmg"
+	_damage.text = TowerInfo.damage_text(_game.sim, t)
 	_aura.visible = t.aura > 0.0
 	_aura.text = "+%d%% aura" % roundi(t.aura * 100.0)
 	_aura.add_theme_color_override("font_color", UiTheme.FAMILY_COLORS[&"support"])
@@ -163,6 +167,8 @@ func refresh() -> void:
 	_name.text = TowerInfo.full_name(t.id)
 	_sub.text = TowerInfo.subtitle(t.id)
 	_counters.text = _counter_bbcode(t.id)
+	_air.text = TowerInfo.air_note(_game.sim, t)
+	_air.visible = _air.text != ""
 	var preview := TowerInfo.next_level_preview(t.id, t.level)
 	_next.text = preview if up < 0 else "Next level: " + preview
 	_pips.queue_redraw()
