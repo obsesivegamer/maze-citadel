@@ -76,6 +76,33 @@ func test_open_holds_the_clock_and_start_applies_the_mode() -> void:
 	_restore_save()
 
 
+## Through the chips' own signals, as a click sends them: a toggle chip's
+## toggled(bool) must reach choose() with its key first.
+func test_clicking_a_chip_changes_the_choice() -> void:
+	_use_test_save()
+	Save.set_setting("tutorial", true)
+	var panel := _panel(_game({"rules": &"eletd"}))
+	panel.open()
+	for key: StringName in SetupPanel.TOGGLES:
+		var chip: Button = panel._toggles[key]
+		var was: bool = panel.choice()[key]
+		chip.button_pressed = not was
+		check_eq(panel.choice()[key], not was, "clicking %s turns it %s" % [key, not was])
+		chip.button_pressed = was
+		check_eq(panel.choice()[key], was, "and clicking again turns it back")
+	(panel._levels[&"hard"] as Button).pressed.emit()
+	check_eq(panel.choice()[&"difficulty"], &"hard", "a level chip picks its level")
+	panel._toggles[&"infinite"].button_pressed = true
+	panel._toggles[&"twists"].button_pressed = true
+	panel._toggles[&"tutorial"].button_pressed = false
+	panel.start()
+	check(panel._game.sim.infinite and panel._game.sim.twists, "Start plays what was clicked")
+	check(not Save.setting("tutorial", true), "and keeps the tutorial off")
+	_free(panel)
+	SetupPanel.pending = true
+	_restore_save()
+
+
 func test_start_begins_the_tutorial_when_on() -> void:
 	_use_test_save()
 	Save.set_setting("tutorial", false)

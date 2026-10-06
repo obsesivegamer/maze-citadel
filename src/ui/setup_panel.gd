@@ -89,7 +89,8 @@ func setup(game: Game) -> void:
 	}
 	for key in TOGGLES:
 		var chip := _chip(box, String(key).capitalize(), tips[key])
-		chip.toggled.connect(choose.bind(key))
+		# bind() would put the key after toggled's bool, so a lambda passes both.
+		chip.toggled.connect(func(on: bool) -> void: choose(key, on))
 		_toggles[key] = chip
 	var start_button := UiKit.text_button(game, "Start")
 	start_button.add_theme_font_override("font", UiTheme.heading(700))
