@@ -133,6 +133,8 @@ func test_modals_keep_keys_from_the_game() -> void:
 	check_eq(Hud.topmost({&"menu": true, &"guide": false}), &"menu", "closing returns to it")
 	check_eq(Hud.topmost({&"setup": true, &"settings": true}), &"settings", "Settings over setup")
 	check_eq(Hud.topmost({&"setup": true, &"welcome": true}), &"setup", "setup over the welcome")
+	check_eq(Hud.topmost({&"menu": true, &"setup": true}), &"setup", "drawn over the menu")
+	check_eq(Hud.topmost({&"menu": true, &"end": true}), &"end", "the end screen is drawn over all")
 
 
 func test_field_guide_pauses_and_shows_the_next_wave() -> void:

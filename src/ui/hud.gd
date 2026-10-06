@@ -18,8 +18,9 @@ const SAY_HOLD := 2.2
 const SAY_FADE := 0.6
 ## How long the line holds a rule it teaches (HudNotices).
 const NOTICE_HOLD := 5.0
-## The modals that take the keys, topmost first (modal_action).
-const MODALS: Array[StringName] = [&"guide", &"settings", &"menu", &"setup", &"welcome", &"end"]
+## The modals that take the keys, topmost first as setup() stacks them
+## (modal_action): keys go to the one the player sees.
+const MODALS: Array[StringName] = [&"end", &"settings", &"guide", &"setup", &"menu", &"welcome"]
 
 var _game: Game
 var _root := Control.new()
@@ -230,6 +231,9 @@ func _on_sim_event(e: Dictionary) -> void:
 			_top.pulse_gold()
 		&"victory", &"defeat":
 			_tooltip.visible = false
+			# The pick panel leaves the game running, so a game can end under it.
+			if _picks != null:
+				_picks.close_modal()
 			_end.show_result(e.type == &"victory", _best_before)
 		&"built", &"sold", &"upgraded", &"fused", &"element_gained":
 			_refresh_cards()
