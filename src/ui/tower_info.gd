@@ -372,27 +372,29 @@ static func difficulty_name(difficulty: StringName) -> String:
 
 
 ## One line on what a difficulty does, for its top-bar chip and the setup
-## panel. Classic's keep their released text; eletd's read its numbers.
+## panel. Classic's keep their released text; eletd's read the creep HP
+## multiplier EletdRules gives on wave 1 and on the last wave, so a retune
+## rewrites them.
 static func difficulty_tip(level: StringName, rules: StringName) -> String:
 	if level == &"normal":
 		return "Normal: base creep HP and bounty"
 	if rules != &"eletd":
 		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
-	var score := "score ×%s" % fmt_num(EletdRules.SCORE_MULT[level])
-	if level == &"easy":
-		return (
-			"Easy: creeps have %d%% less HP, %s" % [roundi(100 - EletdRules.EASY_HP * 100), score]
-		)
+	var first := _hp_change(EletdRules.difficulty_hp(level, 1))
+	var last := _hp_change(EletdRules.difficulty_hp(level, WaveDefs.count()))
+	var hp := "%s HP" % first
+	if last != first:
+		hp += " on wave 1, %s by wave %d" % [last, WaveDefs.count()]
 	return (
-		"%s: creeps +%d%% HP rising to +%d%% by wave %d, %s"
-		% [
-			difficulty_name(level),
-			roundi(EletdRules.difficulty_hp(level, 1) * 100 - 100),
-			roundi(EletdRules.difficulty_hp(level, WaveDefs.count()) * 100 - 100),
-			WaveDefs.count(),
-			score,
-		]
+		"%s: creeps have %s, score ×%s"
+		% [difficulty_name(level), hp, fmt_num(EletdRules.SCORE_MULT[level])]
 	)
+
+
+## A creep HP multiplier as "30% less" or "25% more".
+static func _hp_change(mult: float) -> String:
+	var pct := roundi(mult * 100.0 - 100.0)
+	return "%d%% less" % -pct if pct < 0 else "%d%% more" % pct
 
 
 static func infinite_tip() -> String:

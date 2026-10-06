@@ -26,6 +26,14 @@ func test_lines_beside_the_chips() -> void:
 	check_eq(SetupPanel.line("Normal: base creep HP and bounty"), "Base creep HP and bounty")
 	check_eq(SetupPanel.line(TowerInfo.infinite_tip()), "Waves continue after 40")
 	check(SetupPanel.line(TowerInfo.difficulty_tip(&"easy", &"eletd")).begins_with("Creeps have"))
+	check_eq(TowerInfo._hp_change(0.7), "30% less")
+	check_eq(TowerInfo._hp_change(1.26), "26% more")
+	# The eletd lines follow EletdRules, which the balance work retunes.
+	for level in [&"easy", &"hard", &"very_hard"]:
+		var tip := TowerInfo.difficulty_tip(level, &"eletd")
+		for w in [1, WaveDefs.count()]:
+			var said := TowerInfo._hp_change(EletdRules.difficulty_hp(level, w))
+			check(tip.contains(said), "%s says wave %d's %s: %s" % [level, w, said, tip])
 	check(SetupPanel.clock_text(45.0).begins_with("The 45 s build countdown"))
 	var eletd := _panel(_game({"rules": &"eletd"}))
 	check_eq(eletd._levels.keys(), [&"easy", &"normal", &"hard", &"very_hard"], "four levels")
