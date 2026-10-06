@@ -19,8 +19,11 @@ const SAY_FADE := 0.6
 ## How long the line holds a rule it teaches (HudNotices).
 const NOTICE_HOLD := 5.0
 ## The modals that take the keys, topmost first as setup() stacks them
-## (modal_action): keys go to the one the player sees.
-const MODALS: Array[StringName] = [&"end", &"settings", &"guide", &"setup", &"menu", &"welcome"]
+## (modal_action): keys go to the one the player sees. The loading screen
+## counts as one until the game has booted.
+const MODALS: Array[StringName] = [
+	&"loading", &"end", &"settings", &"guide", &"setup", &"menu", &"welcome"
+]
 
 var _game: Game
 var _root := Control.new()
@@ -277,8 +280,9 @@ func _start_tutorial() -> void:
 		_tutorial.start()
 
 
-## Once the loading screen is gone, so a key pressed while loading can't
-## start the match unseen.
+## Once the loading screen is gone. Until then the HUD and the builder take
+## no keys (the "loading" modal, BuildController), so nothing pressed while
+## loading starts, pauses or opens anything under it.
 func _open_setup() -> void:
 	if not _game.is_booted:
 		await _game.booted
@@ -345,9 +349,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+## Whether a modal or the loading screen has the keys; the camera rig asks,
+## since its WASD and Q/E polling never passes through _unhandled_input.
+func modal_up() -> bool:
+	return _top_modal() != &""
+
+
 func _top_modal() -> StringName:
 	return topmost(
 		{
+			&"loading": not _game.is_booted,
 			&"guide": _guide.visible,
 			&"settings": _settings.visible,
 			&"menu": _menu.visible,
@@ -384,10 +395,10 @@ static func topmost(shown: Dictionary) -> StringName:
 ## their own panels; the menu opens either over itself. Esc, Space and Enter
 ## begin from the welcome, where H opens the guide; Space and Enter start
 ## from the setup panel, which opens the guide and Settings over itself but
-## doesn't close on Esc (Start is the way on). The end screen keeps
-## every key. With no modal up, H opens the guide, F10 Settings, and Esc
-## the pause menu once `idle` (nothing to cancel); otherwise &"" passes the
-## key on, so Esc deselects as before.
+## doesn't close on Esc (Start is the way on). The end screen and the
+## loading screen keep every key. With no modal up, H opens the guide, F10
+## Settings, and Esc the pause menu once `idle` (nothing to cancel);
+## otherwise &"" passes the key on, so Esc deselects as before.
 static func modal_action(event: InputEvent, top: StringName, idle: bool) -> StringName:
 	var esc := event.is_action_pressed(&"deselect")
 	var guide_key := event.is_action_pressed(&"field_guide")
@@ -419,7 +430,7 @@ static func modal_action(event: InputEvent, top: StringName, idle: bool) -> Stri
 				if event.is_action_pressed(a):
 					return &"begin"
 			return &"swallow"
-		&"end":
+		&"end", &"loading":
 			return &"swallow"
 	if guide_key:
 		return &"open_guide"

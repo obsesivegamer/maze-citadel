@@ -150,10 +150,13 @@ func _pan(screen_delta: Vector2) -> void:
 
 func _process(delta: float) -> void:
 	Prof.begin(&"camera")
-	var move := Input.get_vector(&"cam_left", &"cam_right", &"cam_back", &"cam_forward")
+	var move := Vector2.ZERO
+	var rot := 0.0
+	if keys_steer():
+		move = Input.get_vector(&"cam_left", &"cam_right", &"cam_back", &"cam_forward")
+		rot = Input.get_axis(&"cam_rotate_left", &"cam_rotate_right")
 	if move != Vector2.ZERO:
 		_pan(Vector2(move.x, -move.y) * delta * _distance * 0.9)
-	var rot := Input.get_axis(&"cam_rotate_left", &"cam_rotate_right")
 	if _game.sim.elements.pending_picks() > 0:
 		rot = minf(rot, 0.0)  # E opens the element picks (eletd) while one waits
 	_yaw += rot * ROTATE_SPEED * delta
@@ -169,6 +172,12 @@ func _process(delta: float) -> void:
 	_shake = maxf(_shake - delta * 2.5, 0.0)
 	_apply()
 	Prof.end(&"camera")
+
+
+## WASD, the arrows and Q/E steer only in play. Polling them never passes
+## the HUD, so they are held here under the loading screen and any modal.
+func keys_steer() -> bool:
+	return _game.is_booted and (_game.hud == null or not _game.hud.modal_up())
 
 
 func _boss_position() -> Variant:

@@ -126,7 +126,12 @@ func _on_sim_event(e: Dictionary) -> void:
 		_recheck = 0.0
 
 
+## Nothing until the game has booted: the builder is up frames before the
+## loading screen goes, and N or Space there would start or pause the match
+## unseen.
 func _unhandled_input(event: InputEvent) -> void:
+	if not _game.is_booted:
+		return
 	if event is InputEventMouseMotion:
 		_update_hover((event as InputEventMouseMotion).position)
 	elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
