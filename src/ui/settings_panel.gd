@@ -1,9 +1,10 @@
 class_name SettingsPanel
-extends Control
+extends UiModal
 ## Settings (GDD §13–§15): quality preset, master/music/effects/ambience
 ## volume, camera shake, edge pan, the tutorial and the playtest records.
 ## Every change is saved at once through game.set_quality,
-## game.audio.set_volume or Save.set_setting.
+## game.audio.set_volume or Save.set_setting. Modal like the Field Guide: it
+## pauses the game and no key but Esc and F10 reaches past it.
 
 ## A toggle changed (key from TOGGLES, HELP_TOGGLES or RECORD_TOGGLES).
 signal setting_changed(key: String, on: bool)
@@ -11,7 +12,6 @@ signal setting_changed(key: String, on: bool)
 const PANEL_WIDTH := 400.0
 const SLIDER_WIDTH := 190.0
 const LABEL_WIDTH := 92.0
-const DIM := Color(0, 0, 0, 0.35)
 const VOLUMES := [
 	[&"Master", "Master"], [&"Music", "Music"], [&"SFX", "Effects"], [&"Ambience", "Ambience"]
 ]
@@ -35,7 +35,6 @@ const RECORD_TOGGLES := [
 	],
 ]
 
-var _game: Game
 var _quality: Array[Button] = []
 var _sliders := {}
 var _values := {}
@@ -43,28 +42,8 @@ var _toggles := {}
 
 
 func setup(game: Game) -> void:
-	_game = game
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	visible = false
-	var dim := ColorRect.new()
-	dim.color = DIM
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	dim.gui_input.connect(_on_dim_input)
-	add_child(dim)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	var panel := UiKit.panel()
-	panel.custom_minimum_size.x = PANEL_WIDTH
-	center.add_child(panel)
-	var box := UiKit.vbox(10)
-	panel.add_child(box)
-	var title := UiKit.label("Settings", &"Title")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	var box := build_frame(game, "Settings", PANEL_WIDTH)
+	dim_pressed.connect(close_modal)
 	box.add_child(UiKit.label("QUALITY", &"Caption"))
 	box.add_child(_build_quality())
 	box.add_child(UiKit.label("VOLUME", &"Caption"))
@@ -87,7 +66,7 @@ func setup(game: Game) -> void:
 	var close := UiKit.text_button(game, "Close")
 	close.custom_minimum_size = Vector2(140, 32)
 	close.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	close.pressed.connect(close_panel)
+	close.pressed.connect(close_modal)
 	box.add_child(close)
 	game.quality_changed.connect(_on_quality)
 	_apply_saved_volumes.call_deferred()
@@ -169,23 +148,14 @@ func open() -> void:
 		b.set_pressed_no_signal(on)
 		b.text = "On" if on else "Off"
 	_on_quality(_game.quality)
-	visible = true
-
-
-func close_panel() -> void:
-	visible = false
+	open_modal()
 
 
 func toggle() -> void:
 	if visible:
-		close_panel()
+		close_modal()
 	else:
 		open()
-
-
-func _on_dim_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
-		close_panel()
 
 
 func _on_quality(preset: Quality.Preset) -> void:

@@ -201,14 +201,15 @@ func test_eletd_difficulty_tips_state_the_numbers() -> void:
 	game.camera = CameraRig.new()
 	var bar := HudTopBar.new()
 	bar.setup(game)
-	var then := ", then rising to +%d%% by wave 40, score ×%s"
+	var then := ", then rising to %d%% more by wave 40, score ×%s"
 	var want := {
 		&"easy": "Easy: creeps have 60% less HP on wave 1, 30% less by wave 40, score ×0.7",
 		&"normal": "Normal: base creep HP and bounty",
-		&"hard": "Hard: creeps +25% HP to wave 5, easing to +12% by wave 11" + then % [28, "1.3"],
-		&"very_hard":
-		"Very Hard: creeps +50% HP to wave 5, easing to +13% by wave 11" + then % [55, "1.6"],
+		&"hard": "Hard: creeps have 25% more HP to wave 5, easing to 12% more by wave 11",
+		&"very_hard": "Very Hard: creeps have 50% more HP to wave 5, easing to 13% more by wave 11",
 	}
+	want[&"hard"] += then % [28, "1.3"]
+	want[&"very_hard"] += then % [55, "1.6"]
 	for level: StringName in want:
 		check_eq(bar._levels[level].tooltip_text, want[level], "%s tip" % level)
 	bar.free()

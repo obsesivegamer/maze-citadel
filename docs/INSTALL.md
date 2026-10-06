@@ -44,7 +44,7 @@ Maze Citadel is tested on a MacBook Air 13-inch M3 with an 8-core GPU and 16 GB 
 
    On macOS 13 or 14 there's a shorter route: Control-click the app, choose **Open**, then **Open** again.
 
-6. **Play.** macOS remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen for about 20 seconds while the game prepares its graphics for your Mac. Later launches take about 4 seconds.
+6. **Play.** macOS remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen for about 20 seconds while the game prepares its graphics for your Mac. Later launches take about 4 seconds. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 Once the app is in Applications, you can eject the disk image and delete the `.dmg`.
 
@@ -69,7 +69,7 @@ The Windows build is new and less tested than the Mac build. It has been measure
 
 3. **Run it and expect a warning.** Double-click `MazeCitadel.exe`. Windows shows "Windows protected your PC". This appears because the game isn't code-signed yet, which takes a paid certificate. It doesn't mean something is wrong with your download. Click **More info**, then **Run anyway**.
 
-4. **Play.** Windows remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer.
+4. **Play.** Windows remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 ### On Linux
 
@@ -102,7 +102,7 @@ The Linux build is new and less tested than the Mac build, and its frame rate ha
    ./MazeCitadel.x86_64
    ```
 
-4. **Play.** The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer.
+4. **Play.** The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 ### Check the download (optional)
 
@@ -298,14 +298,15 @@ To open the project in the Godot editor instead, add `-e`. Options for the game 
 | `--map=rampart` | Start on Fallen Rampart. `--map=causeway` starts on the Winding Causeway, which needs the Element TD rules, and `--map=citadel` is the default board. |
 | `--quality=performance` | Start on a quality preset: `cinematic`, `balanced` or `performance` |
 | `--twists --seed=7` | Play Twists mode with a fixed schedule of twists |
-| `--rules=classic` | Play the classic rules, the game as it was in 0.3.1. `--rules=eletd` plays the Element TD rules. Without either the game plays the rules you last picked in the panel under the gold counter, and on a first launch the Element TD rules |
+| `--rules=classic` | Play the classic rules, the game as it was in 0.3.1. `--rules=eletd` plays the Element TD rules. Without either the game plays the rules you last picked, and on a first launch the Element TD rules |
 | `--difficulty=hard` | Start on a difficulty: `easy`, `normal`, `hard` or `very_hard`. The classic rules offer only `normal` and `hard` |
 | `--picks=aqua,dark,dark,interest` | Under the Element TD rules, start with these element levels and Interest picks already taken, with no Guardians to kill. They come on top of the picks the game hands out. Meant for tests, screenshots and experiments. |
 | `--autoplay` | Let the bot play |
 | `--tutorial` | Show the tutorial even if it has been turned off |
+| `--no-tutorial` | Skip the tutorial and the setup panel, and start the opening countdown at once on Normal, or what the other options say |
 | `--warp-wave=24` | Fast-forward to the start of a wave; `--warp-into=10` goes on that many seconds into it |
 | `--select=archer` | Select a tower, by tile (`--select=9,14`) or the first of a kind |
-| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`) or Settings (`settings`) |
+| `--open=pick` | Open the pick panel, the Field Guide (`guide`), its Elements and picks page (`elements`), Settings (`settings`), the pause menu (`menu`) or the setup panel (`setup`). Any panel but `setup` keeps the setup panel away, so it doesn't cover the one asked for |
 | `--shot=build/shots/m3 --views=full,portal,gate` | Save one screenshot per camera preset and quit, as `build/shots/m3-full.png` and so on. `--shot-frames=n` saves n frames per view and `--shot-freeze` stops game time while it does. `tools/capture.sh` runs a set of these |
 
 For example:

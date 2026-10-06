@@ -16,6 +16,8 @@ const CHART_WIDTH := 500.0
 const COUNSEL_WIDTH := 500.0
 ## Same colours as the floating numbers (Fx.COUNTER_COLORS, poison ticks).
 const POISON_COLOR := Color(0.5, 1.0, 0.4)
+## eletd: where a wing-icon tower must stand, after "hit Air".
+const AIR_REACH := ", and only from the tiles beside the flight line, tinted while you place one"
 
 var _wheel := ElementWheel.new(WHEEL_PX)
 var _wheel_info := UiKit.rich(UiTheme.SIZE_SMALL, INFO_WIDTH)
@@ -123,7 +125,7 @@ func _build_chart() -> Control:
 		(
 			"[color=#%s]Armor points cut damage on top: %d armor (Shield Footman) by %d%%,"
 			+ " %d (Steam Tank) by %d%%. Poison ignores them; the Runesmith shreds them."
-			+ " Only towers with the wing icon hit Air.[/color]"
+			+ " Only towers with the wing icon hit Air%s.[/color]"
 		)
 		% [
 			UiTheme.hex(UiTheme.TEXT_DIM),
@@ -131,6 +133,7 @@ func _build_chart() -> Control:
 			roundi((1.0 - Damage.armor_factor(footman)) * 100.0),
 			tank,
 			roundi((1.0 - Damage.armor_factor(tank)) * 100.0),
+			AIR_REACH if TowerInfo.adjacent_reach else "",
 		]
 	)
 	col.add_child(notes)

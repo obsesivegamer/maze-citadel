@@ -17,7 +17,10 @@ const TIPS := [
 	"Cannons and other siege towers can't hit Harpies. Keep some archers or frost spires.",
 	"A leaked creep loops back to the portal and costs a life on every pass.",
 	"Poison ignores armor and halves a Priestess's healing.",
-	"Two level-3 Elven or Horde towers fuse into an Epic: select one and press G.",
+	(
+		"Two level-3 towers of one family, Alliance, Horde, Elven or Forsaken,"
+		+ " fuse into its Epic: select one and press G."
+	),
 	"Shift-click keeps placing the same tower; right-click cancels or sells.",
 ]
 ## Shown as well under the Element TD rules, which play differently.

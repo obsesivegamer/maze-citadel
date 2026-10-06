@@ -38,9 +38,19 @@ func setup(game: Game, anchor: Control) -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	var col := UiKit.vbox(4)
 	add_child(col)
+	var map := game.sim.grid.map
+	col.add_child(row(game, "MAP", map_choices(game.sim.rules), map, game.change_map))
+	col.add_child(row(game, "RULES", rules_choices(map), game.sim.rules, game.change_rules))
+	_blurb.text = blurb(map)
+	_blurb.add_theme_color_override("default_color", UiTheme.TEXT_DIM)
+	col.add_child(_blurb)
+
+
+## The MAP row's choices under `rules` ({id: [label, tooltip, offered]}).
+static func map_choices(rules: StringName) -> Dictionary:
 	var maps := {}
 	for id in MapDefs.ORDER:
-		var offered := MapDefs.offered(id, game.sim.rules)
+		var offered := MapDefs.offered(id, rules)
 		maps[id] = [
 			MapDefs.MAPS[id].short,
 			(
@@ -57,9 +67,12 @@ func setup(game: Game, anchor: Control) -> void:
 			),
 			offered,
 		]
-	col.add_child(_row("MAP", maps, game.sim.grid.map, game.change_map))
+	return maps
+
+
+## The RULES row's choices with `map` on the board.
+static func rules_choices(map: StringName) -> Dictionary:
 	var rules := {}
-	var map := game.sim.grid.map
 	for id: StringName in RULES_TIPS:
 		var tip: String = RULES_TIPS[id]
 		if not MapDefs.offered(map, id):
@@ -68,27 +81,27 @@ func setup(game: Game, anchor: Control) -> void:
 				% [MapDefs.display_name(map), MapDefs.display_name(MapDefs.DEFAULT)]
 			)
 		rules[id] = [TowerInfo.rules_name(id), tip, true]
-	col.add_child(_row("RULES", rules, game.sim.rules, game.change_rules))
-	_blurb.text = (
-		"[b]%s[/b] · %s"
-		% [MapDefs.display_name(game.sim.grid.map), MapDefs.MAPS[game.sim.grid.map].blurb]
-	)
-	_blurb.add_theme_color_override("default_color", UiTheme.TEXT_DIM)
-	col.add_child(_blurb)
+	return rules
+
+
+static func blurb(map: StringName) -> String:
+	return "[b]%s[/b] · %s" % [MapDefs.display_name(map), MapDefs.MAPS[map].blurb]
 
 
 ## A caption and one segment per choice ({id: [label, tooltip, offered]});
 ## pressing one calls `change` with its id. A choice not offered is greyed out
-## and its tooltip says why.
-func _row(caption: String, choices: Dictionary, current: StringName, change: Callable) -> Control:
-	var row := UiKit.hbox(6)
-	row.alignment = BoxContainer.ALIGNMENT_BEGIN
+## and its tooltip says why. The setup panel builds its rows here too.
+static func row(
+	game: Game, caption: String, choices: Dictionary, current: StringName, change: Callable
+) -> Control:
+	var r := UiKit.hbox(6)
+	r.alignment = BoxContainer.ALIGNMENT_BEGIN
 	var label := UiKit.label(caption, &"Caption")
 	label.custom_minimum_size.x = CAPTION_WIDTH
-	row.add_child(label)
+	r.add_child(label)
 	var group := ButtonGroup.new()
 	for id: StringName in choices:
-		var b := UiKit.text_button(_game, choices[id][0], &"Segment")
+		var b := UiKit.text_button(game, choices[id][0], &"Segment")
 		b.toggle_mode = true
 		b.button_group = group
 		b.custom_minimum_size.y = HudTopBar.BUTTON_PX
@@ -96,8 +109,8 @@ func _row(caption: String, choices: Dictionary, current: StringName, change: Cal
 		b.set_pressed_no_signal(id == current)
 		b.disabled = not choices[id][2]
 		b.pressed.connect(change.bind(id))
-		row.add_child(b)
-	return row
+		r.add_child(b)
+	return r
 
 
 func _process(_delta: float) -> void:

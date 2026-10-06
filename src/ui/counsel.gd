@@ -33,7 +33,11 @@ const CREEP_NOTES := {
 	&"wolf_rider": "Wolf Riders are fast and frail: a long maze gives your towers more shots.",
 	&"footman": "Shield Footmen carry {footman_armor} armor. Siege smashes it; Pierce glances off.",
 	&"priestess": "Priestesses heal the creeps around them. Poison halves that healing.",
-	&"harpy": "Harpies fly straight over the maze. Only towers with the wing icon hit them.",
+	&"harpy":
+	(
+		"Harpies ignore the maze and fly straight from the portal to the gate. Only towers"
+		+ " with the wing icon near that line hit them."
+	),
 	&"ghoul": "Ghouls rise once at a third of their HP, so each one has to fall twice.",
 	&"steam_tank":
 	(

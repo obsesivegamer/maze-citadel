@@ -31,15 +31,15 @@ The section numbers below are stable, because comments in the code refer to them
 | Band by the portal | The 3 rows along the portal edge (rows 0–2, 60 tiles) take no towers, drawn as a faint red strip with a red edge line. Classic: none, only the portal tiles are kept clear |
 | Straight path | 28 tiles (≈19 s for a Grunt) |
 | Camera at launch | 3/4 top-down, whole plateau in view, builder selected |
-| HUD at launch | Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
+| HUD at launch | The setup panel (§5) over the board, the game paused until Start. Then: Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
 
 Around the plateau: cliffs, outer walls with banners, pine forest, a river with a watermill, a village of huts, sheep fields, drifting clouds.
 
 **Maps** ([maps.md](maps.md)). The table above is **Citadel Plateau**, the default. **Fallen Rampart** keeps the same plateau but opens the portal at columns 5–6 and the gate at columns 13–14, and a broken wall crosses row 13 with three 2-tile breaches, plus two 2 × 2 boulder heaps. Ruins can't be built on. **Winding Causeway**, played under the default rules only, lays a fixed cobbled road of 119 tiles (about 240 m) from the portal to the gate; creeps never leave it, and towers go on the grass beside it (§2). It has its own creep HP multiplier, Guardians included, set so the map plays about as hard as the Citadel ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)). Under classic rules the Causeway is greyed out.
 
-The map and the rule set are picked from a panel under the gold counter (its MAP and RULES rows) during the opening build phase; switching either clears the board, keeps the mode, and is remembered. Best waves are kept per map and per rule set.
+The map and the rule set are picked on the setup panel before the clock starts (§5), or from the panel under the gold counter (its MAP and RULES rows) during the opening build phase; switching either clears the board, keeps the mode, and is remembered. Best waves are kept per map and per rule set.
 
-The first frame is the game. No title screen, no menu, no empty scene.
+The first frame is the game: the board is already drawn behind the setup panel. No title screen and no empty scene.
 
 ## 2. Pathing rules
 
@@ -62,13 +62,13 @@ The first frame is the game. No title screen, no menu, no empty scene.
 |---|---|
 | Lives | 20 |
 | Leak cost | Normal creep −1, boss and Bulky creep (§9.1) −2, Guardian (§7.3) −3. Classic: normal −1, boss −2 |
-| Leak feedback | Gate flashes blue-white, war horn, lives counter pulses |
+| Leak feedback | Gate flashes blue-white, war horn, lives counter pulses. The first leak of a game also puts a line above the cards: "Leaked creeps cost lives and walk the maze again until killed. Interest stops until the board is clear." Classic: no line |
 | After a leak | Creep teleports back to the portal with its current HP and runs again. It no longer pays bounty. Each pass costs lives again. Interest stops until the field is clear (§4). |
-| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, and the elements reached. |
-| Victory | Clear wave 40. Screen shows score and stats; gryphons circle the citadel. |
+| Defeat | Lives reach 0. Screen shows wave reached, kills, time, gold earned, best wave, the elements reached, and what was left unspent ("Unspent: 3 picks · 3,453 gold") when a pick was still waiting or the gold had passed the point where interest stops growing (§4). Its buttons are Play again, Change setup and Quit to desktop. |
+| Victory | Clear wave 40. Screen shows score and stats, with the same buttons as defeat; gryphons circle the citadel. |
 | Score | 10 × kills + 500 × lives left + gold on hand, × 0.7 on Easy, × 1.3 on Hard, × 1.6 on Very Hard |
-| Opening build phase | 45 s countdown. `N` starts wave 1 now. |
-| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element, boss skull, and the composite or Bulky tag (§9.1) |
+| Opening build phase | 45 s countdown, from the moment Start is pressed on the setup panel (§5). `N` starts wave 1 now. |
+| Wave announcement | 3 s before spawn: banner with creep icons, count, armor class, element and boss skull, and a line each for flyers ("FLYING: ignores your maze and flies straight from portal to gate; only wing-icon towers beside the flight line hit it", on every wave that has them), composite armor (§6.5) and the Bulky shape (§9.1). Classic: no flying or composite line |
 | Spawn interval | 0.6 s (Wolf Riders 0.35 s; bosses enter alone after escorts). Classic: 0.9 s, Wolf Riders 0.5 s |
 | Between waves | Wave cleared → 30 s breather → next wave auto-queues. A wave counts as cleared only once any Guardians walking with it are dead too. The top bar also shows the wave after next. `N` calls the next wave early (waves may overlap). Classic: 5 s breather, no wave-after-next preview |
 | Speed | ×1 / ×2 / ×3 (`F` cycles). `Space` pauses. Building is allowed while paused. |
@@ -100,11 +100,13 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. No element picks come after wave 35's. |
 | Twists | From wave 11, most waves carry one random creep ability (below). Combines with every difficulty and Infinite. Score × 1.1. |
 
-Easy, Normal, Hard and Very Hard are the four difficulties, each with its own records; Infinite and Twists are switched on beside one. Classic offers only Normal and Hard. The difficulty and the extras are picked from chips in the top bar during the opening build phase and lock when wave 1 spawns.
+Easy, Normal, Hard and Very Hard are the four difficulties, each with its own records; Infinite and Twists are switched on beside one. Classic offers only Normal and Hard. The difficulty and the extras are picked on the setup panel before the clock starts, or from chips in the top bar during the opening build phase, and lock when wave 1 spawns. Play again keeps them, along with the map and rules, and the next launch starts with the last ones picked (a difficulty the rules don't offer becomes Normal). `--difficulty=hard` on the command line picks a difficulty for one launch without changing the saved one, unless Start on the setup panel then keeps it, as Start remembers whatever the panel holds. Bots, benchmarks and captures always start on Normal with no extras unless their flags say otherwise. Each new game deals a fresh Twists schedule; only a map or rules switch before wave 1 keeps the one dealt.
+
+**The setup panel.** Every fresh match in a real window opens on a panel over the board, with the game paused, so the 45 s opening countdown waits until the player is ready. It holds the MAP and RULES rows, the difficulties the rules offer with a line each on what it does (the same as the top bar's chip tooltips, which read the creep HP each difficulty gives on wave 1 and on wave 40 and its score multiplier from the rules, so a retune rewrites them), Infinite and Twists with a line each, and the Tutorial chip (the same setting as Settings → Help → Tutorial). Nothing applies until **Start** (or `Space` or `Enter`), which sets the mode, remembers it with the tutorial choice, and starts the clock; with the tutorial on, the welcome card (§11.1) follows at once. A map or rules switch on the panel rebuilds the board and opens the panel again with the choices made so far. Play again and the pause menu's Restart skip it and start the clock at once on the same setup, because that setup has just been chosen; the pause menu's New game setup and the end screen's Change setup start over on the panel instead. A map switch from the panel under the gold counter, after Start, also starts at once. Headless tools, bots, captures, benchmarks, launch probes, warps and `--no-tutorial` never show it, nor does a launch that opens another panel with `--open`; `--open=setup` opens it for a screenshot.
 
 ### 5.0 Rule sets
 
-The game has two rule sets, and the setup panel under the gold counter switches between them with its RULES row (Element TD | Classic) during the opening build phase. Switching rebuilds the board, keeps the map and the difficulty where the other rules offer them (otherwise the Citadel Plateau and Normal), and is remembered for the next launch. On the command line, `--rules=classic` or `--rules=eletd` picks one; without it the game plays the rules last picked, and on a first launch the Element TD rules. The two keep separate records (§15).
+The game has two rule sets, and the RULES row (Element TD | Classic) switches between them, on the setup panel before the clock starts (§5) or in the panel under the gold counter during the opening build phase. Switching rebuilds the board, keeps the map and the difficulty where the other rules offer them (otherwise the Citadel Plateau and Normal), and is remembered for the next launch. On the command line, `--rules=classic` or `--rules=eletd` picks one; without it the game plays the rules last picked, and on a first launch the Element TD rules. The two keep separate records (§15).
 
 - **Element TD** (`eletd` in the code) is the default and is what the rest of this page describes. It brings the game closer to Element TD and makes it harder: towers reach only the tiles around them, elements are earned with picks, and waves come as long, tight streams.
 - **Classic** is the game as released in 0.3.1, kept exactly as it played there. Its numbers appear on this page as short "Classic:" notes.
@@ -202,7 +204,7 @@ Every creep element has exactly one counter family. Each wave announces its elem
 
 ### 6.5 Composite armor
 
-Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor: every element deals 90% to them, so no counter pays double and none pays half. The composite Archer and Cannon still deal 100%. The top bar and the banner show a grey plate glyph, and the Field Guide says "Composite: every element does 90%". Classic has no composite armor.
+Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor: every element deals 90% to them, so no counter pays double and none pays half. The composite Archer and Cannon still deal 100%. The top bar and the banner show a grey plate glyph, the banner and the next-wave chip's tooltip add "Composite armor: elements don't matter this wave: Archers and Cannons hit at full strength, element towers 90%", and the Field Guide says "Composite: every element does 90%". Classic has no composite armor.
 
 ## 7. Towers (14)
 
@@ -232,6 +234,8 @@ Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor
 ### 7.1 Reach
 
 A tower attacks only creeps on the 3 × 3 block of tiles around it: its own tile and the eight next to it. The block's edges count, so a creep walking a tile border, as flyers do on the portal-to-gate line, is reached from both sides alike. This holds for every attack: the Ancient of Roots' nova and the Frost Wyrm's breath hit only creeps in the block, and the Demolisher has no minimum range. Splash, poison clouds, craters, frost rings and the Bard's aura keep their sizes, and the Ballista's bolt and the Sunfire Ballista's lance aim at a creep in reach and fly on along their line as far as before. Placing, hovering or selecting a tower shows its block as a square (§10).
+
+Flyers ignore the maze and fly the straight line from portal to gate, so only the tiles whose block the line crosses can hit them, outside the band by the portal: columns 8 to 11 on the Citadel (98 tiles), 89 tiles on the Rampart's diagonal and 75 on the Causeway, where the road takes many of the rest. On the Citadel a tile sees about 1.8 s of a Harpy's flight. The top bar rates the board's air cover for the next flying wave (§11.1).
 
 A long road matters only where it runs past towers, so the maze is a matter of lining the road with them; a tile beside two corridors of the maze reaches both. Classic: each tower reaches the range in metres from the table above, shown as a ring.
 
@@ -337,25 +341,28 @@ Infinite's replays of waves 34 and 37 keep their composite and Bulky shapes. Cla
 | Right-click | Cancel the build ghost; on a selected tower, sell |
 | `1`–`0` | Pick a tower card (spec's `1`–`6` cover Archer, Cannon, Frost, Poison, Bard, Runesmith) |
 | `U` / `X` / `G` | Upgrade / sell / fuse the selected tower |
-| `Esc` | Deselect or cancel |
+| `Esc` | Close the topmost panel; else deselect or cancel; else open the pause menu (§11) |
 | `Space` / `F` | Pause / cycle speed ×1 ×2 ×3 |
 | `N` | Start or call the next wave |
 | `R` | Hero view (reset to the default 3/4 camera) |
 | `C` / `B` | Cycle camera presets (full board, portal close-up, gate defense) / toggle boss tracking |
 | `H` | Field Guide (§11.1) |
+| `F10` | Settings, or the gear on the top bar |
 | `E` | While an element pick waits: open the pick panel (§11.2). Otherwise it rotates the camera. |
 | Camera | WASD or edge pan, scroll zoom, middle-drag or Option-drag (Alt-drag on PC) orbit, `Q`/`E` rotate (`Q` only while a pick waits), trackpad two-finger pan and pinch zoom on Mac. Windows and Linux touchpads zoom with a two-finger swipe, scaled to the swipe's size. All damped. On Windows and Linux, `F11` or `Alt`+`Enter` toggles fullscreen. |
 
-A tower's reach shows only for the hovered or selected tower (and for the ghost while placing): a square around the 3 × 3 tiles it reaches, with pale dots along the straight line the flyers take. Classic: a range ring.
+A tower's reach shows only for the hovered or selected tower (and for the ghost while placing): a square around the 3 × 3 tiles it reaches. The straight line the flyers take is always drawn: a thin strip on the ground under pale blue arrows that drift from portal to gate at a Harpy's height and speed. It is bright while the next or the running wave has flyers and dim otherwise, and it flashes once when a flyer leaks. While a tower that hits air is chosen to build, the tiles that reach the line are tinted the same blue (§7.1). Classic: a range ring, and no flight line.
 
 ## 11. HUD
 
-- **Top bar:** element levels and the pick chip (§11.2) · gold · lives · wave n/40 with next-wave chip (icons, element, class, skull, composite or Bulky tag) and the wave after next · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
-- **Setup panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
-- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock. Epic cards light up when a fusion is possible.
-- **Selected tower:** a small plaque floating above the tower (upgrade, sell, fuse, stats, kills). No side panels.
+- **Top bar:** element levels and the pick chip (§11.2) · gold, with "Interest maxed" beside it once more gold earns no more interest (§11.2) · lives · wave n/40 with next-wave chip (icons, element, class, skull, Flying or Bulky tag; its tooltip repeats the banner's flying and composite lines), the wave after next and, when either has flyers, the air cover for it (§11.1) · interest ring + next payout · speed · pause · difficulty · quality · camera presets · Field Guide. Classic has no element group and no wave after next.
+- **Setup panel:** over the board at the start of each fresh match until Start: map, rules, difficulty, Infinite, Twists and the tutorial (§5).
+- **Map and rules panel:** under the gold counter until wave 1, the MAP and RULES rows (§1, §5.0).
+- **Bottom bar:** 14 cards. Each shows icon, name, cost, hotkey, attack and element pips, air icon. Cards dim when unaffordable, and a card whose element is missing is dimmed with a lock and, while a pick that would open it waits, reads "Pick Aqua" in place of its cost. Epic cards light up when a fusion is possible.
+- **Selected tower:** a small plaque floating above the tower: upgrade, sell, fuse, counters, kills and damage dealt, and under eletd the damage's share of all the towers' and, for a tower that hits air, whether it stands beside the flight line. No side panels.
 - **World-space:** damage numbers, gold popups, HP bars.
 - **Hint strip:** the keys that matter right now, above the cards.
+- **Pause menu:** `Esc` with nothing open, chosen or selected. It pauses the game and offers Resume (`Esc`), Restart (the map, rules and mode stay), New game setup (the same, but opening on the setup panel, §5), Settings, the Field Guide and Quit to desktop, which saves the game's record first. Restart, New game setup and Quit end the game, so each first asks for a second click ("Click again to restart"); any other button, or closing the menu, takes the question back. Settings and the Field Guide open over it and `Esc` returns to it.
 
 ### 11.1 Teaching the counters
 
@@ -363,19 +370,22 @@ In the spirit of a Warcraft III map's quest log and timed hints. All advice is c
 
 | Piece | What it does |
 |---|---|
-| Welcome card | First launch, before wave 1 (the countdown waits): the maze, the element wheel, the three armor rules, how to read the next-wave chip. Begin or Skip. |
+| Welcome card | First launch, straight after Start on the setup panel (the countdown waits): the maze, the element wheel, the three armor rules, how to read the next-wave chip. Begin or Skip. |
 | Counsel card | Waves 1–10, top right, from the moment the previous wave starts: the next wave's lesson title, one line per element ("Verdant creeps: Flame towers deal 200%, Stone towers only 50%"), one per armor class, a note on any creep appearing for the first time, and up to two tower picks (the hardest hitter on each of the wave's groups) that glow on the card bar and can be clicked to build. |
 | Tips | Once each, on the counsel card: the first counter hit (gold "!"), resisted hit (grey-blue) and IMMUNE. |
 | Field Guide | `H` or the book on the top bar, any time; pauses while open. Interactive element wheel, attack vs armor chart, counsel for the next wave, damage-number key. |
-| Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. |
+| Next-wave ratings | Every tower card tooltip: "Next wave 3: 350% vs Shield Footman". The next-wave chip tooltip names the picks. Under eletd the cards of towers whose attack does more to Air say so first ("Strong vs Air: 175%"), and the Archer's blurb says to keep some beside the flight line. |
+| Air cover | Under eletd, under the wave preview whenever the next wave or the one after has flyers: "Air cover, wave 34: weak", in red, gold or green for weak, thin or holding. It is an estimate: the damage per second the air-capable towers beside the flight line deal to the wave's flyers, times the seconds they stream past plus the time one spends in a tower's reach, over the flyers' total HP. It leaves out the Bard's aura, slows and overkill. Below 100% it reads weak, below 125% thin. Its tooltip gives the percentage. On the owner's 0.4.1 game, under that release's numbers, it read 63% on wave 34, where 12 Harpies got through, and 96% and 130% with 10 and 20 Archers added beside the line (1 and 0 got through). When a flying wave starts below 100%, the line above the cards says so. |
 
-The welcome card and the Field Guide are modal: no key reaches the game behind them, `Esc` closes the topmost, and `Space` or `Enter` also begin from the welcome. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
+The setup panel, the welcome card, the Field Guide, Settings, the pause menu and the end screen are modal: no key reaches the game behind them, `Esc` closes the topmost (`H` and `F10` close their own panels; the setup panel closes only on Start), and `Space` or `Enter` also start from the setup panel and begin from the welcome. All but the end screen pause the game while open. The tutorial turns itself off once wave 10 starts or on Skip; Settings → Help → Tutorial turns it back on (straight to the counsel card, or the closing card past wave 10). Headless tools, bots, captures, benchmarks, launch probes and warps never show it; `--tutorial` forces it. The counsel names only towers that can be built with the elements in hand, and the Field Guide has an Elements and picks page.
 
 ### 11.2 Element picks on the HUD
 
-The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, the towers that level opens, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused.
+The top bar's left group shows the six element glyphs, each over three pips filled up to its level; the pip a walking Guardian will grant pulses, and hovering a glyph names its towers and counters. While picks wait, a pulsing chip (`PICK ×2`) sits beside them. It, or `E`, opens the pick panel: a row per element and one for Interest, each with the level it would reach, what taking it does in plain words, its counters, how it fares on the next ten waves and a Take or Summon Guardian button with the Guardian's HP. "What it does" is worked out from the board and the rules: "Unlocks Frost Spire", "Lets your 17 Frost Spires upgrade to level 2", "Summons a Guardian: kill it to gain Flame" for any pick after the first element, and "Interest: +10 gold every 15 s once you hold 1,000 gold". A row that can't be taken says why. Keys `1`–`7` take a row, `Enter` the highlighted one, `E` or `Esc` closes, and the game keeps running behind it unless it was paused.
 
-Locked cards are dimmed with a lock and can't be chosen ("Needs Aqua: pick an element (E)"), and a blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached. None of this appears under classic rules.
+Locked cards are dimmed with a lock and can't be chosen. Their tooltip says what opens them: "Needs Aqua: press E and take it" while a pick waits, "Needs Aqua: kill the Aqua Guardian" while its Guardian walks, otherwise "Needs Aqua: pick an element (E)". A blocked upgrade's button reads "Needs Aqua level 2". A Guardian's arrival and each element level gained get a banner, a Guardian leak a line above the cards, and the end screen lists the elements reached and any picks or idle gold left unspent.
+
+A granted pick adds two lines to the "wave cleared" banner: that it waits (`E`) and what a pick buys. At each wave start the line above the cards first warns of a flying wave short of air cover (§11.1). Then, while a pick waits and something can be bought with it, it says so ("2 element picks unspent: press E"): at once when a pick has come since the last reminder, otherwise at most every third wave, so a player who keeps a pick on purpose isn't told every wave. Interest stops growing at the gold where the payout reaches its cap (1,000 gold with the starting numbers, whatever the Interest picks, since each raises the rate and the cap together). Past it, "Interest maxed" shows by the gold counter, and at a wave start, at most every third wave, the line says "Gold above 1,000 earns no more interest: build or upgrade". None of this appears under classic rules.
 
 ## 12. World life and juice (checklist)
 
@@ -415,6 +425,6 @@ All presets: soft-shadow filter "low" with plain PCF (no PCSS blocker search), l
 
 ## 15. Save data
 
-`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per map, rule set and mode (default-rules runs end in `_eletd`, from `easy_eletd` to `very_hard_eletd`; classic runs keep the keys from before the rule sets existed, such as `normal` and `hard`; Twists runs keep their own, such as `normal_twists_eletd` or `hard_twists_infinite`; maps other than the Citadel Plateau prefix the map, as in `causeway_normal_eletd`), the last map and rule set picked, quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
+`user://save.cfg` (in `~/Library/Application Support/Maze Citadel/` on Mac, `%APPDATA%\Maze Citadel\` on Windows, `~/.local/share/Maze Citadel/` on Linux): best wave and best score per map, rule set and mode (default-rules runs end in `_eletd`, from `easy_eletd` to `very_hard_eletd`; classic runs keep the keys from before the rule sets existed, such as `normal` and `hard`; Twists runs keep their own, such as `normal_twists_eletd` or `hard_twists_infinite`; maps other than the Citadel Plateau prefix the map, as in `causeway_normal_eletd`), the last map, rule set, difficulty, Infinite and Twists picked, quality preset, volumes, camera-shake toggle. This is the native-app equivalent of browser local storage.
 
 Next to it, `user://playtests/` holds one JSON record per game played: the setup, every action with the sim step it was taken on, and per wave how far the creeps walked, the leaks and the gold in hand. The sim is deterministic, so a record replays headless to the same game ([playtests.md](playtests.md)). The files stay on the player's computer; **Settings → Playtest → Game records** turns them off, and the same section opens the folder. Bot games are not recorded.
