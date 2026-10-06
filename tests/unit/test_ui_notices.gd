@@ -26,6 +26,20 @@ func _started(wave: int) -> Dictionary:
 	return {"type": &"wave_started", "wave": wave}
 
 
+## Builds Archers beside the flight line until wave `w`'s flyers no longer
+## read weak, whatever the creep HP the balance work settles on; the gold it
+## spends is given back.
+func _cover_air(sim: GameSim, w: int) -> void:
+	var gold := sim.gold
+	sim.gold = 100_000
+	for t in AirCover.reach_tiles(sim.grid):
+		if AirCover.estimate(sim, w).ratio >= AirCover.WEAK:
+			break
+		sim.build(t, &"archer")
+	sim.gold = gold
+	check(AirCover.estimate(sim, w).ratio >= AirCover.WEAK, "Archers by the line hold wave %d" % w)
+
+
 ## The interest GameSim pays on its next tick with `gold` in hand.
 func _payout(sim: GameSim, gold: int) -> int:
 	sim.gold = gold
@@ -87,8 +101,8 @@ func test_flying_waves_short_of_air_cover_warn_as_they_start() -> void:
 	)
 	check_eq(sim.build(Vector2i(15, 10), &"archer"), Placement.Result.OK)
 	check(notices.line_for(sim, _started(5)) != "", "an Archer away from the line doesn't help")
-	check_eq(sim.build(Vector2i(10, 10), &"archer"), Placement.Result.OK)
-	check_eq(notices.line_for(sim, _started(5)), "", "one beside it holds wave 5")
+	_cover_air(sim, 5)
+	check_eq(notices.line_for(sim, _started(5)), "", "enough beside it hold wave 5")
 	sim.elements.granted += 1
 	check_eq(
 		notices.line_for(sim, _started(34)),
@@ -211,19 +225,28 @@ func test_wave_start_recalls_picks_and_nudges_idle_gold_every_few_waves() -> voi
 	check_eq(notices.line_for(sim, _started(1)), "1 element pick unspent: press E")
 	sim.elements.pick(sim, &"aqua")
 	check_eq(notices.line_for(sim, _started(2)), "", "nothing waits, the gold all earns")
-	# Wave 5 flies: an Archer beside the flight line keeps its air warning away.
-	check_eq(sim.build(Vector2i(9, 10), &"archer"), Placement.Result.OK)
+	# Wave 5 flies: Archers beside the flight line keep its air warning away.
+	_cover_air(sim, 5)
 	sim.gold = 1500
 	var nudge := "Gold above 1,000 earns no more interest: build or upgrade"
 	check_eq(notices.line_for(sim, _started(3)), nudge)
-	for w in range(4, 3 + HudNotices.GOLD_NUDGE_WAVES):
+	for w in range(4, 3 + HudNotices.NUDGE_WAVES):
 		check_eq(notices.line_for(sim, _started(w)), "", "quiet on wave %d" % w)
-	check_eq(notices.line_for(sim, _started(3 + HudNotices.GOLD_NUDGE_WAVES)), nudge, "again")
+	check_eq(notices.line_for(sim, _started(3 + HudNotices.NUDGE_WAVES)), nudge, "again")
 	sim.elements.granted += 1
+	var w := 4 + HudNotices.NUDGE_WAVES
+	var pick := "1 element pick unspent: press E"
+	check_eq(notices.line_for(sim, _started(w)), pick, "a new pick at once, the gold not yet")
+	sim.gold = 0
+	for quiet in range(w + 1, w + HudNotices.NUDGE_WAVES):
+		check_eq(notices.line_for(sim, _started(quiet)), "", "a kept pick waits on %d" % quiet)
+	check_eq(notices.line_for(sim, _started(w + HudNotices.NUDGE_WAVES)), pick, "then again")
+	sim.elements.granted += 1
+	_cover_air(sim, w + HudNotices.NUDGE_WAVES + 1)
 	check_eq(
-		notices.line_for(sim, _started(4 + HudNotices.GOLD_NUDGE_WAVES)),
-		"1 element pick unspent: press E",
-		"the pick every wave, the gold not yet"
+		notices.line_for(sim, _started(w + HudNotices.NUDGE_WAVES + 1)),
+		"2 element picks unspent: press E",
+		"and at once when another comes"
 	)
 
 
