@@ -152,6 +152,12 @@ const TILES: Array[Vector2i] = [
 	Vector2i(11, 9),
 	Vector2i(7, 9),
 ]
+## His hook beside the portal: with his row-1 wall it turned creeps west along
+## the north edge. Where it falls in a reserved band, a person closes the
+## wall's east end instead, so his row 1 runs on from here to the east edge and
+## creeps go round its west end, past the whole wall. Left open, they walked
+## round the east end past one Archer and the opening leaked on wave 2.
+const HOOK := Vector2i(11, 0)
 ## The tiles he first built something other than an Archer on, with what. The
 ## tower falls back to an Archer while its element isn't picked.
 const IDS := {
@@ -214,7 +220,8 @@ const UPGRADES: Array[StringName] = [&"cannon", &"bard", &"archer"]
 
 var sim: GameSim
 ## The tiles still to build on, in order: his, moved down past any reserved
-## band, or AutoplayBot's plan off the Citadel. Reserved tiles are left out.
+## band with the first wall closed to the east edge, or AutoplayBot's plan off
+## the Citadel. Reserved tiles are left out.
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many planned tiles were given up for that reason.
 var skip_reasons := {}
@@ -240,6 +247,9 @@ func _init(p_sim: GameSim, idle: bool, fallback: Array[Vector2i]) -> void:
 		var at := _moved(t)
 		if Grid.in_bounds(at) and not grid.is_reserved(at):
 			plan.append(at)
+		elif t == HOOK:
+			for x in range(HOOK.x + 1, Grid.COLS):
+				plan.append(_moved(Vector2i(x, HOOK.y + 1)))
 	for t: Vector2i in IDS:
 		_ids[_moved(t)] = IDS[t]
 	for s: Array in SWAPS:

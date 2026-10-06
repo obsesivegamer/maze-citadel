@@ -89,6 +89,25 @@ func test_both_skip_reserved_tiles() -> void:
 		check(sim.tower_at(Vector2i(10, BAND)) != null, "%s: his first tower moved down" % strategy)
 
 
+func test_with_a_band_the_first_wall_reaches_the_east_edge() -> void:
+	var sim := _sim()
+	Bot.new(sim, &"camper").step()
+	var row := _first_free_row(sim.grid)
+	for x in range(Grid.COLS - 16, Grid.COLS):
+		check(sim.tower_at(Vector2i(x, row)) != null, "wall closed at (%d, %d)" % [x, row])
+	check(sim.tower_at(Vector2i(0, row)) == null, "the gap is at the west end")
+	var route := sim.field.route()
+	check(sim.field.reachable(sim.field.entry_tile()), "creeps still have a way through")
+	var crossings: Array[int] = []
+	for i in range(1, route.size() - 1):
+		var t := Grid.tile_at(route[i])
+		if t.y == row:
+			crossings.append(t.x)
+	check(not crossings.is_empty(), "the route crosses row %d" % row)
+	for x in crossings:
+		check(x < Grid.COLS - 16, "they go round the west end, not at column %d" % x)
+
+
 func test_off_the_citadel_both_lay_archers_along_the_plan() -> void:
 	for map in [&"rampart", &"causeway"]:
 		for strategy in [&"camper", &"idle"]:
