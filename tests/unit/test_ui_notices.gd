@@ -272,13 +272,13 @@ func test_locked_cards_name_the_pick_while_one_waits() -> void:
 func test_end_screen_names_what_was_left_unspent() -> void:
 	var sim := _eletd()
 	sim.gold = 50
-	check_eq(ElementPicks.unspent(sim), "1 pick · 50 gold")
+	check_eq(ElementPicks.unspent(sim), "1 pick", "gold under the cap was still earning")
 	sim.elements.granted = 4
 	sim.elements.spent = 1
 	sim.gold = 3453
 	check_eq(ElementPicks.unspent(sim), "3 picks · 3,453 gold")
 	sim.elements.spent = 4
-	check_eq(ElementPicks.unspent(sim), "0 picks · 3,453 gold", "idle gold alone is notable")
+	check_eq(ElementPicks.unspent(sim), "3,453 gold", "idle gold alone is notable, no 0 picks")
 	sim.gold = 900
 	check_eq(ElementPicks.unspent(sim), "", "nothing notable")
 	check_eq(TowerInfo.fmt_gold(1_234_567), "1,234,567")

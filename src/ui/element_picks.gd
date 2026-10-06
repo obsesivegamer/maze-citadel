@@ -206,16 +206,17 @@ static func granted_text(sim: GameSim) -> String:
 	return "%s: press %s\n%s" % [ready, KEY, buys]
 
 
-## The end screen's "Unspent" row, e.g. "3 picks · 3,453 gold", when picks
-## were left or the gold had passed the interest cap; "" otherwise.
+## The end screen's "Unspent" row, e.g. "3 picks · 3,453 gold": the picks
+## left, and the gold when it had passed the interest cap (below it, it was
+## still earning); "" when neither.
 static func unspent(sim: GameSim) -> String:
+	var parts := PackedStringArray()
 	var n := sim.elements.pending_picks()
-	if n <= 0 and sim.gold <= interest_cap_gold(sim):
-		return ""
-	return (
-		"%d pick%s%s%s gold"
-		% [n, "" if n == 1 else "s", TowerInfo.SEP, TowerInfo.fmt_gold(sim.gold)]
-	)
+	if n > 0:
+		parts.append("%d pick%s" % [n, "" if n == 1 else "s"])
+	if sim.gold > interest_cap_gold(sim):
+		parts.append("%s gold" % TowerInfo.fmt_gold(sim.gold))
+	return TowerInfo.SEP.join(parts)
 
 
 ## "Strong vs Flame · Weak vs Dark", coloured.
