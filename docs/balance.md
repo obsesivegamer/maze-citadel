@@ -648,7 +648,7 @@ The Rampart's first two walls moved from rows 2 and 4 to rows 3 and 5. On the Ca
 
 The camper and idle rows aren't a fair yardstick under the band. The owner's opening used the board's north edge: an Archer at (11, 0), beside the portal, and a wall along row 1 from column 1 to 11 sent every creep west along row 0, down the west edge, and back along row 2, an 89.5 m route past all sixteen towers. The camper moves that pattern down to row 3. That puts the (11, 0) Archer in the band, so it is dropped, and the edge is no longer there to lean on. Creeps now walk east round the end of the row-3 wall and straight down column 12. That route is 62.7 m long and passes only one Archer. A person would close the end of the wall instead. So the band breaks the owner's shape, not the opening as such. The rows above were measured before the camper learned to do that. It now builds the rest of his first row out to the east edge where the band takes his corner tile, so its 16 starting Archers stand on columns 4 to 19 of row 3 and creeps go round the west end, past the whole wall ([next section](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)).
 
-Records made before the band don't replay as the same game. Replaying the owner's 0.4.1 record refuses 14 of its 271 actions, starting with his first builds, and loses all 20 lives on wave 1.
+Records made before the band don't replay as the same game. Replaying the owner's 0.4.1 record refuses 14 of the first 19 of its 271 actions, starting with his first builds, and loses all 20 lives on wave 1, so the other 252 are never reached.
 
 ## Element TD rules: a harder opening for a person (2026-10-05)
 
@@ -682,7 +682,7 @@ Very Hard and Normal walked almost exactly the same through wave 9.
 | Very Hard | 1.1 rising to 1.55, squared | 1.5 on waves 1 to 5, easing onto the old ramp by wave 11, then the old ramp | The same; Very Hard's opening had about Normal's HP |
 | Starting gold | 400 | 400 | Unchanged: under the band a whole row with a gap takes 19 Archers, more than 400 buys |
 
-The difficulty chips' tooltips read these numbers from `EletdRules`, so they say, for example, "Very Hard: creeps +50% HP to wave 5, easing to +13% by wave 11, then rising to +55% by wave 40".
+The difficulty chips' tooltips read these numbers from `EletdRules`, so they say, for example, "Very Hard: creeps have 50% more HP to wave 5, easing to 13% more by wave 11, then rising to 55% more by wave 40, score ×1.6".
 
 ### Final results
 
@@ -754,7 +754,7 @@ All three tuning runs found the same limit. How far creeps walk on waves 1 to 4 
 
 ### The owner's record
 
-Replaying `tests/playtests/owner_0.4.1_citadel_normal.json` on these numbers parts from the record on wave 1, as it already did with the band: 14 of its 271 actions are refused, his first builds by the portal among them, and wave 1 takes all 20 lives. It can't judge these numbers. A fresh game on Normal and one on Very Hard can.
+Replaying `tests/playtests/owner_0.4.1_citadel_normal.json` on these numbers parts from the record on wave 1, as it already did with the band: 14 of the first 19 of its 271 actions are refused, his first builds by the portal among them, and wave 1 takes all 20 lives, so the other 252 are never reached. It can't judge these numbers. A fresh game on Normal and one on Very Hard can.
 
 ### Known gaps
 

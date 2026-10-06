@@ -72,14 +72,16 @@ func _replay(path: String) -> bool:
 		var first: Dictionary = player.refused[0]
 		print(
 			(
-				"%d of %d actions were refused, the first a %s at %s (wave %d)"
-				% [
-					player.refused.size(),
-					record.actions.size(),
-					first.do,
-					_clock(first.t),
-					first.wave
-				]
+				"%d of the %d actions reached were refused, the first a %s at %s (wave %d)"
+				% [player.refused.size(), player.reached(), first.do, _clock(first.t), first.wave]
+			)
+		)
+	var unreached: int = record.actions.size() - player.reached()
+	if unreached > 0:
+		print(
+			(
+				"%d of %d actions were never reached: the replay ended in %s at wave %d"
+				% [unreached, record.actions.size(), r.outcome, r.wave]
 			)
 		)
 	var diff := player.difference()

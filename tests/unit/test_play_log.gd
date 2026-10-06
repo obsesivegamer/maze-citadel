@@ -97,6 +97,21 @@ func test_an_action_the_sim_turns_down_is_reported() -> void:
 	var replay := Replayer.new(record)
 	replay.run()
 	check_eq(replay.refused.size(), 1, "no tower there")
+	check_eq(replay.reached(), record.actions.size(), "every action was tried")
+
+
+## A replay that loses sooner than the recorded game never comes to its later
+## actions: they are not refused, and reached() says how far it got.
+func test_actions_after_an_early_end_are_never_reached() -> void:
+	var record := _bot_game(&"eletd", &"hard")
+	record.actions = record.actions.filter(func(a: Dictionary) -> bool: return a.do != "build")
+	var replay := Replayer.new(record)
+	replay.run()
+	check(replay.over() and replay.sim.wave < WAVES, "no towers: lost early")
+	check(replay.reached() < record.actions.size(), "the later actions were never tried")
+	var tried: Array = record.actions.slice(0, replay.reached())
+	for a: Dictionary in replay.refused:
+		check(a in tried, "only actions reached are refused: %s" % a)
 
 
 func test_waves_report_how_far_creeps_walked() -> void:
