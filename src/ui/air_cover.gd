@@ -141,10 +141,11 @@ static func wave_flyers(sim: GameSim, w: int) -> Dictionary:
 ## one flyer, towers shooting ground creeps instead and leaked flyers coming
 ## round again, and it leaves out the Bard's aura too, since what it leaves
 ## out costs about as much. So measured, on the owner's 0.4.1 game
-## (tests/playtests) it read 63% on wave 34, where 12 Harpies leaked, and 51%
-## on wave 36 (6 leaked); with 5, 10 and 20 Archers added beside the line at
-## wave 34, 80%, 96% and 130% (7, 1 and 0 leaked); 102% and 134% on waves 31
-## and 26 (none leaked). With the aura counted wave 34 read 83%.
+## (tests/playtests) under that release's numbers, it read 63% on wave 34,
+## where 12 Harpies leaked, and 51% on wave 36 (6 leaked); with 5, 10 and 20
+## Archers added beside the line at wave 34, 80%, 96% and 130% (7, 1 and 0
+## leaked); 102% and 134% on waves 31 and 26 (none leaked). With the aura
+## counted wave 34 read 83%.
 ## {} when the wave has no flyers; else ratio, damage, hp, towers (how many
 ## air towers reach the line) and wave. `air` is wave_flyers(sim, w) when the
 ## caller kept it: making the flyers is most of the cost (about 1.6 ms), and

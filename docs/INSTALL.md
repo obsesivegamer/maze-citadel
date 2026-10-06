@@ -44,7 +44,7 @@ Maze Citadel is tested on a MacBook Air 13-inch M3 with an 8-core GPU and 16 GB 
 
    On macOS 13 or 14 there's a shorter route: Control-click the app, choose **Open**, then **Open** again.
 
-6. **Play.** macOS remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen for about 20 seconds while the game prepares its graphics for your Mac. Later launches take about 4 seconds.
+6. **Play.** macOS remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen for about 20 seconds while the game prepares its graphics for your Mac. Later launches take about 4 seconds. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 Once the app is in Applications, you can eject the disk image and delete the `.dmg`.
 
@@ -69,7 +69,7 @@ The Windows build is new and less tested than the Mac build. It has been measure
 
 3. **Run it and expect a warning.** Double-click `MazeCitadel.exe`. Windows shows "Windows protected your PC". This appears because the game isn't code-signed yet, which takes a paid certificate. It doesn't mean something is wrong with your download. Click **More info**, then **Run anyway**.
 
-4. **Play.** Windows remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer.
+4. **Play.** Windows remembers your choice, so from now on the game opens with a normal double-click. The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 ### On Linux
 
@@ -102,7 +102,7 @@ The Linux build is new and less tested than the Mac build, and its frame rate ha
    ./MazeCitadel.x86_64
    ```
 
-4. **Play.** The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer.
+4. **Play.** The first launch stays on the loading screen longer than later ones while the game prepares its graphics for your computer. The game then opens on a setup panel over the citadel: pick the map, rules and difficulty and press **Start**, and the build clock begins.
 
 ### Check the download (optional)
 
