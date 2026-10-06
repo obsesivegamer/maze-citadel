@@ -4,9 +4,10 @@ extends Control
 ## and under eletd "Interest maxed" by the gold once more earns nothing and
 ## the element levels with the Pick chip (ElementStrip).
 ## Centre: wave n/40 and the next-wave chip with its countdown and a call
-## button. Right: mode chip, speed, pause, camera presets, boss tracking, the
-## Field Guide and settings. refresh() runs every frame but only touches a node when the value
-## it shows has changed.
+## button, and under eletd the wave after next and the air cover for the
+## first flying wave of the two (AirCover). Right: mode chip, speed, pause,
+## camera presets, boss tracking, the Field Guide and settings. refresh() runs
+## every frame but only touches a node when the value it shows has changed.
 
 signal settings_pressed
 signal guide_pressed
@@ -46,6 +47,11 @@ var _next := WaveIcons.new(NEXT_ICON_PX, 13)
 ## The wave after next, shown under rules with a long pause between waves.
 var _after_caption := UiKit.label("", &"Caption")
 var _after := WaveIcons.new(NEXT_ICON_PX * 0.8, 11)
+## eletd: "Air cover, wave 5: weak", re-estimated when the board changes.
+var _air := UiKit.label("", &"", UiTheme.SIZE_SMALL)
+var _air_est := {}
+var _air_wave := 0
+var _air_dirty := true
 var _call: Button
 ## Difficulty chip per difficulty the rule set offers.
 var _levels := {}
@@ -72,6 +78,7 @@ func setup(game: Game) -> void:
 	_build_right()
 	_build_boss_chip()
 	game.speed_changed.connect(_on_speed)
+	game.sim_event.connect(_on_sim_event)
 	game.pause_changed.connect(_on_pause)
 	game.camera.boss_tracking_changed.connect(_on_boss_tracking)
 	_on_speed(game.speed)
@@ -148,6 +155,11 @@ func _build_center() -> void:
 	next_col.add_child(_next)
 	next_col.add_child(_after_caption)
 	next_col.add_child(_after)
+	_air.add_theme_font_override("font", UiTheme.bold())
+	_air.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_air.mouse_filter = Control.MOUSE_FILTER_PASS
+	_air.visible = false
+	next_col.add_child(_air)
 	next_col.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(next_col)
 	_call = UiKit.icon_button(_game, &"next", "Call the next wave now (N)", BUTTON_PX)
@@ -351,13 +363,19 @@ func _tracked(sim: GameSim) -> String:
 	return "Boss tracking: no boss yet"
 
 
+func _on_sim_event(e: Dictionary) -> void:
+	if e.type in [&"built", &"sold", &"upgraded", &"fused"]:
+		_air_dirty = true
+
+
 func _refresh_next(sim: GameSim) -> void:
 	var next := sim.wave + 1
 	var has_next := next <= sim.last_wave() and not _game.is_over()
 	var secs := ceili(sim.countdown) if sim.countdown >= 0.0 else -1
 	var twist := sim.twist_for(next) if has_next else &""
 	var open := sim.elements.unlocked_towers()
-	var dirty := _changed(&"next", next)
+	var dirty := _refresh_air(sim, has_next)
+	dirty = _changed(&"next", next) or dirty
 	dirty = _changed(&"open", open) or dirty
 	dirty = _changed(&"twist", twist) or dirty
 	dirty = _changed(&"has_next", has_next) or dirty
@@ -378,6 +396,8 @@ func _refresh_next(sim: GameSim) -> void:
 			tip += "\nTwist: %s. %s" % [WaveTwists.display_name(twist), WaveTwists.text(twist)]
 		if has_next and TowerInfo.flying(next, sim.rules):
 			tip += "\nFLYING: %s" % TowerInfo.flying_text()
+		if not _air_est.is_empty() and _air_est.wave == next:
+			tip += "\n%s. %s" % [AirCover.readout(_air_est), AirCover.tip(_air_est)]
 		if has_next and TowerInfo.composite_wave(next, sim.rules):
 			tip += "\nComposite armor: %s" % TowerInfo.composite_text()
 		if has_next and WaveDefs.bulky(next, sim.rules):
@@ -395,6 +415,25 @@ func _refresh_next(sim: GameSim) -> void:
 	if _changed(&"after", [after if has_after else 0, after_twist]):
 		_after.show_wave(after if has_after else 0, after_twist, sim.rules)
 		_after_caption.text = "THEN · WAVE %d" % after
+
+
+## Re-estimates the air cover when the wave it is for, the mode or the board
+## changes. True when it did.
+func _refresh_air(sim: GameSim, has_next: bool) -> bool:
+	if _changed(&"air_for", [sim.wave, has_next]):
+		_air_wave = AirCover.upcoming(sim) if has_next and sim.adjacent_reach() else 0
+	var w := _air_wave
+	var key := [w, sim.difficulty, sim.twists, sim.twist_seed]
+	if not _changed(&"air", key) and not _air_dirty:
+		return false
+	_air_dirty = false
+	_air_est = AirCover.estimate(sim, w) if w > 0 else {}
+	_air.visible = not _air_est.is_empty()
+	if _air.visible:
+		_air.text = AirCover.readout(_air_est)
+		_air.tooltip_text = AirCover.tip(_air_est)
+		_air.add_theme_color_override("font_color", AirCover.verdict_color(_air_est.ratio))
+	return true
 
 
 func _changed(key: StringName, value: Variant) -> bool:

@@ -1,8 +1,8 @@
 extends "res://tests/test_case.gd"
 ## The rules a new player trips over under eletd, said where they bite: the
-## first leak, flying and composite waves, what an element pick buys and that
-## one waits, gold past the interest cap, and what was left unspent at the
-## end. Nothing of it shows under classic. Expected wording is written out,
+## first leak, flying and composite waves and too little air cover, what an
+## element pick buys and that one waits, gold past the interest cap, and what
+## was left unspent at the end. Nothing of it shows under classic. Expected wording is written out,
 ## not read back.
 
 const FLYING := (
@@ -73,6 +73,33 @@ func test_composite_waves_say_elements_dont_matter() -> void:
 			"elements don't matter this wave: Archers and Cannons hit at full strength,"
 			+ " element towers 90%"
 		)
+	)
+
+
+func test_flying_waves_short_of_air_cover_warn_as_they_start() -> void:
+	var sim := _eletd()
+	sim.elements.pick(sim, &"aqua")
+	var notices := HudNotices.new()
+	check_eq(notices.line_for(sim, _started(4)), "", "wave 4 walks")
+	check_eq(
+		notices.line_for(sim, _started(5)),
+		"Air cover weak: no wing-icon tower stands beside the flight line"
+	)
+	check_eq(sim.build(Vector2i(15, 10), &"archer"), Placement.Result.OK)
+	check(notices.line_for(sim, _started(5)) != "", "an Archer away from the line doesn't help")
+	check_eq(sim.build(Vector2i(10, 10), &"archer"), Placement.Result.OK)
+	check_eq(notices.line_for(sim, _started(5)), "", "one beside it holds wave 5")
+	sim.elements.granted += 1
+	check_eq(
+		notices.line_for(sim, _started(34)),
+		(
+			(
+				"Air cover weak: the towers beside the flight line can deal about %d%% of these"
+				% roundi(AirCover.estimate(sim, 34).ratio * 100.0)
+			)
+			+ " flyers' HP\n1 element pick unspent: press E"
+		),
+		"the air warning comes first"
 	)
 
 
@@ -184,6 +211,8 @@ func test_wave_start_recalls_picks_and_nudges_idle_gold_every_few_waves() -> voi
 	check_eq(notices.line_for(sim, _started(1)), "1 element pick unspent: press E")
 	sim.elements.pick(sim, &"aqua")
 	check_eq(notices.line_for(sim, _started(2)), "", "nothing waits, the gold all earns")
+	# Wave 5 flies: an Archer beside the flight line keeps its air warning away.
+	check_eq(sim.build(Vector2i(9, 10), &"archer"), Placement.Result.OK)
 	sim.gold = 1500
 	var nudge := "Gold above 1,000 earns no more interest: build or upgrade"
 	check_eq(notices.line_for(sim, _started(3)), nudge)

@@ -1,8 +1,9 @@
 class_name HudNotices
 extends RefCounted
 ## When the line above the cards (Hud._say) teaches a rule under eletd: the
-## first leak of a game, and at each wave start the picks left unspent and,
-## every few waves, gold past the interest cap. One per Hud, so per game.
+## first leak of a game, and at each wave start too little air cover for its
+## flyers (AirCover), the picks left unspent and, every few waves, gold past
+## the interest cap. One per Hud, so per game.
 ## Free of nodes so the decisions are unit-tested
 ## (tests/unit/test_ui_notices.gd).
 
@@ -29,6 +30,10 @@ func line_for(sim: GameSim, e: Dictionary) -> String:
 			return LEAK
 		&"wave_started":
 			var lines := PackedStringArray()
+			if TowerInfo.flying(e.wave, sim.rules):
+				var air := AirCover.warning(AirCover.estimate(sim, e.wave))
+				if air != "":
+					lines.append(air)
 			var picks := ElementPicks.unspent_reminder(sim)
 			if picks != "":
 				lines.append(picks)
