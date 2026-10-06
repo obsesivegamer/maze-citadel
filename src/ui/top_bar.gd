@@ -50,6 +50,8 @@ var _after := WaveIcons.new(NEXT_ICON_PX * 0.8, 11)
 ## eletd: "Air cover, wave 5: weak", re-estimated when the board changes.
 var _air := UiKit.label("", &"", UiTheme.SIZE_SMALL)
 var _air_est := {}
+## AirCover.wave_flyers for _air_wave, kept while only the board changes.
+var _air_flyers := {}
 var _air_wave := 0
 var _air_dirty := true
 var _call: Button
@@ -424,10 +426,13 @@ func _refresh_air(sim: GameSim, has_next: bool) -> bool:
 		_air_wave = AirCover.upcoming(sim) if has_next and sim.adjacent_reach() else 0
 	var w := _air_wave
 	var key := [w, sim.difficulty, sim.twists, sim.twist_seed]
-	if not _changed(&"air", key) and not _air_dirty:
+	var flyers_changed := _changed(&"air", key)
+	if not flyers_changed and not _air_dirty:
 		return false
 	_air_dirty = false
-	_air_est = AirCover.estimate(sim, w) if w > 0 else {}
+	if flyers_changed:
+		_air_flyers = AirCover.wave_flyers(sim, w) if w > 0 else {}
+	_air_est = AirCover.estimate(sim, w, _air_flyers) if w > 0 else {}
 	_air.visible = not _air_est.is_empty()
 	if _air.visible:
 		_air.text = AirCover.readout(_air_est)

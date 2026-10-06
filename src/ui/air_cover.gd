@@ -146,9 +146,12 @@ static func wave_flyers(sim: GameSim, w: int) -> Dictionary:
 ## wave 34, 80%, 96% and 130% (7, 1 and 0 leaked); 102% and 134% on waves 31
 ## and 26 (none leaked). With the aura counted wave 34 read 83%.
 ## {} when the wave has no flyers; else ratio, damage, hp, towers (how many
-## air towers reach the line) and wave.
-static func estimate(sim: GameSim, w: int) -> Dictionary:
-	var air := wave_flyers(sim, w)
+## air towers reach the line) and wave. `air` is wave_flyers(sim, w) when the
+## caller kept it: making the flyers is most of the cost (about 1.6 ms), and
+## they change only with the wave and the mode, not with the board.
+static func estimate(sim: GameSim, w: int, air := {}) -> Dictionary:
+	if air.is_empty():
+		air = wave_flyers(sim, w)
 	var flyers: Array[SimCreep] = air.flyers
 	if flyers.is_empty():
 		return {}
@@ -209,13 +212,14 @@ static func tip(est: Dictionary) -> String:
 		(
 			(
 				"An estimate: %s beside the flight line can deal about %d%% of wave %d's %s flyer"
-				+ " HP. Below 100%% some will get through."
+				+ " HP. Below %d%% some will get through."
 			)
 			% [
 				"1 wing-icon tower" if est.towers == 1 else "%d wing-icon towers" % est.towers,
 				roundi(est.ratio * 100.0),
 				est.wave,
 				hp,
+				roundi(WEAK * 100.0),
 			]
 		)
 		+ see
