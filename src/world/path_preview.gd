@@ -17,8 +17,6 @@ const FLIGHT_COLOR := Color(0.6, 0.85, 1.0)
 ## Metres above the plateau the arrows fly at: a Harpy's hover height.
 const FLIGHT_LIFT := 4.3
 const ARROW_SPACING := 3.0
-## A Harpy's speed, so the arrows move as flyers do.
-const ARROW_SPEED := 3.4
 ## Alpha of the arrows, the ground strip and the tinted tiles: dim, lit.
 const ARROW_ALPHA := Vector2(0.3, 0.85)
 const STRIP_ALPHA := Vector2(0.18, 0.45)
@@ -195,7 +193,9 @@ func _process(delta: float) -> void:
 
 
 func _move_arrows(delta: float) -> void:
-	_arrow_offset = fmod(_arrow_offset + delta * ARROW_SPEED, ARROW_SPACING)
+	# At a Harpy's speed, so the arrows move as flyers do.
+	var speed: float = CreepDefs.CREEPS[&"harpy"].speed
+	_arrow_offset = fmod(_arrow_offset + delta * speed, ARROW_SPACING)
 	var side := _flight_dir.cross(Vector3.UP)
 	var size := 1.0 if _lit else 0.75
 	var basis := Basis(side, _flight_dir, Vector3.UP).scaled(Vector3.ONE * size)
