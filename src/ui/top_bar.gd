@@ -220,17 +220,24 @@ func _level_tip(level: StringName) -> String:
 	if _game.sim.rules != &"eletd":
 		return "Hard: creeps +10% HP rising to +40% by wave 40, score ×1.3"
 	var score := "score ×%s" % TowerInfo.fmt_num(EletdRules.SCORE_MULT[level])
+	var last := WaveDefs.count()
+	var off := func(w: int) -> int: return roundi(100 - EletdRules.difficulty_hp(level, w) * 100)
+	var on := func(w: int) -> int: return roundi(EletdRules.difficulty_hp(level, w) * 100 - 100)
 	if level == &"easy":
 		return (
-			"Easy: creeps have %d%% less HP, %s" % [roundi(100 - EletdRules.EASY_HP * 100), score]
+			"Easy: creeps have %d%% less HP on wave 1, %d%% less by wave %d, %s"
+			% [off.call(1), off.call(last), last, score]
 		)
 	return (
-		"%s: creeps +%d%% HP rising to +%d%% by wave %d, %s"
+		"%s: creeps +%d%% HP to wave %d, easing to +%d%% by wave %d, then rising to +%d%% by wave %d, %s"
 		% [
 			TowerInfo.difficulty_name(level),
-			roundi(EletdRules.difficulty_hp(level, 1) * 100 - 100),
-			roundi(EletdRules.difficulty_hp(level, WaveDefs.count()) * 100 - 100),
-			WaveDefs.count(),
+			on.call(1),
+			EletdRules.EARLY_HOLD,
+			on.call(EletdRules.EARLY_UNTIL),
+			EletdRules.EARLY_UNTIL,
+			on.call(last),
+			last,
 			score,
 		]
 	)

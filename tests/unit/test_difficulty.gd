@@ -105,27 +105,51 @@ func test_each_rule_set_offers_its_difficulties() -> void:
 	check_eq(TowerInfo.mode_name(&"hard", true), "Hard · Infinite", "classic name kept")
 
 
+## Easy rises from EASY_FROM to EASY_HP. Hard and Very Hard open at their
+## early multipliers, held through EARLY_HOLD, and are on their ramps from
+## EARLY_UNTIL; Very Hard is the harder one on every wave.
 func test_eletd_difficulties_climb_in_creep_hp() -> void:
 	var sims := {}
 	for level: StringName in EletdRules.DIFFICULTIES:
 		sims[level] = GameSim.new()
 		sims[level].rules = &"eletd"
 		sims[level].difficulty = level
-	for w: int in [1, 10, 20, 30, 40]:
+	var early := {&"hard": EletdRules.HARD_EARLY, &"very_hard": EletdRules.VERY_HARD_EARLY}
+	for w in range(1, WaveDefs.count() + 1):
 		var hp := {}
 		for level: StringName in sims:
 			for type: StringName in [&"grunt", &"footman"]:
 				hp[[level, type]] = sims[level].spawn_creep(type, &"flame", w, Vector2.ZERO).max_hp
+		var f := (w - 1) / float(WaveDefs.count() - 1)
+		var ramp := {
+			&"hard": lerpf(EletdRules.HARD_FROM, EletdRules.HARD_TO, f),
+			&"very_hard": lerpf(EletdRules.VERY_HARD_FROM, EletdRules.VERY_HARD_TO, f * f),
+		}
 		for type: StringName in [&"grunt", &"footman"]:
 			var normal: float = hp[[&"normal", type]]
-			check_near(hp[[&"easy", type]], normal * 0.7, 1e-3, "Easy is 0.7, w%d" % w)
-			var f := (w - 1) / 39.0
-			var hard := lerpf(EletdRules.HARD_FROM, EletdRules.HARD_TO, f)
-			check_near(hp[[&"hard", type]], normal * hard, 1e-3, "Hard ramp, w%d" % w)
-			var very := lerpf(EletdRules.VERY_HARD_FROM, EletdRules.VERY_HARD_TO, f * f)
-			check_near(hp[[&"very_hard", type]], normal * very, 1e-3, "Very Hard ramp, w%d" % w)
+			var easy := lerpf(EletdRules.EASY_FROM, EletdRules.EASY_HP, f)
+			check_near(hp[[&"easy", type]], normal * easy, 1e-3, "Easy, w%d" % w)
+			for level: StringName in early:
+				var m: float = hp[[level, type]] / normal
+				var label := "%s %s, w%d" % [level, type, w]
+				if w <= EletdRules.EARLY_HOLD:
+					check_near(m, early[level], 1e-3, "early hold: %s" % label)
+				elif w >= EletdRules.EARLY_UNTIL:
+					check_near(m, ramp[level], 1e-3, "on the ramp: %s" % label)
+				else:
+					check(
+						m <= early[level] + 1e-3 and m >= ramp[level] - 1e-3, "sliding: %s" % label
+					)
 			check(hp[[&"very_hard", type]] > hp[[&"hard", type]], "Very Hard > Hard, w%d" % w)
+			check(hp[[&"hard", type]] > normal, "Hard > Normal, w%d" % w)
 			check(hp[[&"easy", type]] < normal, "Easy < Normal, w%d" % w)
+
+
+## Very Hard's opening is at least half again Normal's: the T3 target in
+## docs/balance.md.
+func test_very_hard_opening_is_half_again_normal() -> void:
+	for w in range(1, EletdRules.EARLY_HOLD + 1):
+		check(EletdRules.difficulty_hp(&"very_hard", w) >= 1.5, "w%d" % w)
 
 
 func test_score_follows_the_difficulty() -> void:
@@ -167,3 +191,27 @@ func test_each_difficulty_keeps_its_own_records() -> void:
 	check_eq(keys.size(), 4, "four difficulties, four keys")
 	check(keys.has("rampart_easy_eletd"), "Easy key")
 	check(keys.has("rampart_very_hard_eletd"), "Very Hard key")
+
+
+## The difficulty chips' tooltips under the Element TD rules state today's
+## multipliers in plain words.
+func test_eletd_difficulty_tips_state_the_numbers() -> void:
+	Game._carry = {"rules": &"eletd"}
+	var game := Game.new()
+	game.camera = CameraRig.new()
+	var bar := HudTopBar.new()
+	bar.setup(game)
+	var then := ", then rising to +%d%% by wave 40, score ×%s"
+	var want := {
+		&"easy": "Easy: creeps have 60% less HP on wave 1, 30% less by wave 40, score ×0.7",
+		&"normal": "Normal: base creep HP and bounty",
+		&"hard": "Hard: creeps +25% HP to wave 5, easing to +12% by wave 11" + then % [28, "1.3"],
+		&"very_hard":
+		"Very Hard: creeps +50% HP to wave 5, easing to +13% by wave 11" + then % [55, "1.6"],
+	}
+	for level: StringName in want:
+		check_eq(bar._levels[level].tooltip_text, want[level], "%s tip" % level)
+	bar.free()
+	game.camera.camera.free()
+	game.camera.free()
+	game.free()

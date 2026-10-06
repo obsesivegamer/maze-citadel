@@ -93,10 +93,10 @@ Simulation runs on a fixed 30 Hz step; ×2 and ×3 run 2 or 3 steps per frame. T
 
 | Mode | Change |
 |---|---|
-| Easy | Creeps have 70% of their HP. Score × 0.7. |
+| Easy | Creeps have 40% of their HP on wave 1, rising in a straight line to 70% on wave 40. Score × 0.7. |
 | Normal | Base values |
-| Hard | Creep HP × 1.06 on wave 1 rising in a straight line to × 1.28 on wave 40; no bounty bonus. Score × 1.3. Classic: +10% on wave 1 rising to +40% on wave 40 |
-| Very Hard | Creep HP × 1.1 on wave 1 rising to × 1.55 on wave 40 on a squared curve, so it stays close to Hard until about wave 25 and climbs steeply after; the last ten waves are the wall. Score × 1.6. |
+| Hard | Creep HP × 1.25 on waves 1 to 5, easing onto a ramp by wave 11 (× 1.12 there), then rising in a straight line to × 1.28 on wave 40; no bounty bonus. Score × 1.3. Classic: +10% on wave 1 rising to +40% on wave 40 |
+| Very Hard | Creep HP × 1.5 on waves 1 to 5, so the opening is clearly harder from the first wave, easing onto a ramp by wave 11 (× 1.13 there). The ramp rises to × 1.55 on wave 40 on a squared curve, so it stays close to Hard until about wave 25 and climbs steeply after; the last ten waves are the wall. Score × 1.6. |
 | Infinite | After wave 40, waves continue from mixed templates. HP × 1.08 per wave past 40, on top of the curve. No element picks come after wave 35's. |
 | Twists | From wave 11, most waves carry one random creep ability (below). Combines with every difficulty and Infinite. Score × 1.1. |
 
@@ -113,7 +113,7 @@ The game has two rule sets, and the setup panel under the gold counter switches 
 |---|---|---|
 | Tower reach (§7.1) | The 3×3 block of tiles around the tower | The range in metres from §7, shown as a ring |
 | Starting gold (§4) | 400 | 220 |
-| Creep HP (§8) | A share of classic's, from 10% on wave 1 to 68% on wave 40 | The full curve |
+| Creep HP (§8) | A share of classic's: at least 35% from wave 1, rising to 68% on wave 40; wave-5 Harpies × 2.7 | The full curve |
 | Elements (§7.3) | Earned with 8 element picks; later picks summon Guardians | Every tower open from the start |
 | Archer and Cannon (§6.2, §7.2) | Composite damage; the Archer fires one arrow at every level and its upgrades deal 85% and 80% | Light and Flame; the level-3 Archer fires two arrows |
 | Elemental towers (§7.2) | 140% damage, the Plague Cauldron excepted | Table damage |
@@ -255,7 +255,7 @@ Each of the six elements has a level from 0 to 3, all 0 at the start. A tower of
 |---|---|
 | Element picks | One at the start and one as each of waves 5, 10, 15, 20, 25, 30 and 35 is cleared: 8 in all, against 18 element levels, so no game has everything. Infinite mode adds none after wave 35. A pick is kept until the player spends it, on one level of an element or on Interest. |
 | First pick | The first pick spent on an element grants its level at once. |
-| Guardians | Every later element pick summons a Guardian of that element instead: a boss that enters at the portal at once, whatever the phase, and grants the level only when it dies. It has 0.35, 0.8 or 1.2 times the HP of a lone Ogre of the current wave for level 1, 2 or 3, taking the share, the difficulty and the map multiplier of §8 but no boss wave's own scaling, armor 8 and speed 2.0 m/s, pays no bounty, costs 3 lives when it leaks and walks again until killed. It is drawn as the Ogre, 15% larger. A wave counts as cleared only once its Guardians are dead too, and no second pick can go on an element while its Guardian walks. |
+| Guardians | Every later element pick summons a Guardian of that element instead: a boss that enters at the portal at once, whatever the phase, and grants the level only when it dies. It has 0.35, 0.8 or 1.2 times the HP of a lone Ogre of the current wave for level 1, 2 or 3, taking the share's straight line (without its floor), the difficulty and the map multiplier of §8 but no boss wave's own scaling, armor 8 and speed 2.0 m/s, pays no bounty, costs 3 lives when it leaks and walks again until killed. It is drawn as the Ogre, 15% larger. A wave counts as cleared only once its Guardians are dead too, and no second pick can go on an element while its Guardian walks. |
 | Interest picks | A pick spent on Interest adds 1 point to the interest rate and 10 gold to the cap per tick, up to three times (5% and 50 gold). It summons no Guardian. |
 
 The HUD for all of this is in §11.2. Classic: there are no element levels or picks, and every tower is open from the start.
@@ -265,9 +265,9 @@ The HUD for all of this is in §11.2. Classic: there are no element levels or pi
 `HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × share × difficulty multiplier × map multiplier` (Infinite adds its growth past wave 40, §5).
 
 - **The curve** `60 × 1.105^(wave − 1)` is about 147 at wave 10, 400 at 20, 1086 at 30 and 2950 at 40, before the type multiplier.
-- **The share** climbs in a straight line from 0.10 on wave 1 to 0.68 on wave 40. Armored creeps climb to 0.70 on a squared curve instead, never below the line, so waves 3 and 7 barely change and late armor needs siege. The wave-10 Ogre gets 2.1 times its share and the Dreadlord 0.3 of it, on top of the wave table's own boss scale below.
+- **The share** climbs in a straight line from 0.10 on wave 1 to 0.68 on wave 40, but never drops below 0.35; the line passes that floor on wave 18. At the floor a Normal Grunt of the opening takes two Archer arrows instead of one. Armored creeps climb in their own straight line from 0.10 to 0.70 without the floor, so the Footmen of wave 3 and the Steam Tanks of wave 7 keep about the HP they had. The wave-10 Ogre gets 1.4 times its share, the same HP as before the floor, and the Dreadlord 0.3 of it, on top of the wave table's own boss scale below. The Harpies of wave 5, the first flyers, get 2.7 times theirs, so it takes about four Archers beside the flight line to stop them on Normal.
 - **The difficulty multiplier** is in §5, and **the map multiplier** is 1 except on the Winding Causeway, which has its own ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)).
-- A wave's groups are then split over 1.5 times the creeps (§9.1), each with its matching part of this HP: the 15 Grunts of wave 1 have 4 HP each.
+- A wave's groups are then split over 1.5 times the creeps (§9.1), each with its matching part of this HP: the 15 Grunts of wave 1 have 14 HP each.
 
 Classic: `HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × mode multiplier`, the full curve, with Hard's multiplier from §5 as the mode multiplier. Tuned by the balance bots; see [balance.md](balance.md).
 
@@ -306,7 +306,7 @@ Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom
 | 2 | 14 Wolf Riders | Dark | Speed |
 | 3 | 8 Shield Footmen | Verdant | Armor, Siege bonus |
 | 4 | 10 Grunts + 3 Priestesses | Aqua | Healers, Poison counter |
-| 5 | 12 Harpies | Light | Air, anti-air towers |
+| 5 | 12 Harpies (2.7 × HP under the default rules, §8) | Light | Air, anti-air towers |
 | 6 | 14 Ghouls | Dark | Revive |
 | 7 | 4 Grunts + 6 Steam Tanks | Flame | Immunity windows |
 | 8 | 12 Wolf Riders + 8 Grunts | Flame | Mixed speeds |

@@ -188,7 +188,7 @@ func test_first_element_pick_is_free_later_ones_summon() -> void:
 	check_eq(g.element, &"dark", "of the element it guards")
 	check_eq(g.armor_class, &"boss", "boss armor")
 	check(g.pos.distance_to(sim.grid.spawn_point) < 0.01, "at the portal")
-	var lone_ogre := 60.0 * pow(1.105, 9) * 12.0 * EletdRules.hp(10)
+	var lone_ogre := 60.0 * pow(1.105, 9) * 12.0 * EletdRules.line_hp(10)
 	check_near(g.max_hp, lone_ogre * 0.35, 1e-2, "0.35 of a lone wave-10 Ogre")
 	sim.kill(g)
 	ev = sim.drain_events()
@@ -201,13 +201,15 @@ func test_first_element_pick_is_free_later_ones_summon() -> void:
 func test_guardian_hp_climbs_with_the_level_it_guards() -> void:
 	for lvl in range(1, 4):
 		var share: float = [0.35, 0.8, 1.2][lvl - 1]
-		var want := 60.0 * pow(1.105, 19) * 12.0 * EletdRules.hp(20) * share
+		var want := 60.0 * pow(1.105, 19) * 12.0 * EletdRules.line_hp(20) * share
 		check_near(EletdRules.guardian_hp(lvl, 20, &"normal"), want, 1e-2, "level %d" % lvl)
 
 
 ## Picks are kept, so one can be spent past wave 40 in Infinite: its Guardian
 ## is still that share of a lone Ogre of the wave it enters on, as the sim
 ## would spawn the Ogre then (boss-wave tuning aside), at every difficulty.
+## Guardians take the share's line without HP_FLOOR, so where the floor holds
+## (wave 5) the lone Ogre has more.
 func test_guardian_is_a_share_of_the_current_ogre_in_infinite_too() -> void:
 	for difficulty in EletdRules.DIFFICULTIES:
 		var sim := _eletd()
@@ -219,7 +221,9 @@ func test_guardian_is_a_share_of_the_current_ogre_in_infinite_too() -> void:
 			for lvl in range(1, 4):
 				var share: float = [0.35, 0.8, 1.2][lvl - 1]
 				var got := EletdRules.guardian_hp(lvl, w, difficulty)
-				check_near(got / ogre, share, 1e-4, "%s wave %d level %d" % [difficulty, w, lvl])
+				var unfloored := EletdRules.line_hp(w) / EletdRules.hp(w)
+				var label := "%s wave %d level %d" % [difficulty, w, lvl]
+				check_near(got / ogre, share * unfloored, 1e-4, label)
 		sim.elements.pick(sim, &"aqua")
 		sim.elements.granted += 1
 		sim.elements.pick(sim, &"dark")
