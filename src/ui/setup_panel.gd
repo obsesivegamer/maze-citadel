@@ -38,9 +38,10 @@ static func wanted() -> bool:
 
 ## Never for a headless run or one with a flag in Tutorial.SCRIPTED_FLAGS
 ## (bots, captures, benchmarks, probes, warps): those play what their flags
-## say from the first frame.
+## say from the first frame. Nor under another panel --open puts up, which
+## it would cover while that panel took the keys.
 static func wanted_for(args: Dictionary, headless := false) -> bool:
-	if headless:
+	if headless or args.get("open", "setup") != "setup":
 		return false
 	for flag in Tutorial.SCRIPTED_FLAGS:
 		if args.has(flag):

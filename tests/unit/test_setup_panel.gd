@@ -19,6 +19,8 @@ func test_only_real_games_get_it() -> void:
 	for flag in ["autoplay", "shot", "bench", "first-frame-out", "warp-wave", "no-tutorial"]:
 		check(not SetupPanel.wanted_for({flag: "true"}), "--%s skips it" % flag)
 	check(not SetupPanel.wanted_for({}, true), "headless tools, smoke runs and tests skip it")
+	check(not SetupPanel.wanted_for({"open": "menu"}), "--open=menu shows the menu alone")
+	check(SetupPanel.wanted_for({"open": "setup"}), "--open=setup is the panel itself")
 	check(not SetupPanel.wanted_for({"tutorial": "true"}, true), "--tutorial doesn't force it")
 
 
