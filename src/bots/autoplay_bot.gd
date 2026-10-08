@@ -180,6 +180,13 @@ func _init(p_sim: GameSim, p_strategy: StringName, p_seed := 0) -> void:
 		skip_reasons = _camper.skip_reasons
 
 
+## Makes the smart bot under the eletd rules spend its picks in `order`
+## (RouteLiner.pick_order); the other strategies keep their own.
+func force_picks(order: Array[StringName]) -> void:
+	if _liner:
+		_liner.pick_order = order
+
+
 ## On a fixed-lane map there is no maze to build: the plan is every tile
 ## beside the lane, in the order the creeps pass them, each tile's sides
 ## before its corners.
