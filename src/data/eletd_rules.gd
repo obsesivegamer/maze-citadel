@@ -146,6 +146,12 @@ const ARCHER_POWER: Array[float] = [1.0, 0.85, 0.8]
 ## Cauldron keeps 1.0: its poison works on after the creep walks on, so reach
 ## cost it little, and it was already the bot's first pick.
 const ELEMENTAL_POWER := 1.4
+## The Runesmith Forge's share in place of ELEMENTAL_POWER. Measured in the sim
+## (tests/bots/support_value.gd), its shred added only 15 to 20 damage per
+## creep to the towers around it, and at 1.4 it stopped about as much HP per
+## gold as a level-1 Archer, the least of any elemental tower, so no player had
+## a reason to pick Stone.
+const RUNESMITH_POWER := 2.8
 
 ## early_from() per creep type, worked out once.
 static var _early_from := {}
@@ -290,6 +296,8 @@ static func tower_power(id: StringName, level: int) -> float:
 		return ARCHER_POWER[clampi(level - 1, 0, ARCHER_POWER.size() - 1)]
 	if id == &"plague" or id in COMPOSITE_TOWERS or id in TowerDefs.EPICS:
 		return 1.0
+	if id == &"runesmith":
+		return RUNESMITH_POWER
 	return ELEMENTAL_POWER if TowerDefs.TOWERS[id].has("element") else 1.0
 
 

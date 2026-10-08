@@ -118,7 +118,7 @@ The game has two rule sets, and the RULES row (Element TD | Classic) switches be
 | Creep HP (§8) | A share of classic's: at least 35% from wave 1, rising to 68% on wave 40; plain creeps of waves 1 to 14 get extra HP so each of waves 1 to 10 takes at least four Archer arrows on Normal | The full curve |
 | Elements (§7.3) | Earned with 8 element picks; later picks summon Guardians | Every tower open from the start |
 | Archer and Cannon (§6.2, §7.2) | Composite damage; the Archer fires one arrow at every level and its upgrades deal 85% and 80% | Light and Flame; the level-3 Archer fires two arrows |
-| Elemental towers (§7.2) | 140% damage, the Plague Cauldron excepted | Table damage |
+| Elemental towers (§7.2) | 140% damage, the Runesmith Forge 280%, the Plague Cauldron 100% | Table damage |
 | Wave shapes (§9.1) | 1.5 times the creeps, 0.6 s apart; composite waves 14, 27, 34; Bulky waves 12, 18, 25, 37 | Table counts, 0.9 s apart |
 | Between waves (§3) | 30 s, with the wave after next shown | 5 s |
 | Interest (§4) | Locked after a leak until the field is clear; picks can raise it | Always paid |
@@ -245,11 +245,12 @@ Under the default rules a tower deals a share of its table damage, set per tower
 
 | Towers | Power |
 |---|---|
-| Ballista, Demolisher, Frost Spire, Ancient of Roots, Shadow Obelisk, Runesmith Forge (every tower that needs an element but the Plague Cauldron) | 140% |
+| Ballista, Demolisher, Frost Spire, Ancient of Roots, Shadow Obelisk (every tower that needs an element but the Plague Cauldron and the Runesmith Forge) | 140% |
+| Runesmith Forge | 280% (39, 67 and 112 damage) |
 | Archer | 100% at L1, 85% at L2, 80% at L3 (9, 12.75 and 19.2 damage) |
 | Cannon, Bard's Pavilion, Plague Cauldron, every Epic | 100% |
 
-The table priced the elemental towers for their range, which reaching only the tiles around them took away, and at full damage the Archer's upgrades were among the best buys per gold in the game ([balance.md](balance.md#element-td-rules-retune-after-element-picks-2026-10-04)). Cards, tooltips and the upgrade preview show the damage these rules deal. Classic: every tower deals its table damage.
+The table priced the elemental towers for their range, which reaching only the tiles around them took away, and at full damage the Archer's upgrades were among the best buys per gold in the game ([balance.md](balance.md#element-td-rules-retune-after-element-picks-2026-10-04)). The Runesmith gets twice the others' share because its shred adds little: measured in the sim, it stopped about as much HP per gold as a level-1 Archer at 140% ([balance.md](balance.md#element-td-rules-six-elements-worth-picking-2026-10-07)). Cards, tooltips and the upgrade preview show the damage these rules deal. Classic: every tower deals its table damage.
 
 ### 7.3 Elements and picks
 
