@@ -5,7 +5,7 @@ extends UiModal
 ## wheel (hover an element for what it beats and which towers carry it), the
 ## attack vs armor chart, counsel for the next wave and how to read damage
 ## numbers. Under eletd the first page also names the towers' short reach and
-## the band by the portal, and a second page explains the element picks.
+## the ring by the portal, and a second page explains the element picks.
 ## Opening it pauses the game; closing resumes if opening paused it.
 
 const PANEL_WIDTH := 920.0
@@ -39,8 +39,8 @@ func setup(game: Game) -> void:
 	)
 	if game.sim.adjacent_reach():
 		sub.text += "\nUnder Element TD rules a tower reaches only the eight tiles around it."
-	if game.sim.grid.portal_rows > 0:
-		sub.text += "\nNothing is built on the red rows by the portal."
+	if game.sim.grid.portal_ring:
+		sub.text += "\nNothing is built on the red tiles around the portal."
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(sub)
 	var top := UiKit.hbox(24)

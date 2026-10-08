@@ -160,7 +160,7 @@ func _say(text: String, hold := SAY_HOLD) -> void:
 
 
 ## Guardians, element levels, picks and eletd's refusals (a locked element, the
-## band by the portal), and the rules HudNotices teaches.
+## ring by the portal), and the rules HudNotices teaches.
 func _on_element_event(e: Dictionary) -> void:
 	var line := _notices.line_for(_game.sim, e)
 	if line != "":

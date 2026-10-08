@@ -1,7 +1,28 @@
 extends "res://tests/test_case.gd"
 ## Creep HP under the Element TD rules (EletdRules, docs/balance.md): the plain
-## share's floor and line, armored creeps' own line, the bosses and the
-## wave-5 Harpies.
+## share's floor and line, the early HP that makes every plain creep of the
+## opening take several Archer arrows, armored creeps' own line and the bosses.
+
+## The early HP is gone by wave 15, and armored creeps, bosses and Guardians
+## never take it: these creeps have the HP they had in 0.4.2, on Normal and
+## Very Hard, as [type, wave, Normal HP, Very Hard HP] before any wave share.
+const HP_0_4_2 := [
+	[&"footman", 3, 12.4545, 18.6817],
+	[&"steam_tank", 7, 44.1104, 60.4408],
+	[&"ogre", 10, 1906.3900, 2262.1931],
+	[&"ghoul", 15, 84.9750, 98.4000],
+	[&"harpy", 15, 67.9800, 78.7200],
+	[&"grunt", 20, 153.0167, 184.6612],
+	[&"wolf_rider", 20, 99.4608, 120.0298],
+]
+## A level-1 and a level-3 Guardian on waves 5 and 20 in 0.4.2, Normal and
+## Very Hard, as [level, wave, Normal HP, Very Hard HP].
+const GUARDIAN_0_4_2 := [
+	[1, 5, 59.9205, 89.8808],
+	[3, 5, 205.4417, 308.1626],
+	[1, 20, 642.6700, 775.5772],
+	[3, 20, 2203.4401, 2659.1219],
+]
 
 
 ## The plain HP share's straight line, without HP_FLOOR.
@@ -40,22 +61,79 @@ func test_eletd_plain_share_has_a_floor_then_follows_the_line() -> void:
 	check_near(EletdRules.hp(20), _line(20), 1e-6, "the line by wave 20")
 
 
-## At the floor a Normal Grunt of the opening outlives one level-1 Archer arrow.
-func test_eletd_opening_grunts_take_two_arrows() -> void:
-	var sim := GameSim.new()
+## Arrows a level-`level` Archer lands on the creep of spawn_list entry `e`
+## of wave `w` at `difficulty`, sent as its wave sends it, before it drops.
+func _arrows_to_drop(e: Array, w: int, difficulty: StringName, level: int) -> int:
+	var sim := GameSim.new(&"citadel")
 	sim.rules = &"eletd"
-	for w: int in [1, 4]:
-		var share := 0.0
-		for e in WaveDefs.spawn_list(w, &"eletd"):
-			if e[0] == &"grunt":
-				share = e[2]
-		var c := sim.spawn_creep(&"grunt", &"light", w, Vector2.ZERO)
-		var arrow := Damage.amount(
-			TowerDefs.TOWERS[&"archer"].damage[0], &"pierce", &"light", c, 0.0, c.armor
-		)
-		check(
-			c.max_hp * share > arrow, "wave %d: %.1f HP, arrow %.1f" % [w, c.max_hp * share, arrow]
-		)
+	sim.difficulty = difficulty
+	var c := sim.spawn_creep(e[0], e[1], w, sim.grid.spawn_point)
+	c.reshape(e[2], e[3], e[4])
+	var archer := SimTower.new()
+	archer.id = &"archer"
+	archer.level = level
+	var base: float = TowerDefs.TOWERS[&"archer"].damage[level - 1]
+	for n in range(1, 100):
+		sim.hit(c, base, archer, 0.0)
+		if c.hp <= 0.0:
+			return n
+	return 100
+
+
+## The first creep of each plain type (neither armored nor a boss) on wave `w`.
+func _plain_entries(w: int) -> Array:
+	var out := []
+	var seen := {}
+	for e in WaveDefs.spawn_list(w, &"eletd"):
+		if EletdRules.plain(e[0]) and not seen.has(e[0]):
+			seen[e[0]] = true
+			out.append(e)
+	return out
+
+
+## Every plain creep of the opening, flyers too, outlives all but the last of
+## its EARLY_ARROWS level-1 Archer arrows at every difficulty: four on Normal,
+## two on Easy, five on Hard, six on Very Hard. None takes more than one arrow
+## over that, so the early HP never runs away.
+func test_opening_creeps_take_their_arrows() -> void:
+	check_eq(EletdRules.EARLY_ARROWS, {&"easy": 2, &"normal": 4, &"hard": 5, &"very_hard": 6}, "")
+	for d: StringName in EletdRules.DIFFICULTIES:
+		var want: int = EletdRules.EARLY_ARROWS[d]
+		for w in range(1, EletdRules.EARLY_WAVES + 1):
+			for e in _plain_entries(w):
+				var n := _arrows_to_drop(e, w, d, 1)
+				check(n >= want, "%s w%d %s: %d arrows, want %d" % [d, w, e[0], n, want])
+				check(n <= want + 1, "%s w%d %s: %d arrows, at most %d" % [d, w, e[0], n, want + 1])
+				check_eq(EletdRules.arrows(1, e[0], w, d), n, "%s w%d %s: helper" % [d, w, e[0]])
+
+
+## Upgrading brings no one-shot back: on Normal a level-2 or level-3 Archer
+## needs two arrows for any plain creep of the opening.
+func test_upgraded_archers_need_two_arrows_on_normal() -> void:
+	for w in range(1, EletdRules.EARLY_WAVES + 1):
+		for e in _plain_entries(w):
+			for level in [2, 3]:
+				var n := _arrows_to_drop(e, w, &"normal", level)
+				check(n >= 2, "w%d %s: level %d Archer, %d arrows" % [w, e[0], level, n])
+				check_eq(
+					EletdRules.arrows(level, e[0], w, &"normal"), n, "helper, level %d" % level
+				)
+
+
+## The early HP is gone by wave 15, and armored creeps, bosses and Guardians
+## never take it (HP_0_4_2, GUARDIAN_0_4_2).
+func test_early_hp_leaves_the_rest_as_it_was() -> void:
+	for k in 2:
+		var d: StringName = [&"normal", &"very_hard"][k]
+		var sim := GameSim.new(&"citadel")
+		sim.rules = &"eletd"
+		sim.difficulty = d
+		for row: Array in HP_0_4_2:
+			var c := sim.spawn_creep(row[0], &"flame", row[1], Vector2.ZERO)
+			check_near(c.max_hp, row[2 + k], 1e-3, "%s %s w%d" % [d, row[0], row[1]])
+		for row: Array in GUARDIAN_0_4_2:
+			var hp := EletdRules.guardian_hp(row[0], row[1], d)
+			check_near(hp, row[2 + k], 1e-3, "%s Guardian L%d w%d" % [d, row[0], row[1]])
 
 
 func test_eletd_hp_share_never_drops_and_has_its_own_hard_ramp() -> void:
@@ -77,7 +155,12 @@ func test_eletd_hp_share_never_drops_and_has_its_own_hard_ramp() -> void:
 		if w <= EletdRules.EARLY_HOLD:
 			ramp = EletdRules.HARD_EARLY
 		check_near(h.max_hp, n.max_hp * ramp, 1e-3, "eletd Hard, w%d" % w)
-		check_near(c.max_hp / GameSim.hard_hp(w), n.max_hp / EletdRules.hp(w), 1e-3, "classic")
+		check_near(
+			c.max_hp / GameSim.hard_hp(w),
+			n.max_hp / EletdRules.hp_mult(&"grunt", w, &"normal"),
+			1e-3,
+			"classic"
+		)
 	for w: int in EletdRules.BOSS_HP:
 		var type := WaveDefs.spawn_list(w).back()[0] as StringName
 		var plain := CreepDefs.max_hp(type, w, EletdRules.hp(w))
@@ -93,15 +176,6 @@ func test_eletd_wave_10_ogre_keeps_its_hp() -> void:
 	var ogre := sim.spawn_creep(&"ogre", &"flame", 10, Vector2.ZERO)
 	var before := CreepDefs.max_hp(&"ogre", 10, _line(10) * 2.1)
 	check(absf(ogre.max_hp / before - 1.0) < 0.01, "%.0f HP, was %.0f" % [ogre.max_hp, before])
-
-
-## HARPY_HP lands on Harpies only, on its own waves, at every difficulty.
-func test_eletd_harpy_hp_is_per_wave_and_harpy_only() -> void:
-	for d: StringName in EletdRules.DIFFICULTIES:
-		for w in range(1, 41):
-			var k := EletdRules.hp_mult(&"harpy", w, d) / EletdRules.hp_mult(&"grunt", w, d)
-			check_near(k, EletdRules.HARPY_HP.get(w, 1.0), 1e-6, "%s w%d" % [d, w])
-	check(EletdRules.HARPY_HP.get(5, 1.0) > 1.0, "the first flyers are tougher")
 
 
 ## Buildable Citadel tiles whose reach covers at least 5 m of the flyers'
@@ -144,8 +218,8 @@ func _wave_5_leaks(archers: int) -> int:
 	return leaked
 
 
-## HARPY_HP sizes the first flyers so one Archer on their line no longer holds
-## them on Normal and four do (T9 in docs/balance.md).
+## The early HP sizes the first flyers so one Archer on their line no longer
+## holds them on Normal and four do (T9 in docs/balance.md).
 func test_wave_5_harpies_need_four_archers_on_their_line() -> void:
 	check(_wave_5_leaks(1) > 0, "one Archer leaks")
 	check_eq(_wave_5_leaks(4), 0, "four Archers hold")

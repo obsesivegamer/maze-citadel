@@ -31,7 +31,7 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
-| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, its first wall closed to the east edge where the band by the portal takes his corner tower, all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05), [closing the wall](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)) |
+| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, with the ring by the portal's edge built in place of his tiles on it (`Camper.RING_EDGE`; under 0.4.2's band, his first wall moved down and closed to the east edge), all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05), [closing the wall](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)) |
 | idle | The camper's opening from the starting gold, then nothing at all |
 
 Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its decision timing, which wall tile it fills next and which counter it prefers, so one lucky or unlucky trajectory doesn't decide a target. Columns:
@@ -69,7 +69,7 @@ The default rules are tuned to be harder than classic and to make the element pi
 | T3: Very Hard has at least 1.5 times Normal's HP on waves 1 to 5, and the camper fares clearly worse there | Met: 1.5 times, and the camper loses on wave 3 against wave 28 to 34 on Normal |
 | T4: the smart bot wins Normal 4 games in 4, losing 5 to 12 lives | Met: 4/4, 10.8 lives lost (10 to 12) |
 | T5: the smart bot loses most Very Hard games, but at wave 25 or later; it wins about half its Hard games | Partly met: Very Hard as in the table above, one loss on wave 21; Hard 2/4 |
-| T6: the starting gold can't close a whole row under the band | Met: 400 gold buys 16 Archers, and a row with a gap needs 19 |
+| T6: the starting gold can't close a whole row under the band (0.4.2) | Met: 400 gold buys 16 Archers, and a row with a gap needs 19 |
 | T7: the novice survives Easy to wave 15 or later, and the archers-only bot loses Normal | Met: the novice wins Easy 4/4; the archers bot loses on wave 35 |
 | T8: the smart bot wins Normal on the Rampart and the Causeway, losing at least 3 lives | Met: 4/4 on both, 7.8 and 11.2 lives lost |
 | T9: wave 5, the first Harpies, needs about four level-1 Archers beside the flight line on Normal | Met: one, two or three Archers let 14 to 18 leaks through, four hold it |
@@ -629,6 +629,8 @@ His own game walked 2, 5, 7, 2, 3, 4, 9, 4, 7 and 52% on waves 1 to 10 and was l
 
 ## Element TD rules: the band by the portal (2026-10-05)
 
+0.4.3 replaced the band with a ring of the six tiles touching the portal ([below](#element-td-rules-four-arrows-and-a-ring-by-the-portal-2026-10-07)).
+
 In the owner's game the creeps of the opening waves died within 3 m of the portal. His Archers stood on five of the six tiles touching the two portal tiles, which every creep and every flyer passes first, and one arrow kills a wave-1 creep. Under the Element TD rules the top three rows of every map, along the portal edge, now take no towers (`EletdRules.PORTAL_ROWS`, [GDD §2](GDD.md#2-pathing-rules)). No tower can reach a creep, on the ground or in the air, until it is at least 5.5 m from the portal. The bots' first Citadel wall already stood on row 3, just below the band, so their plans still fit there. Two rows would leave about 3.5 m, and four would take 80 build tiles. The plateau shows the band as a faint red strip, and a build there is refused with "Too close to the portal". Classic has no band.
 
 The band only moves where the one-shot kills happen. The investigation behind it found that an opening built on row 3 kills waves 1 to 4 about 14 m along the route with or without the band. So the band takes away the ring round the portal, but it can't make the opening waves hard on its own. That is the HP and gold retune's job.
@@ -762,6 +764,57 @@ Replaying `tests/playtests/owner_0.4.1_citadel_normal.json` on these numbers par
 - **Very Hard may be too hard for a person's opening.** A single wall of 16 Archers, the owner's shape, loses on wave 3. The smart bot's opening holds, so a stronger first build is possible, but no person has played it yet.
 - **One Very Hard game in four ends on wave 21**, and Hard loses on waves 23 and 30. In those games the bot skipped its picks on waves 15 and 20. Bot seeds swing widely from wave 21 on, so 4 seeds are weak evidence either way.
 - **Weak elements**: unchanged ([Targets](#element-td-rules)). The bot now opens with Light and still never takes Stone or Verdant.
+
+## Element TD rules: four arrows and a ring by the portal (2026-10-07)
+
+This is 0.4.3, for issue #36. Playing 0.4.2, the owner saw early creeps drop to what looked like a single Archer hit: two arrows 0.6 s apart from several towers read as one. He also found the three blocked rows too much, when only the tiles beside the portal let towers shoot creeps as they appear. He asked for every early creep to take at least four arrows and for the no-build zone to shrink to the tiles touching the portal. He playtests this round himself, so no bot tuning or balance table was run; the classic check is unchanged.
+
+### Arrows per creep
+
+Every plain creep (neither armored nor a boss, flyers included) of waves 1 to 10 now takes at least `EARLY_ARROWS` level-1 Archer arrows: two on Easy, four on Normal, five on Hard, six on Very Hard. A level-2 or level-3 Archer needs at least two on Normal. HP below is a creep as its wave sends it, after Element TD's split of each group into 1.5 times the creeps (the issue's 21 HP for a wave-1 Grunt was the table HP before that split). Normal, level-1 Archer:
+
+| Wave | Creep | 0.4.2 HP | 0.4.2 arrows | 0.4.3 HP | 0.4.3 arrows |
+|---|---|---|---|---|---|
+| 1 | Grunt | 14 | 2 | 43 | 4 |
+| 2 | Wolf Rider | 10 | 1 | 46 | 4 |
+| 4 | Grunt / Priestess | 19 / 15 | 2 / 2 | 50 / 46 | 4 / 4 |
+| 5 | Harpy | 45 | 4 | 51 | 4 |
+| 6 | Ghoul | 23 | 2 | 43 | 4 |
+| 7 | Grunt | 25 | 3 | 56 | 5 |
+| 8 | Wolf Rider / Grunt | 18 / 28 | 2 / 3 | 53 / 58 | 4 / 5 |
+| 9 | Priestess | 28 | 3 | 59 | 5 |
+| 10 | Grunt | 34 | 3 | 60 | 5 |
+
+The fewest arrows any plain creep of waves 1 to 10 takes went from 1 to 2 on Easy, 1 to 4 on Normal, 1 to 5 on Hard and 2 to 6 on Very Hard. The Footmen of waves 3 and 9, the Steam Tanks of wave 7, the wave-10 Ogre and the Guardians keep their HP, and no bounty changed.
+
+How: each plain creep type gets its own multiplier on wave 1, on top of the share line and its floor, falling in a straight line to 1.0 on wave 15 (`EletdRules.early_hp`). It is worked out, not typed in: the least that gives every creep of that type in waves 1 to 10 its arrows at every difficulty, from the Archer's damage and the creep's armor and HP, with a tenth of an arrow to spare (`early_from`). Very Hard's six arrows set it for every type, each on its first wave in the opening: six arrows need more than 1.5 times Normal's four. So Normal creeps carry 10 to 19% more HP than four arrows need, and the Grunts of waves 7, 8 and 10 and the Priestesses of wave 9 take five on Normal. Sized for Normal's four alone, Very Hard's opening creeps would take about five. The multipliers on wave 1: Grunt 3.1, Wolf Rider 4.8, Priestess 3.5, Harpy 3.8, Ghoul 2.3. One multiplier for all would have had to be the Wolf Riders' 4.8 (no armor, 0.65 of a Grunt's HP): wave-1 Grunts would have taken six arrows on Normal and the Bulky Ghouls of wave 12 nearly double their HP. `EletdRules.arrows()` answers "how many arrows" for the tests.
+
+Side effects, accepted with the spec:
+
+- **Waves 11 to 14** are tougher than in 0.4.2 while the multiplier fades: the Bulky Ghouls of wave 12 have 108 HP against 84, its Priestesses 105 against 68. Waves 15 and later are unchanged.
+- **Wave-5 Harpies.** `HARPY_HP` (× 2.7 on wave 5) is gone: the Harpies' own early multiplier gives them × 3.0 on wave 5, 51 HP against 45. Four level-1 Archers beside the flight line still hold wave 5 on Normal and one does not, as the test asserts. The air-cover rating reads the HP from the rules and needed no change.
+
+### The ring by the portal
+
+The band of rows 0 to 2 is now a ring of the six tiles that touch a portal tile, side or corner (`EletdRules.portal_ring`, `Grid.near_portal`): on the Citadel row 0 at columns 8 and 11 and row 1 at columns 8 to 11, the same shape on every map. The ring is tinted red on the ground and refused with "Too close to the portal". The other 52 tiles of rows 0 to 2 build again (two more are the portal). A flyer is first in reach 3.5 m from the portal (5.5 m with the band, under 1 m with nothing). Tiles that reach the flight line: 102 on the Citadel, 94 on the Rampart, 77 on the Causeway (98, 89 and 75 with the band). The Rampart bot walls stay on rows 3 and 5; nothing measured whether rows 2 and 4 would be better.
+
+### The camper under the ring
+
+The owner's opening was a row-1 wall from column 1 to 11 with a hook at (11, 0), sending creeps west along row 0 past the whole wall. The ring takes five of those tiles. Where it does, the camper now builds the ring's edge one tile further out instead (`Camper.RING_EDGE`): row 2 at columns 8 to 11 under the ring, and (12, 0) and (12, 1) in place of the hook. Creeps leave the ring west along row 0, past his row-1 wall, as in his game.
+
+Moving his pattern down to row 2 instead, as the camper did under the band, left his wall out of reach of creeps walking row 0, and the idle bot lost every life on wave 1. Leaving his row 1 as it was with the ring tiles skipped left a four-tile hole under the portal.
+
+The idle bot (that opening, never touched again), one game each on the Citadel:
+
+| Mode | First leak | Result |
+|---|---|---|
+| Easy | wave 10 (the Ogre) | 14 lives left as wave 12 starts |
+| Normal | wave 10 (the Ogre) | lost on wave 12, with 6 lives left as it started |
+| Very Hard | wave 5 | lost on wave 7 |
+
+Under 0.4.2's band the same bot leaked on wave 3 and lost on wave 6 on Normal, and lost on wave 3 on Very Hard. The ring hands back the north edge that his opening leans on, so on Normal a build left alone holds to the wave-10 boss again even with four-arrow creeps. That is the owner's call to judge in play.
+
+The owner's 0.4.1 record still can't judge these numbers: 7 of the first 19 actions are refused (builds on ring tiles among them) and wave 1 takes all 20 lives. A fresh 0.4.3 record is the one to keep in `tests/playtests`.
 
 ## Latest run (2026-10-02)
 

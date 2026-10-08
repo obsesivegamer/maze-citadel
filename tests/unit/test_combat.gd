@@ -322,7 +322,7 @@ func test_eletd_creeps_have_less_hp_and_bard_keeps_its_aura() -> void:
 	sim.rules = &"eletd"
 	var a := classic.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
 	var b := sim.spawn_creep(&"grunt", &"flame", 5, Vector2.ZERO)
-	check_near(b.max_hp, a.max_hp * EletdRules.hp(5), 1e-4, "HP share")
+	check_near(b.max_hp, a.max_hp * EletdRules.hp_mult(&"grunt", 5, &"normal"), 1e-4, "HP share")
 	var archer := _place(sim, Vector2i(13, 10), &"archer")
 	_place(sim, Vector2i(10, 10), &"bard")
 	sim.step()

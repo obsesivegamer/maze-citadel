@@ -30,11 +30,19 @@ const HP_FLOOR := 0.35
 ## HP_TO, so armored creeps are never the easier ones once the line passes
 ## the floor.
 const ARMORED_HP_TO := 0.7
-## Harpy HP per wave, on top of the rest. Wave 5 brings the first flyers:
-## before HP_FLOOR one Archer beside the flight line held them on Normal, two
-## on the floor alone, and at 2.7 it takes four (five on Very Hard). Only
-## Harpies: the bots' threat estimate reads hp_mult too.
-const HARPY_HP := {5: 2.7}
+## Level-1 Archer arrows every plain creep of waves 1 to EARLY_WAVES takes at
+## each difficulty: armored creeps and bosses keep their HP, flyers take it
+## too. On HP_FLOOR alone a Grunt took two arrows and a Wolf Rider one, and
+## two arrows 0.6 s apart from several towers read as one hit (issue #36).
+const EARLY_ARROWS := {&"easy": 2, &"normal": 4, &"hard": 5, &"very_hard": 6}
+## The last wave EARLY_ARROWS holds for.
+const EARLY_WAVES := 10
+## The early HP multiplier falls on a straight line from early_from() on wave
+## 1 to 1.0 on this wave, so this wave and every later one keep their HP.
+const EARLY_HP_UNTIL := 15
+## HP past the last arrow a creep must survive, as a share of an arrow, so no
+## creep of the opening is a rounding away from dying an arrow early.
+const ARROW_MARGIN := 0.1
 ## Archer arrows per shot at every level: two at level 3 let a maze of
 ## archers alone win.
 const ARCHER_MULTISHOT := 1
@@ -42,13 +50,6 @@ const ARCHER_MULTISHOT := 1
 ## end and only the towers there reach them; at 220 the novice bot loses on
 ## wave 2 whatever the creep HP.
 const START_GOLD := 400
-## Rows at the portal (north) edge where nothing may be built (Grid.portal_rows).
-## With towers allowed beside the portal tiles, every creep passed a ring of
-## Archers on its first step and the opening waves died within 3 m of the
-## portal. Three rows keep every creep at least 5.5 m from the portal before
-## a tower can reach it and match the bots' first Citadel wall; four would
-## take 80 build tiles.
-const PORTAL_ROWS := 3
 ## Pause between waves: time to read the next waves and rebuild.
 const BREATHER := 30.0
 ## Hard creep HP multiplier, in place of classic's 1.1 to 1.4: HARD_FROM on
@@ -146,6 +147,9 @@ const ARCHER_POWER: Array[float] = [1.0, 0.85, 0.8]
 ## cost it little, and it was already the bot's first pick.
 const ELEMENTAL_POWER := 1.4
 
+## early_from() per creep type, worked out once.
+static var _early_from := {}
+
 
 ## The difficulties rule set `rules` offers, easiest first.
 static func difficulties(rules: StringName) -> Array[StringName]:
@@ -154,18 +158,98 @@ static func difficulties(rules: StringName) -> Array[StringName]:
 	return [&"normal", &"hard"]
 
 
+## Under these rules nothing is built on the tiles touching the portal
+## (Grid.portal_ring). With towers there every creep passed a ring of Archers
+## on its first step and the opening waves died within 3 m of the portal. The
+## three rows 0.4.2 kept clear took 60 tiles and moved the top of every maze;
+## the ring takes six and keeps the tiles beside the portal itself clear.
+static func portal_ring(rules: StringName) -> bool:
+	return rules == &"eletd"
+
+
 ## The HP multiplier GameSim.spawn_creep gives a creep of `type` on wave `w`
 ## under these rules at `difficulty`.
 static func hp_mult(type: StringName, w: int, difficulty: StringName) -> float:
 	var m := difficulty_hp(difficulty, w)
-	if type == &"harpy":
-		m *= HARPY_HP.get(w, 1.0)
 	match CreepDefs.CREEPS[type].class:
 		&"armored":
 			return m * armored_hp(w)
 		&"boss":
-			m *= BOSS_HP.get(w, 1.0)
-	return m * hp(w)
+			return m * BOSS_HP.get(w, 1.0) * hp(w)
+	return m * hp(w) * early_hp(type, w)
+
+
+## A plain creep's extra HP on wave `w`: early_from(type) on wave 1, 1.0 from
+## EARLY_HP_UNTIL on.
+static func early_hp(type: StringName, w: int) -> float:
+	return lerpf(early_from(type), 1.0, _early_fade(w))
+
+
+## The least wave-1 multiplier that gives every creep of `type` in waves 1 to
+## EARLY_WAVES its EARLY_ARROWS at every difficulty, from the Archer's damage
+## and the creep's armor and HP; 1.0 for armored creeps and bosses. Each type
+## has its own: one for all, set by the Wolf Riders (no armor, 0.65 HP), gave
+## wave-1 Grunts six arrows on Normal and nearly doubled the Ghouls of wave 12.
+static func early_from(type: StringName) -> float:
+	if _early_from.has(type):
+		return _early_from[type]
+	var from := 1.0
+	if not plain(type):
+		_early_from[type] = from
+		return from
+	for w in range(1, EARLY_WAVES + 1):
+		var f := _early_fade(w)
+		for e: Array in EletdWaves.spawn_list(w):
+			if e[0] != type:
+				continue
+			var arrow := archer_arrow(1, _stub(type, e[1]))
+			for d: StringName in DIFFICULTIES:
+				var hp_now: float = CreepDefs.max_hp(type, w, difficulty_hp(d, w) * hp(w)) * e[2]
+				var need: float = (EARLY_ARROWS[d] - 1 + ARROW_MARGIN) * arrow / hp_now
+				from = maxf(from, (need - f) / (1.0 - f))
+	_early_from[type] = from
+	return from
+
+
+static func _early_fade(w: int) -> float:
+	return clampf((w - 1) / float(EARLY_HP_UNTIL - 1), 0.0, 1.0)
+
+
+## A creep that is neither armored nor a boss: the early HP lands on it.
+static func plain(type: StringName) -> bool:
+	return not CreepDefs.CREEPS[type].class in [&"armored", &"boss"]
+
+
+## Arrows a level-`level` Archer needs to kill the first creep of `type` on
+## wave `w` at `difficulty` on a map without its own HP multiplier, with
+## nothing else hitting it. For the tests.
+static func arrows(level: int, type: StringName, w: int, difficulty: StringName) -> int:
+	for e: Array in EletdWaves.spawn_list(w):
+		if e[0] == type:
+			var c := _stub(type, e[1])
+			var hp_full: float = CreepDefs.max_hp(type, w, hp_mult(type, w, difficulty)) * e[2]
+			return ceili(hp_full / archer_arrow(level, c))
+	return 0
+
+
+## One arrow of a level-`level` Archer on creep `c`, as GameSim deals it
+## under these rules (SimElements.hit_amount).
+static func archer_arrow(level: int, c: SimCreep) -> float:
+	var base: float = TowerDefs.TOWERS[&"archer"].damage[level - 1] * tower_power(&"archer", level)
+	var attack: StringName = TowerDefs.stat(&"archer", "attack", level)
+	var element: StringName = TowerDefs.TOWERS[&"archer"].element
+	if &"archer" in COMPOSITE_TOWERS:
+		element = &"composite"
+	return Damage.amount(base, attack, element, c, 0.0, c.armor)
+
+
+static func _stub(type: StringName, element: StringName) -> SimCreep:
+	var c := SimCreep.new()
+	c.type = type
+	c.armor = CreepDefs.CREEPS[type].armor
+	c.armor_class = CreepDefs.CREEPS[type].class
+	c.element = element
+	return c
 
 
 static func difficulty_hp(difficulty: StringName, w: int) -> float:

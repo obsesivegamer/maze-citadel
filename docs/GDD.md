@@ -28,7 +28,7 @@ The section numbers below are stable, because comments in the code refer to them
 | Tower footprint | 1 tile |
 | Portal | Red demon portal, north edge, 2 tiles wide, unbuildable |
 | Gate | Blue town gate, south edge, 2 tiles wide, unbuildable |
-| Band by the portal | The 3 rows along the portal edge (rows 0–2, 60 tiles) take no towers, drawn as a faint red strip with a red edge line. Classic: none, only the portal tiles are kept clear |
+| Ring by the portal | The 6 tiles touching the two portal tiles (on the Citadel, row 0 at columns 8 and 11 and row 1 at columns 8 to 11) take no towers, tinted red with a red edge line. Classic: none, only the portal tiles are kept clear |
 | Straight path | 28 tiles (≈19 s for a Grunt) |
 | Camera at launch | 3/4 top-down, whole plateau in view, builder selected |
 | HUD at launch | The setup panel (§5) over the board, the game paused until Start. Then: Gold 400 · Lives 20 · Wave 1 preview: 15 Grunts · 45 s build countdown · one element pick waiting. Classic: 220 gold, 10 Grunts, no picks |
@@ -50,7 +50,7 @@ The first frame is the game: the board is already drawn behind the setup panel. 
   1. the portal can no longer reach the gate, or
   2. any ground creep's current tile can no longer reach the gate, or
   3. a creep is standing on that tile.
-- **Band by the portal:** under the default rules nothing can be built on the three rows along the portal edge. The ghost turns red there, and a click is refused with "Too close to the portal" on the line above the tower cards. Every creep, ground or air, goes at least 5.5 m from the portal before any tower can reach it. Before the band, towers ringing the two portal tiles killed the opening waves within 3 m of the portal. Classic has no band.
+- **Ring by the portal:** under the default rules nothing can be built on the six tiles that touch a portal tile, side or corner, on every map. The ghost turns red there, and a click is refused with "Too close to the portal" on the line above the tower cards. Every other tile of the top rows takes towers. Towers on those six tiles killed the opening waves within 3 m of the portal; with the ring a flyer is first in reach about 3.5 m out. 0.4.2 kept the whole of rows 0 to 2 clear instead, 60 tiles, which moved the top of every maze. Classic has no ring.
 - **Refusal feedback:** red ghost, "thunk" sound, short shake of the ghost. Nothing is spent.
 - **Dotted path:** glowing dots trace the current portal-to-gate route and flow toward the gate. It starts as a straight line and redraws on every change.
 - **Air creeps** (Harpies) ignore the maze and fly the straight portal-to-gate line at 4 m altitude. Pale dots mark that line while a tower's reach is shown (§10).
@@ -115,7 +115,7 @@ The game has two rule sets, and the RULES row (Element TD | Classic) switches be
 |---|---|---|
 | Tower reach (§7.1) | The 3×3 block of tiles around the tower | The range in metres from §7, shown as a ring |
 | Starting gold (§4) | 400 | 220 |
-| Creep HP (§8) | A share of classic's: at least 35% from wave 1, rising to 68% on wave 40; wave-5 Harpies × 2.7 | The full curve |
+| Creep HP (§8) | A share of classic's: at least 35% from wave 1, rising to 68% on wave 40; plain creeps of waves 1 to 14 get extra HP so each of waves 1 to 10 takes at least four Archer arrows on Normal | The full curve |
 | Elements (§7.3) | Earned with 8 element picks; later picks summon Guardians | Every tower open from the start |
 | Archer and Cannon (§6.2, §7.2) | Composite damage; the Archer fires one arrow at every level and its upgrades deal 85% and 80% | Light and Flame; the level-3 Archer fires two arrows |
 | Elemental towers (§7.2) | 140% damage, the Plague Cauldron excepted | Table damage |
@@ -235,7 +235,7 @@ Waves 14, 27 and 34 (and the Infinite waves that replay 34) wear composite armor
 
 A tower attacks only creeps on the 3 × 3 block of tiles around it: its own tile and the eight next to it. The block's edges count, so a creep walking a tile border, as flyers do on the portal-to-gate line, is reached from both sides alike. This holds for every attack: the Ancient of Roots' nova and the Frost Wyrm's breath hit only creeps in the block, and the Demolisher has no minimum range. Splash, poison clouds, craters, frost rings and the Bard's aura keep their sizes, and the Ballista's bolt and the Sunfire Ballista's lance aim at a creep in reach and fly on along their line as far as before. Placing, hovering or selecting a tower shows its block as a square (§10).
 
-Flyers ignore the maze and fly the straight line from portal to gate, so only the tiles whose block the line crosses can hit them, outside the band by the portal: columns 8 to 11 on the Citadel (98 tiles), 89 tiles on the Rampart's diagonal and 75 on the Causeway, where the road takes many of the rest. On the Citadel a tile sees about 1.8 s of a Harpy's flight. The top bar rates the board's air cover for the next flying wave (§11.1).
+Flyers ignore the maze and fly the straight line from portal to gate, so only the tiles whose block the line crosses can hit them, outside the ring by the portal: columns 8 to 11 on the Citadel (102 tiles), 94 tiles on the Rampart's diagonal and 77 on the Causeway, where the road takes many of the rest. On the Citadel a tile sees about 1.8 s of a Harpy's flight. The top bar rates the board's air cover for the next flying wave (§11.1).
 
 A long road matters only where it runs past towers, so the maze is a matter of lining the road with them; a tile beside two corridors of the maze reaches both. Classic: each tower reaches the range in metres from the table above, shown as a ring.
 
@@ -269,9 +269,9 @@ The HUD for all of this is in §11.2. Classic: there are no element levels or pi
 `HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × share × difficulty multiplier × map multiplier` (Infinite adds its growth past wave 40, §5).
 
 - **The curve** `60 × 1.105^(wave − 1)` is about 147 at wave 10, 400 at 20, 1086 at 30 and 2950 at 40, before the type multiplier.
-- **The share** climbs in a straight line from 0.10 on wave 1 to 0.68 on wave 40, but never drops below 0.35; the line passes that floor on wave 18. At the floor a Normal Grunt of the opening takes two Archer arrows instead of one. Armored creeps climb in their own straight line from 0.10 to 0.70 without the floor, so the Footmen of wave 3 and the Steam Tanks of wave 7 keep about the HP they had. The wave-10 Ogre gets 1.4 times its share, the same HP as before the floor, and the Dreadlord 0.3 of it, on top of the wave table's own boss scale below. The Harpies of wave 5, the first flyers, get 2.7 times theirs, so it takes about four Archers beside the flight line to stop them on Normal.
+- **The share** climbs in a straight line from 0.10 on wave 1 to 0.68 on wave 40, but never drops below 0.35; the line passes that floor on wave 18. On top of that, plain creeps (neither armored nor bosses), flyers included, get extra HP in waves 1 to 14 so that every one of waves 1 to 10 takes at least four level-1 Archer arrows on Normal (two on Easy, five on Hard, six on Very Hard) and two from a level-2 or level-3 Archer. Each creep type has its own multiplier on wave 1, the least that meets those counts (Grunt 3.1, Wolf Rider 4.8, Priestess 3.5, Harpy 3.8, Ghoul 2.3), falling in a straight line to 1 on wave 15. Armored creeps climb in their own straight line from 0.10 to 0.70 without the floor, so the Footmen of wave 3 and the Steam Tanks of wave 7 keep about the HP they had. The wave-10 Ogre gets 1.4 times its share, the same HP as before the floor, and the Dreadlord 0.3 of it, on top of the wave table's own boss scale below. With that extra HP it takes about four Archers beside the flight line to stop the Harpies of wave 5, the first flyers, on Normal.
 - **The difficulty multiplier** is in §5, and **the map multiplier** is 1 except on the Winding Causeway, which has its own ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)).
-- A wave's groups are then split over 1.5 times the creeps (§9.1), each with its matching part of this HP: the 15 Grunts of wave 1 have 14 HP each.
+- A wave's groups are then split over 1.5 times the creeps (§9.1), each with its matching part of this HP: the 15 Grunts of wave 1 have 43 HP each on Normal (14 without the early HP above).
 
 Classic: `HP(wave) = 60 × 1.105^(wave − 1) × type multiplier × mode multiplier`, the full curve, with Hard's multiplier from §5 as the mode multiplier. Tuned by the balance bots; see [balance.md](balance.md).
 
@@ -310,7 +310,7 @@ Every creep has an HP bar, a team-color rim so its silhouette reads at full zoom
 | 2 | 14 Wolf Riders | Dark | Speed |
 | 3 | 8 Shield Footmen | Verdant | Armor, Siege bonus |
 | 4 | 10 Grunts + 3 Priestesses | Aqua | Healers, Poison counter |
-| 5 | 12 Harpies (2.7 × HP under the default rules, §8) | Light | Air, anti-air towers |
+| 5 | 12 Harpies (with the early HP of §8 under the default rules) | Light | Air, anti-air towers |
 | 6 | 14 Ghouls | Dark | Revive |
 | 7 | 4 Grunts + 6 Steam Tanks | Flame | Immunity windows |
 | 8 | 12 Wolf Riders + 8 Grunts | Flame | Mixed speeds |
