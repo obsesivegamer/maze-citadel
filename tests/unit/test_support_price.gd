@@ -87,3 +87,44 @@ func test_first_pick_weighs_slows_on_an_empty_board() -> void:
 	check(sim.towers.is_empty(), "nothing built yet")
 	check(worth.get(&"aqua", 0.0) > 0.0, "Aqua has a worth before wave 1")
 	check(worth.get(&"verdant", 0.0) > 0.0, "Verdant has a worth before wave 1")
+
+
+## Two Frost Spires built on one stretch of road are worth one slow, not
+## none: of the two, only the one on the lower tile sees the other's slow.
+func test_two_slows_on_one_stretch_are_worth_one() -> void:
+	var sim := GameSim.new()
+	sim.rules = &"eletd"
+	sim.gold = 100000
+	sim.elements.apply_picks([&"aqua"])
+	var route := {}
+	for p in sim.field.route():
+		route[Grid.tile_at(p)] = true
+	var beside: Array[Vector2i] = []
+	for r: Vector2i in route:
+		for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var t: Vector2i = r + o
+			if not route.has(t) and Grid.in_bounds(t) and not t in beside:
+				beside.append(t)
+	var pair: Array[Vector2i] = []
+	for a in beside:
+		for b in beside:
+			if pair.is_empty() and a < b and maxi(absi(a.x - b.x), absi(a.y - b.y)) == 1:
+				if sim.build(a, &"frost") == Placement.Result.OK:
+					if sim.build(b, &"frost") == Placement.Result.OK:
+						pair = [a, b]
+					else:
+						sim.sell(a)
+	check_eq(pair.size(), 2, "two Frost Spires side by side beside the road")
+	if pair.size() < 2:
+		return
+	route.clear()
+	for p in sim.field.route():
+		route[Grid.tile_at(p)] = true
+	var foes: Array[Dictionary] = [_foe(&"light", 0.0)]
+	var row := PackedFloat32Array([10.0])
+	var dps := {&"frost": [row, row, row], &"archer": [row, row, row]}
+	var slowed := []
+	for t in pair:
+		var near := SupportPrice.near_dps(t, sim.towers, {}, foes, dps, {}, route, sim.field, {})
+		slowed.append(near[2][0])
+	check_eq(slowed, [0.0, 1.0], "the lower tile keeps its slow's worth, the other doesn't")

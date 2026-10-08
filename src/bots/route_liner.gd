@@ -267,7 +267,7 @@ func _pick_now(options: Array[Dictionary]) -> StringName:
 ## gold it adds by then, spent at the best rate open now. Lives is what the
 ## element's Guardian is expected to cost if summoned now: a lone boss the
 ## route must kill, 3 lives each time it gets through. While pick_order lasts
-## its next pick is the only option, taken when the bot would take any.
+## its next pick is the only option when it is open at all.
 func _pick_options() -> Array[Dictionary]:
 	var weights: Array[float] = []
 	for k in PICK_AHEAD:
@@ -302,7 +302,9 @@ func _pick_options() -> Array[Dictionary]:
 		out.append({"choice": SimElements.INTEREST, "worth": worth, "lives": 0})
 	var k := sim.elements.spent
 	if k < pick_order.size():
-		out.assign(out.filter(func(o: Dictionary) -> bool: return o.choice == pick_order[k]))
+		var forced := out.filter(func(o: Dictionary) -> bool: return o.choice == pick_order[k])
+		if forced:
+			out.assign(forced)
 	return out
 
 
@@ -590,9 +592,7 @@ func _support(
 	tile: Vector2i, id: StringName, lvl: int, ground: int, air: int
 ) -> PackedFloat32Array:
 	if not SupportPrice.supports(id):
-		var none := PackedFloat32Array()
-		none.resize(_foes.size())
-		return none
+		return PackedFloat32Array()
 	if not _near.has(tile):
 		_near[tile] = SupportPrice.near_dps(
 			tile,

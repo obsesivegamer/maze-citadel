@@ -81,7 +81,8 @@ static func added(
 ## level-1 Archer it will hold, as a player builds a slow among the towers to
 ## come: on the empty board before wave 1 a slow was otherwise worth nothing,
 ## and the first pick always went to the Light. `dps` and `aura_by` are
-## RouteLiner's; `route` is the set of route tiles of `field`.
+## RouteLiner's; `route` is the set of route tiles of `field`, the route as it
+## stands, so a tile the next wall would bring onto the road gets no support.
 static func near_dps(
 	tile: Vector2i,
 	towers: Dictionary,
@@ -134,6 +135,8 @@ static func near_dps(
 ## Per foe, 1 where a slow tower other than `tile` already holds the creep on
 ## the stretch from `near` to `far` steps from the gate: one up the road
 ## keeps it slowed for HOLD tiles after it, past the SPAN of a straight road.
+## Of two slows already built, only the one on the lower tile counts the
+## other, so the pair is worth one slow rather than none.
 static func _slowed(
 	tile: Vector2i,
 	towers: Dictionary,
@@ -152,6 +155,8 @@ static func _slowed(
 			var o := tile + Vector2i(dx, dy)
 			var t: SimTower = towers.get(o)
 			if o == tile or t == null or not TowerDefs.TOWERS[t.id].has("slow"):
+				continue
+			if towers.has(tile) and o > tile:
 				continue
 			var g := _reached(o, route).any(
 				func(r: Vector2i) -> bool:
