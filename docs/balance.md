@@ -84,7 +84,7 @@ The default rules are tuned to be harder than classic and to make the element pi
 | Each element can carry a build that wins Normal with 6 or more lives | Met: the smart bot made to spend its first three picks on one element wins 4 of 4 with Aqua (10 to 14 lives), Stone (10 to 16) and Verdant (8 to 14), 2 seeds on the Citadel and 2 on the Rampart |
 | Over 8 smart games (4 seeds, Citadel and Rampart) at least 5 of the 6 elements are picked, and none takes more than 40% | Met: all six; Light 33%, Flame 21%, Aqua and Dark 19%, Stone 6%, Verdant 2% of 48 element picks |
 
-The tables above were measured before it. The smart bot plays better with it, so its Very Hard games now read easier: 3 of 4 won, against 1 of 4 on the same build without it. Nothing in the game changed but the Runesmith, so no creep HP was raised to make up for it.
+The tables above were measured before it. The smart bot plays better with it, and three of their targets no longer hold as worded: it wins 3 of 4 Very Hard games (1 of 4 without it), one Citadel Normal game loses 14 lives where T4 allows 12, and the Causeway now plays harder than the Citadel (6.0 lives against 9.8). Nothing in the game changed but the Runesmith, so no creep HP was moved to bring them back ([known gaps](#known-gaps-1)).
 
 ### Classic rules (PLAN M6 gate)
 
@@ -862,7 +862,7 @@ What that says:
 | Number or rule | Was | Now | Why |
 |---|---|---|---|
 | Runesmith Forge damage (`EletdRules.RUNESMITH_POWER`, the only change to the game) | 140% | 280% (39, 67 and 112 damage) | It now stops about 3,000 HP per 100 gold on both boards, up from 1,593 and 2,532: with the Plague Cauldron |
-| How the smart bot prices a slow (`SupportPrice`) | Frost Spire ×1.6, Ancient of Roots ×2.0, as a flat bonus on their own damage | The seconds the slow holds a creep, times the damage per second of the towers within 2 tiles that line the next 3 tiles of road, times 0.75; nothing where another slow already covers that road; half on a boss | The bot's slow prices now land within about 25% of the sim on the boards they were fitted to. Counted in full they came out 1.0 to 1.6 times the sim; counting the towers two tiles off on another stretch of the lane overpriced slows on the Causeway |
+| How the smart bot prices a slow (`SupportPrice`) | Frost Spire ×1.6, Ancient of Roots ×2.0, as a flat bonus on their own damage | The seconds the slow holds a creep, times the damage per second of the towers within 2 tiles that line the next 3 tiles of road, times 0.75; nothing where another slow already covers that road (of two built, the one on the lower tile keeps the credit); half on a boss | The bot's slow prices now land within about 25% of the sim on the boards they were fitted to. Counted in full they came out 1.0 to 1.6 times the sim; counting the towers two tiles off on another stretch of the lane overpriced slows on the Causeway |
 | How it prices shred | Runesmith ×1.4 against armored creeps and bosses | The extra damage the towers around take from the lower armor while the shred lasts, times 0.2 | Counted in full, 3 to 6 times what the sim measured |
 | The Ancient's root | Inside its ×2.0 | Not counted | Counted, it doubled the Ancient's price, though the sim measured less support from it than from the Frost Spire |
 | Slow and shred on a fixed lane (`LANE_SHARE`) | – | 0.4 of the above | At the full share the bot took Aqua on the Causeway at wave 5 instead of Dark, filled lane tiles with Frost Spires and Archers, and lost 2 of 4 games to the Dreadlord |
@@ -880,8 +880,8 @@ What that says:
 | Smart, Normal, Rampart | 4/4, 14.5 (14–16) | 4/4, 12.2 (11–14) |
 | Smart, Normal, Causeway | 4/4, 8.5 (5–11) | 4/4, 6.0 (3–7) |
 | Smart, Hard | 4/4, 7.8 (2–14) | 4/4, 8.5 (5–11) |
-| Smart, Very Hard | 1/4; lost on waves 38, 40 and 40 | 3/4, 3.5 (0–8); lost on wave 38 |
-| Smart, Easy | – | 4/4, 18.8 (18–20) |
+| Smart, Very Hard | 1/4; lost on waves 38, 40 and 40 | 3/4, 3.8 (0–8); lost on wave 38 |
+| Smart, Easy | – | 4/4, 18.5 (17–20) |
 | Smart's first three picks forced to Aqua, Stone, Verdant (2 Citadel + 2 Rampart each) | – | 4/4 each: 10–14, 10–16 and 8–14 lives |
 
 Element picks over the 8 Citadel and Rampart Normal games: Light 16, Flame 10, Aqua 9, Dark 9, Stone 3, Verdant 1, of 48 (Interest aside). The same 8 games on `main` took Light 22 (43%), Dark 17 and Flame 12 of 51, and no other element. The first pick is Aqua on the maze maps and Light on the Causeway. The classic check is unchanged: 20 lives, 2 close calls, 12,110 gold at 34:09.
@@ -896,9 +896,10 @@ Element picks over the 8 Citadel and Rampart Normal games: Light 16, Flame 10, A
 ### Known gaps
 
 - **Very Hard reads easier.** The bot plays better, so it wins 3 of 4 Very Hard games where the target says it should lose most. Nothing in the game changed but the Runesmith, so no HP was raised; the owner's play is the better judge.
+- **T4 and the Causeway.** One Citadel Normal game keeps 6 lives, 14 lost against T4's 5 to 12; on `main` one of the four was lost outright. The Causeway keeps 6.0 lives (3 to 7) against the Citadel's 9.8, where the target says they play about as hard: on a fixed lane every tile a Frost Spire or Runesmith takes is one a Ballista didn't.
 - **Verdant is rarely picked.** One natural pick in 48. Forced, it wins every game; left to choose, the bot takes Aqua's cheaper slow first.
 - **Slows don't show in the damage line.** The "elemental damage" line credits a Frost Spire with its own hits only, so Aqua builds read 1 to 3% there.
-- **The bot still overprices a slow on a thin board.** After wave 8 its own board has 23 towers; it prices one more Frost Spire there at 45 a creep, where the sim measures nothing.
+- **The bot still overprices a slow on a thin board.** After wave 8 its own board has 23 towers; it prices one more Frost Spire there at 45 a creep, where the sim measures nothing. Smaller approximations: a tile the next wall would bring onto the road is priced with the road as it stands, a Bard's aura lifts a slow's price though it lifts only the tower's own damage, and a Frost Wyrm fusion is priced with its partner still standing beside it.
 - **The archers-only and novice bots lose Normal on wave 2** since 0.4.3's four-arrow creeps, on `main` too. Their targets above predate that and are untouched here.
 
 ## Latest run (2026-10-02)
