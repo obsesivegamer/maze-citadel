@@ -39,8 +39,8 @@ func setup(game: Game) -> void:
 	)
 	if game.sim.adjacent_reach():
 		sub.text += "\nUnder Element TD rules a tower reaches only the eight tiles around it."
-	if game.sim.grid.portal_rows > 0:
-		sub.text += "\nNothing is built on the red rows by the portal."
+	if game.sim.grid.portal_ring:
+		sub.text += "\nNothing is built on the red tiles around the portal."
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(sub)
 	var top := UiKit.hbox(24)

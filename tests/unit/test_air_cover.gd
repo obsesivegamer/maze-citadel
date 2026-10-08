@@ -57,7 +57,7 @@ func test_the_tiles_that_reach_the_flight_line_are_the_ones_the_sim_reaches_from
 			if t in tiles:
 				check(not sim.grid.is_reserved(t) and not sim.grid.is_lane(t), "%s %s" % [map, t])
 				check(not sim.grid.is_obstacle(t), "%s %s: no ruin" % [map, t])
-	check_eq(counts, {&"citadel": 98, &"rampart": 89, &"causeway": 75}, "buildable line tiles")
+	check_eq(counts, {&"citadel": 102, &"rampart": 94, &"causeway": 77}, "buildable line tiles")
 
 
 func test_on_the_citadel_columns_8_to_11_reach_the_line() -> void:

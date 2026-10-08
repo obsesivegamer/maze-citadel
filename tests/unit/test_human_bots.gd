@@ -1,36 +1,46 @@
 extends "res://tests/test_case.gd"
 ## The camper and idle bots (Camper), the balance runs' yardsticks for a
-## human player: the opening the owner built under the portal, moved below
-## the no-build band by the portal, and an idle bot that stops there.
+## human player: the opening the owner built under the portal, with the ring
+## round the portal's edge built in place of his tiles on it, and an idle bot
+## that stops there.
 
 const Bot := preload("res://src/bots/autoplay_bot.gd")
-## Rows the Element TD rules keep clear at the top of the board.
-const BAND := EletdRules.PORTAL_ROWS
 ## The waves the idle bot is watched through.
 const TO_WAVE := 3
+## The Citadel's ring round the portal.
+const RING: Array[Vector2i] = [
+	Vector2i(8, 0),
+	Vector2i(11, 0),
+	Vector2i(8, 1),
+	Vector2i(9, 1),
+	Vector2i(10, 1),
+	Vector2i(11, 1)
+]
+## The ring's edge on the board side, all but the way out west along row 0.
+const EDGE: Array[Vector2i] = [
+	Vector2i(7, 1),
+	Vector2i(8, 2),
+	Vector2i(9, 2),
+	Vector2i(10, 2),
+	Vector2i(11, 2),
+	Vector2i(12, 1),
+	Vector2i(12, 0),
+]
 
 
-## The Citadel under the Element TD rules; without `band`, open up to the
+## The Citadel under the Element TD rules; without `ring`, open up to the
 ## portal as it was when the owner played his game.
-func _sim(band := true) -> GameSim:
+func _sim(ring := true) -> GameSim:
 	var sim := GameSim.new(&"citadel")
 	sim.rules = &"eletd"
-	if not band:
-		sim.grid.portal_rows = 0
+	if not ring:
+		sim.grid.portal_ring = false
 	return sim
 
 
-## The first row with no reserved tile: the owner's row 1, right under the portal.
-func _first_free_row(grid: Grid) -> int:
-	for y in Grid.ROWS:
-		if range(Grid.COLS).all(func(x: int) -> bool: return not grid.is_reserved(Vector2i(x, y))):
-			return y
-	return -1
-
-
 ## Plays the bot's first decision and checks the opening it built: the whole
-## starting gold on Archers, most of them on the first free row and none more
-## than three rows below it.
+## starting gold on Archers, none on a reserved tile, most of them on rows 1
+## and 2 and none below row 3.
 func _check_opening(sim: GameSim, bot: RefCounted, label: String) -> void:
 	var start_gold := sim.gold
 	bot.step()
@@ -41,16 +51,13 @@ func _check_opening(sim: GameSim, bot: RefCounted, label: String) -> void:
 	var cost := TowerDefs.build_cost(&"archer")
 	check_eq(sim.towers.size(), start_gold / cost, "%s: Archers bought" % label)
 	check(sim.gold < cost, "%s: starting gold spent, %d left" % [label, sim.gold])
-	var row := _first_free_row(sim.grid)
-	var on_row := 0
+	var near := 0
 	for t: SimTower in sim.towers.values():
 		check_eq(t.id, &"archer", "%s: tower on %s" % [label, t.tile])
 		check(not sim.grid.is_reserved(t.tile), "%s: %s is reserved" % [label, t.tile])
-		check(
-			t.tile.y >= row - 1 and t.tile.y <= row + 2, "%s: %s under the portal" % [label, t.tile]
-		)
-		on_row += 1 if t.tile.y == row else 0
-	check(on_row >= 11, "%s: %d Archers on row %d" % [label, on_row, row])
+		check(t.tile.y <= 3, "%s: %s under the portal" % [label, t.tile])
+		near += 1 if t.tile.y in [1, 2] else 0
+	check(near >= 11, "%s: %d Archers on rows 1 and 2" % [label, near])
 
 
 func test_camper_opening_spends_starting_gold_on_archers_under_the_portal() -> void:
@@ -77,35 +84,39 @@ func test_idle_builds_the_camper_opening_then_never_acts() -> void:
 	check(sim.gold > 0, "gold banked, not spent")
 
 
-func test_both_skip_reserved_tiles() -> void:
+## Both skip the ring and spend the starting gold on Archers beside it.
+func test_both_build_beside_the_ring() -> void:
 	for strategy in [&"camper", &"idle"]:
 		var sim := _sim()
 		var bot := Bot.new(sim, strategy)
 		check(bot.plan.size() > 100, "%s: plan kept" % strategy)
 		for t in bot.plan:
 			check(not sim.grid.is_reserved(t), "%s plans reserved %s" % [strategy, t])
-		check_eq(_first_free_row(sim.grid), BAND, "band")
-		_check_opening(sim, bot, "%s with a band" % strategy)
-		check(sim.tower_at(Vector2i(10, BAND)) != null, "%s: his first tower moved down" % strategy)
+		check_eq(sim.grid.portal_ring_tiles().size(), RING.size(), "the ring")
+		for t in RING:
+			check(sim.grid.near_portal(t), "%s is a ring tile" % t)
+		_check_opening(sim, bot, "%s with a ring" % strategy)
+		for t in EDGE:
+			check(sim.tower_at(t) != null, "%s: an Archer beside the ring on %s" % [strategy, t])
 
 
-func test_with_a_band_the_first_wall_reaches_the_east_edge() -> void:
+## As in his game, creeps leave the portal west along row 0, past his row-1
+## wall, and turn down only at the west edge.
+func test_with_the_ring_creeps_walk_his_wall() -> void:
 	var sim := _sim()
 	Bot.new(sim, &"camper").step()
-	var row := _first_free_row(sim.grid)
-	for x in range(Grid.COLS - 16, Grid.COLS):
-		check(sim.tower_at(Vector2i(x, row)) != null, "wall closed at (%d, %d)" % [x, row])
-	check(sim.tower_at(Vector2i(0, row)) == null, "the gap is at the west end")
-	var route := sim.field.route()
 	check(sim.field.reachable(sim.field.entry_tile()), "creeps still have a way through")
-	var crossings: Array[int] = []
-	for i in range(1, route.size() - 1):
-		var t := Grid.tile_at(route[i])
-		if t.y == row:
-			crossings.append(t.x)
-	check(not crossings.is_empty(), "the route crosses row %d" % row)
-	for x in crossings:
-		check(x < Grid.COLS - 16, "they go round the west end, not at column %d" % x)
+	var route: Array[Vector2i] = []
+	for p in sim.field.route():
+		var t := Grid.tile_at(p)
+		if Grid.in_bounds(t) and not t in route:
+			route.append(t)
+	for x in range(0, 8):
+		check(Vector2i(x, 0) in route, "the route walks row 0 at column %d" % x)
+	for t in route:
+		if t.y == 2:
+			check(t.x == 0, "they leave the top rows at the west edge, not at %s" % t)
+			break
 
 
 func test_off_the_citadel_both_lay_archers_along_the_plan() -> void:

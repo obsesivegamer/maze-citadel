@@ -72,8 +72,8 @@ func setup(game: Game) -> void:
 	refresh()
 	if game.sim.adjacent_reach():
 		_add_flight_line()
-	if game.sim.grid.portal_rows > 0:
-		_add_portal_band(game.sim.grid.portal_rows * Grid.TILE)
+	if game.sim.grid.portal_ring:
+		_add_portal_ring(game.sim.grid)
 
 
 func _add_flight_line() -> void:
@@ -153,21 +153,32 @@ func _tint_lane(gain: float) -> void:
 	_tile_mat.albedo_color.a = minf(TILE_ALPHA * gain, 1.0)
 
 
-func _add_portal_band(depth: float) -> void:
-	for edge in [false, true]:
-		var mat := StandardMaterial3D.new()
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = BAND_EDGE_COLOR if edge else BAND_COLOR
+## The portal ring's tiles tinted red, edged where the ring meets the board.
+func _add_portal_ring(grid: Grid) -> void:
+	var fill := _flat_material(BAND_COLOR)
+	var edge := _flat_material(BAND_EDGE_COLOR)
+	for t in grid.portal_ring_tiles():
 		var quad := PlaneMesh.new()
-		quad.size = Vector2(Grid.WIDTH, 0.14 if edge else depth)
-		quad.material = mat
-		var mi := MeshInstance3D.new()
-		mi.mesh = quad
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var centre := Vector2(Grid.WIDTH / 2.0, depth if edge else depth / 2.0)
-		mi.position = Coords.to_world(centre, Coords.PLATEAU_TOP + (0.06 if edge else 0.04))
-		add_child(mi)
+		quad.size = Vector2.ONE * Grid.TILE
+		quad.material = fill
+		_add_ground(quad, Grid.center(t), 0.04)
+		for side: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var n := t + side
+			if grid.near_portal(n) or n in grid.spawn_tiles or not Grid.in_bounds(n):
+				continue
+			var line := PlaneMesh.new()
+			var across := Vector2(absf(side.y), absf(side.x))
+			line.size = across * Grid.TILE + Vector2(absf(side.x), absf(side.y)) * 0.14
+			line.material = edge
+			_add_ground(line, Grid.center(t) + Vector2(side) * Grid.TILE / 2.0, 0.06)
+
+
+func _add_ground(mesh: PlaneMesh, at: Vector2, lift: float) -> void:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.position = Coords.to_world(at, Coords.PLATEAU_TOP + lift)
+	add_child(mi)
 
 
 func _on_sim_event(e: Dictionary) -> void:

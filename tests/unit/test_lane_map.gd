@@ -92,11 +92,9 @@ func test_lane_tiles_refuse_builds() -> void:
 		else:
 			check_eq(sim.check_build(t, &"archer"), R.LANE, "lane %s" % t)
 	check_eq(Placement.describe(R.LANE), "Keep the road clear", "message")
-	check_eq(Placement.describe(R.NEAR_PORTAL), "Too close to the portal", "band message")
-	var off_band := sim.grid.lane.filter(
-		func(t: Vector2i) -> bool: return not sim.grid.near_portal(t)
-	)
-	check_eq(sim.build(off_band[0], &"archer"), R.LANE, "build refused")
+	check_eq(Placement.describe(R.NEAR_PORTAL), "Too close to the portal", "ring message")
+	var road := sim.grid.lane.filter(func(t: Vector2i) -> bool: return not sim.grid.is_reserved(t))
+	check_eq(sim.build(road[0], &"archer"), R.LANE, "build refused")
 	check(sim.towers.is_empty(), "nothing built")
 
 

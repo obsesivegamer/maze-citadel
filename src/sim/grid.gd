@@ -30,11 +30,24 @@ var obstacles := {}
 ## The fixed lane in walking order (MapDefs.lane); empty where the player
 ## builds the maze.
 var lane: Array[Vector2i] = []
-## Rows at the portal edge where nothing may be built (EletdRules.PORTAL_ROWS
-## under the Element TD rules, set by GameSim.rules); 0 leaves the board open.
-var portal_rows := 0
+## Whether the tiles touching the portal are kept clear (EletdRules.portal_ring,
+## set by GameSim.rules); false leaves the board open.
+var portal_ring := false:
+	set(value):
+		portal_ring = value
+		_ring.clear()
+		if not value:
+			return
+		for s in spawn_tiles:
+			for dy in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					var t: Vector2i = s + Vector2i(dx, dy)
+					if in_bounds(t) and not t in spawn_tiles:
+						_ring[t] = true
 
 var _blocked := PackedByteArray()
+## The portal ring's tiles (near_portal), as a set.
+var _ring := {}
 ## Each tile's kind with nothing built on it: OPEN, or GROUND beside a lane.
 var _floor := PackedByteArray()
 
@@ -78,14 +91,22 @@ static func tile_at(p: Vector2) -> Vector2i:
 	return Vector2i(floori(p.x / TILE), floori(p.y / TILE))
 
 
-## The portal, the gate or a tile of the band by the portal: nothing is built here.
+## The portal, the gate or a tile of the ring round the portal: nothing is built here.
 func is_reserved(t: Vector2i) -> bool:
 	return near_portal(t) or t in spawn_tiles or t in goal_tiles
 
 
-## A tile in the no-build band of `portal_rows` rows at the portal edge.
+## A tile of the portal ring: one touching a portal tile, side or corner, that
+## is not a portal tile itself.
 func near_portal(t: Vector2i) -> bool:
-	return t.y < portal_rows
+	return _ring.has(t)
+
+
+## The portal ring's tiles, in no set order.
+func portal_ring_tiles() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	out.assign(_ring.keys())
+	return out
 
 
 func is_obstacle(t: Vector2i) -> bool:

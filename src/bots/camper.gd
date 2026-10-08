@@ -11,8 +11,8 @@ extends RefCounted
 ## Every tile the owner built on, in the order he first built there. His
 ## serpentine walls run on rows 1 and 3 right under the portal from the
 ## starting gold, rows 5 and 7 by wave 12, then down the east edge, far from
-## the flyers' line. Where the top of the board is reserved, the whole pattern
-## moves down so that his row 1 is the first row free of reserved tiles.
+## the flyers' line. Where the ring round the portal takes one of his tiles,
+## he builds the ring's edge instead (RING_EDGE).
 const TILES: Array[Vector2i] = [
 	Vector2i(10, 1),
 	Vector2i(9, 1),
@@ -152,12 +152,20 @@ const TILES: Array[Vector2i] = [
 	Vector2i(11, 9),
 	Vector2i(7, 9),
 ]
-## His hook beside the portal: with his row-1 wall it turned creeps west along
-## the north edge. Where it falls in a reserved band, a person closes the
-## wall's east end instead, so his row 1 runs on from here to the east edge and
-## creeps go round its west end, past the whole wall. Left open, they walked
-## round the east end past one Archer and the opening leaked on wave 2.
-const HOOK := Vector2i(11, 0)
+## Where the ring round the portal takes one of his tiles, what a person builds
+## instead: the ring's edge one tile further out, so creeps still leave the
+## ring west along row 0 past his whole row-1 wall, as in his game. His hook
+## at (11, 0), which turned them west, moves one tile east and closes the
+## ring's east side. Moved down to row 2 instead, with his hook closed to the
+## east edge as under 0.4.2's band, his wall stood out of reach of creeps on
+## row 0 and the idle bot lost every life on wave 1.
+const RING_EDGE := {
+	Vector2i(10, 1): [Vector2i(10, 2)],
+	Vector2i(9, 1): [Vector2i(9, 2)],
+	Vector2i(11, 1): [Vector2i(11, 2)],
+	Vector2i(11, 0): [Vector2i(12, 0), Vector2i(12, 1)],
+	Vector2i(8, 1): [Vector2i(8, 2)],
+}
 ## The tiles he first built something other than an Archer on, with what. The
 ## tower falls back to an Archer while its element isn't picked.
 const IDS := {
@@ -219,16 +227,13 @@ const UPGRADE_FROM := 21
 const UPGRADES: Array[StringName] = [&"cannon", &"bard", &"archer"]
 
 var sim: GameSim
-## The tiles still to build on, in order: his, moved down past any reserved
-## band with the first wall closed to the east edge, or AutoplayBot's plan off
-## the Citadel. Reserved tiles are left out.
+## The tiles still to build on, in order: his, with the ring's edge in place
+## of his tiles on the ring, or AutoplayBot's plan off the Citadel. Reserved
+## tiles are left out.
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many planned tiles were given up for that reason.
 var skip_reasons := {}
 var _idle: bool
-## Rows his tiles move down by: the first row free of reserved tiles, less one.
-var _shift := 0
-var _ids := {}
 var _swaps := []
 var _next_slot := 0
 
@@ -240,20 +245,17 @@ func _init(p_sim: GameSim, idle: bool, fallback: Array[Vector2i]) -> void:
 	if grid.map != &"citadel":
 		plan = fallback
 		return
-	while _shift < Grid.ROWS and _row_reserved(_shift):
-		_shift += 1
-	_shift = maxi(_shift - 1, 0)
 	for t in TILES:
-		var at := _moved(t)
-		if Grid.in_bounds(at) and not grid.is_reserved(at):
-			plan.append(at)
-		elif t == HOOK:
-			for x in range(HOOK.x + 1, Grid.COLS):
-				plan.append(_moved(Vector2i(x, HOOK.y + 1)))
-	for t: Vector2i in IDS:
-		_ids[_moved(t)] = IDS[t]
+		if not grid.is_reserved(t):
+			plan.append(t)
+		else:
+			for edge: Vector2i in RING_EDGE.get(t, []):
+				plan.append(edge)
 	for s: Array in SWAPS:
-		_swaps.append([s[0], _moved(s[1]), s[2]])
+		var tile: Vector2i = s[1]
+		if grid.near_portal(tile):
+			tile = RING_EDGE[tile][0]
+		_swaps.append([s[0], tile, s[2]])
 
 
 func decide() -> void:
@@ -268,17 +270,6 @@ func decide() -> void:
 		_upgrade_one()
 
 
-func _row_reserved(row: int) -> bool:
-	for x in Grid.COLS:
-		if sim.grid.is_reserved(Vector2i(x, row)):
-			return true
-	return false
-
-
-func _moved(t: Vector2i) -> Vector2i:
-	return t + Vector2i(0, _shift)
-
-
 ## Every planned tile in order with all the gold in hand, an Archer unless he
 ## built something else there and its element is held. Before wave 1 he
 ## built nothing but Archers.
@@ -288,7 +279,7 @@ func _build() -> void:
 		if sim.tower_at(tile) != null:
 			_next_slot += 1
 			continue
-		var id: StringName = _ids.get(tile, &"archer") if sim.wave > 0 else &"archer"
+		var id: StringName = IDS.get(tile, &"archer") if sim.wave > 0 else &"archer"
 		if sim.elements.needs(id) != "":
 			id = &"archer"
 		var r := sim.check_build(tile, id)
