@@ -20,7 +20,7 @@ That split pays for itself in three ways:
 
 | Layer | Folder | What it does |
 |---|---|---|
-| Data | `src/data/` | The tower, creep, wave and map tables, with the numbers from the [design document](GDD.md), and the Element TD rules' own numbers in `EletdRules` and wave shapes in `EletdWaves`. Next to no logic. |
+| Data | `src/data/` | The tower, creep, wave and map tables, with the numbers from the [design document](GDD.md), and the Element TD rules' own numbers in `EletdRules` and wave shapes in `EletdWaves`. Next to no logic; the one solver is `EletdRules.early_from`, which works out each creep type's early HP from the Archer's damage and caches it. |
 | Sim | `src/sim/` | Every rule of the game. Plain `RefCounted` objects on a fixed 30 Hz step, with no nodes and no rendering. It reports through `GameSim.events` and is tested without a window. |
 | Game | `src/game/game.gd` | Runs one match. It owns a single `GameSim`, steps it at the game speed times 30 Hz, works out how far the current frame sits between two steps, and emits `sim_event(e)` for each event. It also holds the public API for everything a player can do. |
 | Presentation | `src/world`, `src/camera`, `src/units`, `src/fx`, `src/ui`, `src/audio` | What you see and hear. Each subsystem is one root node with a `setup(game: Game)` method. It reads sim state, listens to `game.sim_event`, and calls only the Game API or its own children. |

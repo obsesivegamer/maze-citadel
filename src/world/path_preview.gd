@@ -8,15 +8,15 @@ extends Node3D
 ## ground under arrows that drift toward the gate at flying height, bright
 ## while the next or the running wave has flyers and flashing once when one
 ## leaks. While a wing-icon tower is chosen to build, the tiles that reach
-## the line are tinted (AirCover). A faint red strip with an edge line marks
-## the rows by the portal where nothing may be built.
+## the line are tinted (AirCover). Red tiles with an edge line mark the ring
+## by the portal, where nothing may be built.
 
 const SPACING := 1.6
 const SPEED := 2.4
 const MAX_DOTS := 600
 const FLIGHT_COLOR := Color(0.6, 0.85, 1.0)
-const BAND_COLOR := Color(0.85, 0.12, 0.08, 0.16)
-const BAND_EDGE_COLOR := Color(1.0, 0.25, 0.15, 0.55)
+const RING_COLOR := Color(0.85, 0.12, 0.08, 0.16)
+const RING_EDGE_COLOR := Color(1.0, 0.25, 0.15, 0.55)
 ## Metres above the plateau the arrows fly at: a Harpy's hover height.
 const FLIGHT_LIFT := 4.3
 const ARROW_SPACING := 3.0
@@ -155,8 +155,8 @@ func _tint_lane(gain: float) -> void:
 
 ## The portal ring's tiles tinted red, edged where the ring meets the board.
 func _add_portal_ring(grid: Grid) -> void:
-	var fill := _flat_material(BAND_COLOR)
-	var edge := _flat_material(BAND_EDGE_COLOR)
+	var fill := _flat_material(RING_COLOR)
+	var edge := _flat_material(RING_EDGE_COLOR)
 	for t in grid.portal_ring_tiles():
 		var quad := PlaneMesh.new()
 		quad.size = Vector2.ONE * Grid.TILE

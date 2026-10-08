@@ -35,6 +35,7 @@ const ARMORED_HP_TO := 0.7
 ## too. On HP_FLOOR alone a Grunt took two arrows and a Wolf Rider one, and
 ## two arrows 0.6 s apart from several towers read as one hit (issue #36).
 const EARLY_ARROWS := {&"easy": 2, &"normal": 4, &"hard": 5, &"very_hard": 6}
+## The last wave EARLY_ARROWS holds for.
 const EARLY_WAVES := 10
 ## The early HP multiplier falls on a straight line from early_from() on wave
 ## 1 to 1.0 on this wave, so this wave and every later one keep their HP.
@@ -193,7 +194,10 @@ static func early_from(type: StringName) -> float:
 	if _early_from.has(type):
 		return _early_from[type]
 	var from := 1.0
-	for w in range(1, EARLY_WAVES + 1 if plain(type) else 1):
+	if not plain(type):
+		_early_from[type] = from
+		return from
+	for w in range(1, EARLY_WAVES + 1):
 		var f := _early_fade(w)
 		for e: Array in EletdWaves.spawn_list(w):
 			if e[0] != type:
@@ -228,10 +232,15 @@ static func arrows(level: int, type: StringName, w: int, difficulty: StringName)
 	return 0
 
 
-## One arrow of a level-`level` Archer on creep `c`, as GameSim deals it.
+## One arrow of a level-`level` Archer on creep `c`, as GameSim deals it
+## under these rules (SimElements.hit_amount).
 static func archer_arrow(level: int, c: SimCreep) -> float:
 	var base: float = TowerDefs.TOWERS[&"archer"].damage[level - 1] * tower_power(&"archer", level)
-	return Damage.amount(base, &"pierce", &"composite", c, 0.0, c.armor)
+	var attack: StringName = TowerDefs.stat(&"archer", "attack", level)
+	var element: StringName = TowerDefs.TOWERS[&"archer"].element
+	if &"archer" in COMPOSITE_TOWERS:
+		element = &"composite"
+	return Damage.amount(base, attack, element, c, 0.0, c.armor)
 
 
 static func _stub(type: StringName, element: StringName) -> SimCreep:

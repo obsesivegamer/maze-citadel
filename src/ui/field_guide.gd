@@ -5,7 +5,7 @@ extends UiModal
 ## wheel (hover an element for what it beats and which towers carry it), the
 ## attack vs armor chart, counsel for the next wave and how to read damage
 ## numbers. Under eletd the first page also names the towers' short reach and
-## the band by the portal, and a second page explains the element picks.
+## the ring by the portal, and a second page explains the element picks.
 ## Opening it pauses the game; closing resumes if opening paused it.
 
 const PANEL_WIDTH := 920.0

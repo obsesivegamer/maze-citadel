@@ -3,6 +3,27 @@ extends "res://tests/test_case.gd"
 ## share's floor and line, the early HP that makes every plain creep of the
 ## opening take several Archer arrows, armored creeps' own line and the bosses.
 
+## The early HP is gone by wave 15, and armored creeps, bosses and Guardians
+## never take it: these creeps have the HP they had in 0.4.2, on Normal and
+## Very Hard, as [type, wave, Normal HP, Very Hard HP] before any wave share.
+const HP_0_4_2 := [
+	[&"footman", 3, 12.4545, 18.6817],
+	[&"steam_tank", 7, 44.1104, 60.4408],
+	[&"ogre", 10, 1906.3900, 2262.1931],
+	[&"ghoul", 15, 84.9750, 98.4000],
+	[&"harpy", 15, 67.9800, 78.7200],
+	[&"grunt", 20, 153.0167, 184.6612],
+	[&"wolf_rider", 20, 99.4608, 120.0298],
+]
+## A level-1 and a level-3 Guardian on waves 5 and 20 in 0.4.2, Normal and
+## Very Hard, as [level, wave, Normal HP, Very Hard HP].
+const GUARDIAN_0_4_2 := [
+	[1, 5, 59.9205, 89.8808],
+	[3, 5, 205.4417, 308.1626],
+	[1, 20, 642.6700, 775.5772],
+	[3, 20, 2203.4401, 2659.1219],
+]
+
 
 ## The plain HP share's straight line, without HP_FLOOR.
 func _line(w: int) -> float:
@@ -72,7 +93,8 @@ func _plain_entries(w: int) -> Array:
 
 ## Every plain creep of the opening, flyers too, outlives all but the last of
 ## its EARLY_ARROWS level-1 Archer arrows at every difficulty: four on Normal,
-## two on Easy, five on Hard, six on Very Hard.
+## two on Easy, five on Hard, six on Very Hard. None takes more than one arrow
+## over that, so the early HP never runs away.
 func test_opening_creeps_take_their_arrows() -> void:
 	check_eq(EletdRules.EARLY_ARROWS, {&"easy": 2, &"normal": 4, &"hard": 5, &"very_hard": 6}, "")
 	for d: StringName in EletdRules.DIFFICULTIES:
@@ -81,6 +103,7 @@ func test_opening_creeps_take_their_arrows() -> void:
 			for e in _plain_entries(w):
 				var n := _arrows_to_drop(e, w, d, 1)
 				check(n >= want, "%s w%d %s: %d arrows, want %d" % [d, w, e[0], n, want])
+				check(n <= want + 1, "%s w%d %s: %d arrows, at most %d" % [d, w, e[0], n, want + 1])
 				check_eq(EletdRules.arrows(1, e[0], w, d), n, "%s w%d %s: helper" % [d, w, e[0]])
 
 
@@ -97,32 +120,20 @@ func test_upgraded_archers_need_two_arrows_on_normal() -> void:
 				)
 
 
-## The early HP is gone by EARLY_HP_UNTIL: from wave 15 every creep has the
-## HP it had in 0.4.2, and armored creeps, bosses and Guardians never take it.
+## The early HP is gone by wave 15, and armored creeps, bosses and Guardians
+## never take it (HP_0_4_2, GUARDIAN_0_4_2).
 func test_early_hp_leaves_the_rest_as_it_was() -> void:
-	check_eq(EletdRules.EARLY_HP_UNTIL, 15, "fades out by wave 15")
-	for d: StringName in EletdRules.DIFFICULTIES:
-		var sim := GameSim.new()
+	for k in 2:
+		var d: StringName = [&"normal", &"very_hard"][k]
+		var sim := GameSim.new(&"citadel")
 		sim.rules = &"eletd"
 		sim.difficulty = d
-		for w in range(1, 41):
-			for type: StringName in [&"grunt", &"wolf_rider", &"priestess", &"harpy", &"ghoul"]:
-				var c := sim.spawn_creep(type, &"flame", w, Vector2.ZERO)
-				var before := CreepDefs.max_hp(
-					type, w, EletdRules.difficulty_hp(d, w) * EletdRules.hp(w)
-				)
-				if w >= 15:
-					check_near(c.max_hp, before, 1e-3, "%s w%d %s" % [d, w, type])
-				else:
-					check(c.max_hp > before, "%s w%d %s is tougher" % [d, w, type])
-			for type: StringName in [&"footman", &"steam_tank"]:
-				var c := sim.spawn_creep(type, &"flame", w, Vector2.ZERO)
-				var before := CreepDefs.max_hp(
-					type, w, EletdRules.difficulty_hp(d, w) * EletdRules.armored_hp(w)
-				)
-				check_near(c.max_hp, before, 1e-3, "%s w%d %s" % [d, w, type])
-	for type: StringName in [&"footman", &"steam_tank", &"ogre", &"dreadlord", &"guardian"]:
-		check_eq(EletdRules.early_from(type), 1.0, "%s takes no early HP" % type)
+		for row: Array in HP_0_4_2:
+			var c := sim.spawn_creep(row[0], &"flame", row[1], Vector2.ZERO)
+			check_near(c.max_hp, row[2 + k], 1e-3, "%s %s w%d" % [d, row[0], row[1]])
+		for row: Array in GUARDIAN_0_4_2:
+			var hp := EletdRules.guardian_hp(row[0], row[1], d)
+			check_near(hp, row[2 + k], 1e-3, "%s Guardian L%d w%d" % [d, row[0], row[1]])
 
 
 func test_eletd_hp_share_never_drops_and_has_its_own_hard_ramp() -> void:

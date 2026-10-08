@@ -39,9 +39,9 @@ var portal_ring := false:
 		if not value:
 			return
 		for s in spawn_tiles:
-			for dy in [-1, 0, 1]:
-				for dx in [-1, 0, 1]:
-					var t: Vector2i = s + Vector2i(dx, dy)
+			for dy: int in [-1, 0, 1]:
+				for dx: int in [-1, 0, 1]:
+					var t := s + Vector2i(dx, dy)
 					if in_bounds(t) and not t in spawn_tiles:
 						_ring[t] = true
 

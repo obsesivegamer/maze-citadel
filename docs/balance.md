@@ -31,7 +31,7 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
-| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, its first wall closed to the east edge where the band by the portal takes his corner tower, all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05), [closing the wall](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)) |
+| camper | The owner's recorded 0.4.1 game on the Citadel: Archer walls as close under the portal as the board allows, with the ring by the portal's edge built in place of his tiles on it (`Camper.RING_EDGE`; under 0.4.2's band, his first wall moved down and closed to the east edge), all gold spent as it comes, his sell-and-swap habit, his five picks and no upgrades before wave 21 ([below](#element-td-rules-two-human-yardsticks-2026-10-05), [closing the wall](#element-td-rules-a-harder-opening-for-a-person-2026-10-05)) |
 | idle | The camper's opening from the starting gold, then nothing at all |
 
 Each row is 4 games. Seed 0 is the bot's plain plan; seeds 1–3 jitter its decision timing, which wall tile it fills next and which counter it prefers, so one lucky or unlucky trajectory doesn't decide a target. Columns:
@@ -69,7 +69,7 @@ The default rules are tuned to be harder than classic and to make the element pi
 | T3: Very Hard has at least 1.5 times Normal's HP on waves 1 to 5, and the camper fares clearly worse there | Met: 1.5 times, and the camper loses on wave 3 against wave 28 to 34 on Normal |
 | T4: the smart bot wins Normal 4 games in 4, losing 5 to 12 lives | Met: 4/4, 10.8 lives lost (10 to 12) |
 | T5: the smart bot loses most Very Hard games, but at wave 25 or later; it wins about half its Hard games | Partly met: Very Hard as in the table above, one loss on wave 21; Hard 2/4 |
-| T6: the starting gold can't close a whole row under the band | Met: 400 gold buys 16 Archers, and a row with a gap needs 19 |
+| T6: the starting gold can't close a whole row under the band (0.4.2) | Met: 400 gold buys 16 Archers, and a row with a gap needs 19 |
 | T7: the novice survives Easy to wave 15 or later, and the archers-only bot loses Normal | Met: the novice wins Easy 4/4; the archers bot loses on wave 35 |
 | T8: the smart bot wins Normal on the Rampart and the Causeway, losing at least 3 lives | Met: 4/4 on both, 7.8 and 11.2 lives lost |
 | T9: wave 5, the first Harpies, needs about four level-1 Archers beside the flight line on Normal | Met: one, two or three Archers let 14 to 18 leaks through, four hold it |
@@ -787,7 +787,7 @@ Every plain creep (neither armored nor a boss, flyers included) of waves 1 to 10
 
 The fewest arrows any plain creep of waves 1 to 10 takes went from 1 to 2 on Easy, 1 to 4 on Normal, 1 to 5 on Hard and 2 to 6 on Very Hard. The Footmen of waves 3 and 9, the Steam Tanks of wave 7, the wave-10 Ogre and the Guardians keep their HP, and no bounty changed.
 
-How: each plain creep type gets its own multiplier on wave 1, on top of the share line and its floor, falling in a straight line to 1.0 on wave 15 (`EletdRules.early_hp`). It is worked out, not typed in: the least that gives every creep of that type in waves 1 to 10 its arrows at every difficulty, from the Archer's damage and the creep's armor and HP, with a tenth of an arrow to spare (`early_from`). Very Hard's six arrows set it for every type, each on its first wave in the opening: six arrows need more than 1.5 times Normal's four. The multipliers on wave 1: Grunt 3.1, Wolf Rider 4.8, Priestess 3.5, Harpy 3.8, Ghoul 2.3. One multiplier for all would have had to be the Wolf Riders' 4.8 (no armor, 0.65 of a Grunt's HP): wave-1 Grunts would have taken six arrows on Normal and the Bulky Ghouls of wave 12 nearly double their HP. `EletdRules.arrows()` answers "how many arrows" for the tests.
+How: each plain creep type gets its own multiplier on wave 1, on top of the share line and its floor, falling in a straight line to 1.0 on wave 15 (`EletdRules.early_hp`). It is worked out, not typed in: the least that gives every creep of that type in waves 1 to 10 its arrows at every difficulty, from the Archer's damage and the creep's armor and HP, with a tenth of an arrow to spare (`early_from`). Very Hard's six arrows set it for every type, each on its first wave in the opening: six arrows need more than 1.5 times Normal's four. So Normal creeps carry 10 to 19% more HP than four arrows need, and the Grunts of waves 7, 8 and 10 and the Priestesses of wave 9 take five on Normal. Sized for Normal's four alone, Very Hard's opening creeps would take about five. The multipliers on wave 1: Grunt 3.1, Wolf Rider 4.8, Priestess 3.5, Harpy 3.8, Ghoul 2.3. One multiplier for all would have had to be the Wolf Riders' 4.8 (no armor, 0.65 of a Grunt's HP): wave-1 Grunts would have taken six arrows on Normal and the Bulky Ghouls of wave 12 nearly double their HP. `EletdRules.arrows()` answers "how many arrows" for the tests.
 
 Side effects, accepted with the spec:
 
@@ -808,8 +808,8 @@ The idle bot (that opening, never touched again), one game each on the Citadel:
 
 | Mode | First leak | Result |
 |---|---|---|
-| Easy | wave 10 (the Ogre) | 14 lives left at wave 12 |
-| Normal | wave 10 (the Ogre) | 6 lives left at wave 12 |
+| Easy | wave 10 (the Ogre) | 14 lives left as wave 12 starts |
+| Normal | wave 10 (the Ogre) | lost on wave 12, with 6 lives left as it started |
 | Very Hard | wave 5 | lost on wave 7 |
 
 Under 0.4.2's band the same bot leaked on wave 3 and lost on wave 6 on Normal, and lost on wave 3 on Very Hard. The ring hands back the north edge that his opening leans on, so on Normal a build left alone holds to the wave-10 boss again even with four-arrow creeps. That is the owner's call to judge in play.

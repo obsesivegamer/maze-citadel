@@ -18,12 +18,12 @@ Tiles are written as (column, row), and row 0 is the portal edge on the north si
 
 ## Winding Causeway
 
-This is the layout Element TD is known for. A cobbled road winds from the portal to the gate, and everything else on the plateau below the band by the portal is grass you can build on. Creeps keep to the road; no tower can block it, bend it or make it longer. Instead of building a maze you choose spots.
+This is the layout Element TD is known for. A cobbled road winds from the portal to the gate, and everything else on the plateau but the ring by the portal is grass you can build on. Creeps keep to the road; no tower can block it, bend it or make it longer. Instead of building a maze you choose spots.
 
 ```
----------#P---------    row 0, portal
----------#----------
----#######----------
+........-#P-........    row 0, portal
+........-#--........
+...#######..........
 ...#+...............
 ...#+...............
 ...##############...    row 5
@@ -51,7 +51,7 @@ This is the layout Element TD is known for. A cobbled road winds from the portal
 .........G#.........    row 27, gate
 ```
 
-`#` is the road, `.` is grass, `-` is grass in the band by the portal, where nothing is built, `P` and `G` are the second portal and gate tiles (kept clear, as on every map), `x` marks the tiles that reach two different stretches of road, and `+` the tiles tucked inside a bend.
+`#` is the road, `.` is grass, `-` is a tile of the ring by the portal, where nothing is built, `P` and `G` are the second portal and gate tiles (kept clear, as on every map), `x` marks the tiles that reach two different stretches of road, and `+` the tiles tucked inside a bend.
 
 **The road.** It is 119 tiles, about 240 m from the portal to the gate. That is about half of what the smart bot's finished maze measures on the other maps (437–510 m), but a maze is only finished late in the game, while this road is there in full from wave 1. It has six long straights (rows 5, 7, 10 and 13, and columns 2 and 7), and five of its stretches cross the line the flyers take straight down the middle, besides the road's first and last tiles, which run under it.
 
@@ -61,7 +61,7 @@ This is the layout Element TD is known for. A cobbled road winds from the portal
 - A tile inside a bend (`+`) reaches 5, the corner and both of its arms. The tile just inside the end of the hairpin on row 6 reaches 7.
 - The hairpin on rows 5 and 7 leaves a single row of grass between two stretches. Each of those ten tiles (`x`) reaches both: every creep walks past it, leaves, and comes back past it a few seconds later. These are the prime spots, and there are only ten.
 - A tile on the outside of a bend reaches no more road than one beside a straight, because the square reach doesn't follow the curve.
-- Tiles two or more steps from the road reach nothing on the ground. Some of them still reach the flyers' line: the columns either side of the middle (columns 8 to 11) cover it from the band to the gate.
+- Tiles two or more steps from the road reach nothing on the ground. Some of them still reach the flyers' line: the columns either side of the middle (columns 8 to 11) cover it from the ring to the gate.
 
 **How to play it.** Your first towers do more here than on the mazing maps, since the road is already long and every gold goes into damage rather than walls. To make up for that, every creep on the Causeway, Guardians included, has more HP than the rules and the difficulty give it: 1.8 times on wave 1, falling in a straight line to 1.15 times on wave 40, since a maze on the other maps only grows to its full length late in the game while this road never gets longer ([balance.md](balance.md#element-td-rules-the-fixed-lane-map-2026-10-04)). Put splash and frost on the hairpin row and inside the bends, where they meet the most of each wave, and fill the straights with cheap towers. Keep a few air-capable towers where the road crosses the middle, so the same tower covers the road and the flyers.
 
@@ -75,7 +75,7 @@ The map table is `src/data/map_defs.gd`. Each entry has a name, a short descript
 
 On a fixed-lane map every tile off the lane is a third kind of tile beside open and blocked, `Grid.GROUND`: a tower can go there, but the flow field treats it as closed, so creeps never step onto it and a tower on it can never block or bend the route. Selling a tower returns its tile to ground, not to open. Lane tiles are refused with `Placement.Result.LANE` and the message "Keep the road clear". A Dreadlord's summons that would land on the grass appear on the Dreadlord instead.
 
-**On screen.** `Coords.map` is the map the presentation draws, and `Game` sets it. `Coords.portal()` and `Coords.gate()` follow it, and the portal arch, the citadel gatehouse, the ramp, the road, the blight and the camera presets all follow those two. `WorldRuins` builds the broken wall and the boulders on the ruin tiles. The plateau shader paves a fixed lane with the portal apron's cobbles and a darker kerb, from a mask with one texel per tile, the same way it darkens the ground under ruins. The path preview dots follow the route, so they follow the lane, and the path preview also lays the band by the portal's red strip over the plateau.
+**On screen.** `Coords.map` is the map the presentation draws, and `Game` sets it. `Coords.portal()` and `Coords.gate()` follow it, and the portal arch, the citadel gatehouse, the ramp, the road, the blight and the camera presets all follow those two. `WorldRuins` builds the broken wall and the boulders on the ruin tiles. The plateau shader paves a fixed lane with the portal apron's cobbles and a darker kerb, from a mask with one texel per tile, the same way it darkens the ground under ruins. The path preview dots follow the route, so they follow the lane, and the path preview also tints the ring by the portal red.
 
 **Picking a map.** The setup panel at the start of each match (`src/ui/setup_panel.gd`) has a MAP row, and so does the map picker, its own HUD panel in `src/ui/map_picker.gd`, which stays up until wave 1; both build their rows with `HudMapPicker.row`. Changing the map reloads the scene with the new map and keeps the mode you chose. A map the current rules don't offer is greyed out, and its tooltip says why.
 
