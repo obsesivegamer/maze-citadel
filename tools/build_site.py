@@ -249,14 +249,16 @@ def default_rules() -> dict:
     info = (ROOT / "src" / "ui" / "tower_info.gd").read_text()
     multishot = re.search(r"^const ARCHER_MULTISHOT := (\d+)", eletd.read_text(), re.M)
     elemental = re.search(r"^const ELEMENTAL_POWER := ([\d.]+)", eletd.read_text(), re.M)
+    runesmith = re.search(r"^const RUNESMITH_POWER := ([\d.]+)", eletd.read_text(), re.M)
     blurb = re.search(r"^static func blurb\(.*?(?=^\S)", info, re.M | re.S)
-    if not multishot or not elemental or not blurb:
+    if not multishot or not elemental or not runesmith or not blurb:
         sys.exit("build_site: can't read the Element TD rules for the tower cards")
     return {
         "composite": gd_const(eletd, "COMPOSITE_TOWERS"),
         "archer_multishot": int(multishot.group(1)),
         "archer_power": gd_const(eletd, "ARCHER_POWER"),
         "elemental_power": float(elemental.group(1)),
+        "runesmith_power": float(runesmith.group(1)),
         "drop": re.findall(r'\.replace\("([^"]+)", ""\)', blurb.group(0)),
     }
 
@@ -271,6 +273,8 @@ def tower_power(tid: str, tower: dict, level: int, rules: dict, epics) -> float:
         return rules["archer_power"][min(level, len(rules["archer_power"])) - 1]
     if tid == "plague" or tid in rules["composite"] or tid in epics:
         return 1.0
+    if tid == "runesmith":
+        return rules["runesmith_power"]
     return rules["elemental_power"] if "element" in tower else 1.0
 
 
