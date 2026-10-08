@@ -19,5 +19,15 @@ class Roster(unittest.TestCase):
         self.assertEqual(keys, regular + ["G"] * len(data["epics"]))
 
 
+class Power(unittest.TestCase):
+    def test_cards_scale_damage_as_eletd_rules_do(self):
+        data = bs.game_data()
+        rules = bs.default_rules()
+        want = {("archer", 2): 0.85, ("ballista", 1): 1.4, ("plague", 1): 1.0, ("runesmith", 3): 2.8}
+        for (tid, level), power in want.items():
+            got = bs.tower_power(tid, data["towers"][tid], level, rules, data["epics"])
+            self.assertAlmostEqual(got, power, msg=tid)
+
+
 if __name__ == "__main__":
     unittest.main()

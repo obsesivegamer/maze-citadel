@@ -21,13 +21,16 @@ It plays the Element TD rules, the game's default, on the Citadel Plateau. Every
 | `--map=rampart` | Plays on Fallen Rampart; `--map=causeway` plays on the Winding Causeway, under the Element TD rules only |
 | `--rules=classic` | Plays the classic rule set instead of the Element TD one |
 | `--picks=aqua,dark,dark,interest` | Under the Element TD rules, starts every game with these element levels and Interest picks already taken, with no Guardians, on top of the picks the bots spend themselves |
+| `--pick-order=stone,stone,stone` | Under the Element TD rules, makes the smart bot spend its first picks in this order, each when it would take a pick, Guardians and all, then choose as usual |
+
+`tests/bots/support_value.gd` is a second experiment: it swaps one tower of the smart bot's own board for each candidate tower and plays a few waves, to measure what a tower adds to the board, slows and shred included, against what the bot reckons ([six elements](#element-td-rules-six-elements-worth-picking-2026-10-07)).
 
 ## The bots
 
 | Bot | Plays like |
 |---|---|
 | smart | Serpentine maze of six 1-tile walls built where creeps walk; reads the next wave and buys its element and armor counters; saves up for a siege, anti-air or anti-boss tower when one of the next two waves needs it and it owns fewer than two; upgrades with surplus gold, but saves for Runesmith, Demolisher and Cannon upgrades when the next wave has a boss; fuses Epics of all four families between waves, only with gold to rebuild the freed wall tile; ignores twists |
-| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)). Weighs its element picks once per breather against the wave table, and summons a Guardian only when its route can kill it ([below](#element-td-rules-the-smart-bot-plays-its-picks-2026-10-04)) |
+| smart, `eletd` rules | Prices every build, upgrade and fusion by the damage it adds to the creeps in the wave preview on their way past, and buys the best per gold ([below](#element-td-rules-a-smart-bot-that-lines-the-route-2026-10-04)). A slow or shred is worth what the towers around it on that stretch of road add ([below](#element-td-rules-six-elements-worth-picking-2026-10-07)). Weighs its element picks once per breather against the wave table, and summons a Guardian only when its route can kill it ([below](#element-td-rules-the-smart-bot-plays-its-picks-2026-10-04)) |
 | archers | Same maze, archers only, upgrades archers |
 | no_air | Ground-only towers (cannon, roots, shadow) |
 | novice | Same maze, built one tower every 4 seconds; archers, cannons and frost in a fixed order with no thought for the next wave; never fuses |
@@ -74,7 +77,14 @@ The default rules are tuned to be harder than classic and to make the element pi
 | T8: the smart bot wins Normal on the Rampart and the Causeway, losing at least 3 lives | Met: 4/4 on both, 7.8 and 11.2 lives lost |
 | T9: wave 5, the first Harpies, needs about four level-1 Archers beside the flight line on Normal | Met: one, two or three Archers let 14 to 18 leaks through, four hold it |
 
-**Known gap: weak elements.** Aqua, Stone and Verdant are weak picks. Their towers, the Frost Spire, the Runesmith Forge and the Ancient of Roots, pay about a third of a Ballista's damage per gold or less, and their slows, shred and roots, which the smart bot's price model counts only as a flat bonus, don't make up the difference. So the smart bot builds every game around Dark, Flame and Light, takes Aqua at most as a late extra pick and never takes Stone or Verdant. A later release addresses it.
+**Every element worth picking (issue #31).** Measured in the sim, the Frost Spire and the Ancient of Roots were never weak; the smart bot priced their slows at a fraction of what they add, so it never picked Aqua or Verdant. The Runesmith Forge was weak, and now deals 280%. Since [six elements worth picking](#element-td-rules-six-elements-worth-picking-2026-10-07):
+
+| Target | Status |
+|---|---|
+| Each element can carry a build that wins Normal with 6 or more lives | Met: the smart bot made to spend its first three picks on one element wins 4 of 4 with Aqua (10 to 14 lives), Stone (10 to 16) and Verdant (8 to 14), 2 seeds on the Citadel and 2 on the Rampart |
+| Over 8 smart games (4 seeds, Citadel and Rampart) at least 5 of the 6 elements are picked, and none takes more than 40% | Met: all six; Light 33%, Flame 21%, Aqua and Dark 19%, Stone 6%, Verdant 2% of 48 element picks |
+
+The tables above were measured before it. The smart bot plays better with it, and three of their targets no longer hold as worded: it wins 3 of 4 Very Hard games (1 of 4 without it), one Citadel Normal game loses 14 lives where T4 allows 12, and the Causeway now plays harder than the Citadel (6.0 lives against 9.8). Nothing in the game changed but the Runesmith, so no creep HP was moved to bring them back ([known gaps](#known-gaps-1)).
 
 ### Classic rules (PLAN M6 gate)
 
@@ -815,6 +825,82 @@ The idle bot (that opening, never touched again), one game each on the Citadel:
 Under 0.4.2's band the same bot leaked on wave 3 and lost on wave 6 on Normal, and lost on wave 3 on Very Hard. The ring hands back the north edge that his opening leans on, so on Normal a build left alone holds to the wave-10 boss again even with four-arrow creeps. That is the owner's call to judge in play.
 
 The owner's 0.4.1 record still can't judge these numbers: 7 of the first 19 actions are refused (builds on ring tiles among them) and wave 1 takes all 20 lives. A fresh 0.4.3 record is the one to keep in `tests/playtests`.
+
+## Element TD rules: six elements worth picking (2026-10-07)
+
+This is issue #31. Since 0.4.0 the smart bot built every game around Dark, Flame and Light, took Aqua only as a late extra and never took Stone or Verdant. Its price model rated the Frost Spire, the Runesmith Forge and the Ancient of Roots at a third of a Ballista's damage per gold or less, and counted their slows and shred only as a flat bonus. The issue asked for their worth to be measured in the real game first, and for every element to be worth a pick. The short answer: Aqua and Verdant were never weak, the bot was blind to what a slow does; Stone was weak, and its tower now hits harder. For a player, the Runesmith Forge is the only thing that changed.
+
+### Measured in the sim
+
+`tests/bots/support_value.gd` takes the smart bot's own Citadel board (seed 0) after wave 8 and after wave 20, swaps one of its towers for each candidate tower in turn, and plays the next waves (9 to 14, and 21 to 28 without the boss waves) with every element at level 3. It does this on four tiles spread along the route, against the same tile with a tower that blocks but never fires. A slow or a shred shows up as damage the other towers deal. Two measures: in the first, creeps can't die, so every creep walks the whole route and the board's whole output is counted, as the bot prices it; in the second, creep HP is scaled until the board lets 15% of each wave's HP through, and a tower's worth is the HP it stops.
+
+The boards were the bot's before this change. "Bot" is what its price model reckoned, with no credit for slows or shred (`main`'s flat 1.6 for the Frost Spire would put its 6 and 12 at about 10 and 19). Level-1 towers, damage per creep:
+
+| Tower | Waves 9–14: added (from other towers) | Bot | HP stopped per 100 gold | Waves 21–28: added (from other towers) | Bot | HP stopped per 100 gold |
+|---|---|---|---|---|---|---|
+| Frost Spire | 75 (69) | 6 | **6,533** | 79 (72) | 12 | **9,678** |
+| Ancient of Roots | 49 (38) | 21 | 1,525 | 70 (53) | 36 | 4,882 |
+| Runesmith Forge | 29 (20) | 9 | 2,532 | 22 (15) | 16 | 1,593 |
+| Shadow Obelisk | 95 | 75 | 3,108 | 115 | 104 | 8,184 |
+| Plague Cauldron | 20 | 16 | 3,636 | 12 | 21 | 2,829 |
+| Ballista | 51 | 60 | 4,269 | 26 | 51 | 2,414 |
+| Demolisher | 59 | 63 | 2,767 | 142 | 167 | 6,515 |
+| Cannon | 20 | 20 | 1,956 | 30 | 36 | 6,260 |
+| Archer | 11 | 10 | 3,043 | 6 | 10 | 1,565 |
+
+What that says:
+
+- **A slow is worth what the towers around it deal.** A level-1 Frost Spire deals 6 or 7 damage a creep itself, and the towers around it deal 69 to 72 more to the creeps it slows. Per gold it stopped more HP than any tower on both boards. The bot saw only its own 6 to 12, so Aqua never came within half of its best buy and was never worth a pick.
+- **The Ancient of Roots** adds 38 to 53 through its slow, less than the Frost Spire, so its root adds little or nothing on top. It is a mid-game tower: 4,882 HP per 100 gold after wave 20, against 1,525 after wave 8.
+- **The Runesmith Forge was the one weak tower.** Its shred adds 15 to 20 damage a creep through the other towers, and per gold it stopped about what a level-1 Archer does. Poison, the bot's Dark damage, ignores armor, so shred does nothing for it.
+- **Slows don't add up.** On boards the bot built later with Frost Spires already on them, one more added nothing (−4 to 24 per creep), since a creep already slowed gains nothing from a second slow of the same strength. On a thin board (23 towers after wave 8) a slow was worth nothing either.
+- **The Winding Causeway** pays a slow little: 2 to 15 damage a creep through the other towers. Every tile beside its lane is one a damage tower could hold.
+- **The bot priced a mid-game Ballista at twice what it stops** (51 against 26), which is part of why it built on Light.
+
+### What changed
+
+| Number or rule | Was | Now | Why |
+|---|---|---|---|
+| Runesmith Forge damage (`EletdRules.RUNESMITH_POWER`, the only change to the game) | 140% | 280% (39, 67 and 112 damage) | It now stops about 3,000 HP per 100 gold on both boards, up from 1,593 and 2,532: with the Plague Cauldron |
+| How the smart bot prices a slow (`SupportPrice`) | Frost Spire ×1.6, Ancient of Roots ×2.0, as a flat bonus on their own damage | The seconds the slow holds a creep, times the damage per second of the towers within 2 tiles that line the next 3 tiles of road, times 0.75; nothing where another slow already covers that road (of two built, the one on the lower tile keeps the credit); half on a boss | The bot's slow prices now land within about 25% of the sim on the boards they were fitted to. Counted in full they came out 1.0 to 1.6 times the sim; counting the towers two tiles off on another stretch of the lane overpriced slows on the Causeway |
+| How it prices shred | Runesmith ×1.4 against armored creeps and bosses | The extra damage the towers around take from the lower armor while the shred lasts, times 0.2 | Counted in full, 3 to 6 times what the sim measured |
+| The Ancient's root | Inside its ×2.0 | Not counted | Counted, it doubled the Ancient's price, though the sim measured less support from it than from the Frost Spire |
+| Slow and shred on a fixed lane (`LANE_SHARE`) | – | 0.4 of the above | At the full share the bot took Aqua on the Causeway at wave 5 instead of Dark, filled lane tiles with Frost Spires and Archers, and lost 2 of 4 games to the Dreadlord |
+| First pick on a maze map | Priced on the empty board | The plan's empty tiles count as the level-1 Archers the bot will build there | On the empty board a slow is worth nothing, so Light took every first pick |
+| Novas and clouds in a stream | Shared out like single-target fire | Hit every creep in their area | From the parked branch: a Shadow Obelisk's cloud and an Ancient's nova hit the whole stream |
+| Seeds | – | Each seed likes each element by up to ±5% | From the parked branch, so seeds don't all pick the same way when two elements are close |
+
+### Final results
+
+4 seeds per row on the Citadel unless named; `main` is 0.4.3, measured the same day.
+
+| Row | `main` | Now |
+|---|---|---|
+| Smart, Normal, Citadel | 3/4, 5.3 lives (4–7) in the games won; lost on wave 30 | 4/4, 9.8 (6–12) |
+| Smart, Normal, Rampart | 4/4, 14.5 (14–16) | 4/4, 12.2 (11–14) |
+| Smart, Normal, Causeway | 4/4, 8.5 (5–11) | 4/4, 6.0 (3–7) |
+| Smart, Hard | 4/4, 7.8 (2–14) | 4/4, 8.5 (5–11) |
+| Smart, Very Hard | 1/4; lost on waves 38, 40 and 40 | 3/4, 3.8 (0–8); lost on wave 38 |
+| Smart, Easy | – | 4/4, 18.5 (17–20) |
+| Smart's first three picks forced to Aqua, Stone, Verdant (2 Citadel + 2 Rampart each) | – | 4/4 each: 10–14, 10–16 and 8–14 lives |
+
+Element picks over the 8 Citadel and Rampart Normal games: Light 16, Flame 10, Aqua 9, Dark 9, Stone 3, Verdant 1, of 48 (Interest aside). The same 8 games on `main` took Light 22 (43%), Dark 17 and Flame 12 of 51, and no other element. The first pick is Aqua on the maze maps and Light on the Causeway. The classic check is unchanged: 20 lives, 2 close calls, 12,110 gold at 34:09.
+
+### Tried on the way
+
+- **The parked numbers.** Branch `six-elements-wip` had Frost Spire 4.5×, Runesmith 4.0×, Ancient 3.5×, Shadow 1.0×, `HP_TO` 0.69 and `BULKY_HP` 1.75. They rested on a measurement that the Frost Spire's slow added nothing, which the sim no longer shows on 0.4.3's numbers, so none was kept. Its experiment, its runner option and its bot changes for novas, clouds and taste were.
+- **The Ballista's bonus.** Without its ×1.5 the bot found nothing worth a pick at waves 20 and 25 and lost 2 of 4 Citadel games; at ×1.25 it lost 2 of 4 too. It stays at ×1.5, overpriced mid-game.
+- **The plan's tiles for every purchase.** With future Archers counted when buying, the bot built Frost Spires before anything stood beside them: it lost Very Hard on wave 2 and every Hard game. Counted for every pick, it took Aqua and Stone at waves 10 and 15 for towers that never found room, and lost a Normal game on wave 23.
+- **The slow share on a fixed lane.** At 0.4 for every map the Causeway won 4 of 4 with 3 or 4 lives, but Light took 38% of the picks and Verdant none; at 0.55 the Causeway lost 2 of 4.
+
+### Known gaps
+
+- **Very Hard reads easier.** The bot plays better, so it wins 3 of 4 Very Hard games where the target says it should lose most. Nothing in the game changed but the Runesmith, so no HP was raised; the owner's play is the better judge.
+- **T4 and the Causeway.** One Citadel Normal game keeps 6 lives, 14 lost against T4's 5 to 12; on `main` one of the four was lost outright. The Causeway keeps 6.0 lives (3 to 7) against the Citadel's 9.8, where the target says they play about as hard: on a fixed lane every tile a Frost Spire or Runesmith takes is one a Ballista didn't.
+- **Verdant is rarely picked.** One natural pick in 48. Forced, it wins every game; left to choose, the bot takes Aqua's cheaper slow first.
+- **Slows don't show in the damage line.** The "elemental damage" line credits a Frost Spire with its own hits only, so Aqua builds read 1 to 3% there.
+- **The bot still overprices a slow on a thin board.** After wave 8 its own board has 23 towers; it prices one more Frost Spire there at 45 a creep, where the sim measures nothing. Smaller approximations: a tile the next wall would bring onto the road is priced with the road as it stands, a Bard's aura lifts a slow's price though it lifts only the tower's own damage, and a Frost Wyrm fusion is priced with its partner still standing beside it.
+- **The archers-only and novice bots lose Normal on wave 2** since 0.4.3's four-arrow creeps, on `main` too. Their targets above predate that and are untouched here.
 
 ## Latest run (2026-10-02)
 

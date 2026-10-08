@@ -330,8 +330,9 @@ func test_starters_deal_composite_damage() -> void:
 
 
 ## Under eletd upgraded Archers hit softer and elemental towers but the Plague
-## Cauldron hit harder (EletdRules.ARCHER_POWER, ELEMENTAL_POWER); classic
-## keeps the table's damage.
+## Cauldron hit harder, the Runesmith Forge twice as hard again
+## (EletdRules.ARCHER_POWER, ELEMENTAL_POWER, RUNESMITH_POWER); classic keeps
+## the table's damage.
 func test_tower_power_scales_hits_poison_and_clouds() -> void:
 	var want := {
 		[&"archer", 1]: 1.0,
@@ -342,7 +343,8 @@ func test_tower_power_scales_hits_poison_and_clouds() -> void:
 		[&"demolisher", 3]: 1.4,
 		[&"frost", 2]: 1.4,
 		[&"roots", 1]: 1.4,
-		[&"runesmith", 1]: 1.4,
+		[&"runesmith", 1]: 2.8,
+		[&"runesmith", 3]: 2.8,
 		[&"sunfire_ballista", 1]: 1.0,
 	}
 	for key: Array in want:

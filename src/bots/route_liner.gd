@@ -32,6 +32,8 @@ const BUILDS: Array[StringName] = [
 ## A tower splits its fire among the creeps in reach, so in a stream each
 ## creep draws at most this many spawn intervals of one tower's fire.
 const STREAM_SHARE := 1.8
+## Kinds that hit every creep in their area at once, which no stream shares.
+const AREA_KINDS: Array[StringName] = [&"nova", &"cloud"]
 ## Damage a creep must be able to take on its way, in multiples of its HP,
 ## before more of it stops paying: value grows as 1 - exp(-damage / (HP × this)).
 const MARGIN := 1.5
@@ -40,22 +42,19 @@ const MARGIN := 1.5
 const SAVE_RATIO := 0.7
 const MAX_ACTIONS := 8
 ## Per-kind extra worth on top of single-target damage: splash, pierce,
-## slows, shred, several creeps in reach.
+## several creeps in reach. Slows, roots and shred are counted apart, as the
+## damage the towers around them add (_support).
 const KIND_BONUS := {
 	&"cannon": 1.5,
 	&"demolisher": 1.8,
 	&"doom_cannon": 2.0,
-	&"frost": 1.6,
 	&"frost_wyrm": 2.6,
 	&"plague": 0.8,
 	&"plague_necropolis": 1.2,
 	&"ballista": 1.5,
 	&"sunfire_ballista": 2.5,
-	&"roots": 2.0,
 	&"shadow": 1.8,
-	&"runesmith": 1.2,
 }
-const SHRED_CLASSES: Array[StringName] = [&"armored", &"boss"]
 ## A boss counts as this many creeps: a leak costs 2 lives, and it walks again.
 const BOSS_STAKE := 6.0
 ## The unseen waves the bot plans for, as yardsticks (_add_yardsticks): how
@@ -80,6 +79,8 @@ const MAX_ELEMENTS := 4
 ## A purchase a pick unlocks counts toward its worth only at this share of the
 ## best value per gold open now, or the bot would never get round to it.
 const WORTH_BUYING := 0.5
+## How far a jittered seed's liking for an element moves its worth either way.
+const TASTE := 0.05
 
 var sim: GameSim
 ## The serpentine plan, or on a fixed-lane map the tiles in reach of the lane
@@ -87,6 +88,9 @@ var sim: GameSim
 var plan: Array[Vector2i] = []
 ## Placement.Result → how many plan tiles were given up for that reason.
 var skip_reasons := {}
+## Picks to spend in this order before the bot chooses its own, each when the
+## bot would take a pick (the balance runner's --pick-order).
+var pick_order: Array[StringName] = []
 
 ## The plan's walls in build order, as [row, gap columns, ...].
 var _walls: Array = []
@@ -104,6 +108,13 @@ var _route_shift := {}
 var _aura_by := {}
 var _raw_by := {}
 var _ground_by := {}
+## The plan's tiles, as a set.
+var _planned := {}
+## Weighing the first pick on a maze map, the plan's tiles count as Archers to
+## come (SupportPrice.near_dps); elsewhere slows bought on that found none.
+var _first_pick := false
+## Per tile, SupportPrice.near_dps on the board as last read.
+var _near := {}
 ## Per foe, the damage one creep takes from the whole board; poison from
 ## stacks after it, capped per foe by _poison_cap (a creep holds 5 stacks).
 var _totals := PackedFloat32Array()
@@ -114,6 +125,8 @@ var _actions: Array[Dictionary] = []
 var _wishes := {}
 ## The wave whose breather last weighed the picks (0: before wave 1).
 var _picks_weighed := -1
+## Element → this player's liking for it, a factor on its worth: 1 on seed 0.
+var _taste := {}
 var _dirty := true
 
 
@@ -124,6 +137,10 @@ func _init(
 	plan = p_plan
 	_walls = walls
 	_rng = rng
+	# Players differ in taste as well as timing: two elements a few percent
+	# apart in worth go one way for one player and the other way for the next.
+	for e in Damage.WHEEL:
+		_taste[e] = 1.0 + (_rng.randf_range(-TASTE, TASTE) if _rng else 0.0)
 	var a := sim.grid.spawn_point
 	var b := sim.grid.gate_point
 	var samples := PackedVector2Array()
@@ -148,6 +165,8 @@ func _init(
 			_air_contact[tile] = k
 			if not tile in plan:
 				plan.append(tile)
+	for tile in plan:
+		_planned[tile] = true
 
 
 func decide() -> void:
@@ -247,7 +266,8 @@ func _pick_now(options: Array[Dictionary]) -> StringName:
 ## climb a step can beat a new element's best tower. Interest is worth the
 ## gold it adds by then, spent at the best rate open now. Lives is what the
 ## element's Guardian is expected to cost if summoned now: a lone boss the
-## route must kill, 3 lives each time it gets through.
+## route must kill, 3 lives each time it gets through. While pick_order lasts
+## its next pick is the only option when it is open at all.
 func _pick_options() -> Array[Dictionary]:
 	var weights: Array[float] = []
 	for k in PICK_AHEAD:
@@ -262,7 +282,9 @@ func _pick_options() -> Array[Dictionary]:
 	for e in elements:
 		_foes.append(_guardian_foe(e))
 	_price_towers()
+	_first_pick = sim.wave == 0 and sim.grid.lane.is_empty()
 	_evaluate()
+	_first_pick = false
 	_dirty = true
 	var next := _next_pick_wave()
 	var budget := sim.gold + _income(sim.wave + 1, next)
@@ -273,10 +295,16 @@ func _pick_options() -> Array[Dictionary]:
 		if sim.elements.summons():
 			lives = _guardian_leaks(first_guardian + i) * EletdRules.GUARDIAN_LIVES
 		var worth := _unlocked(_wishes.get(elements[i], []), budget, open * WORTH_BUYING)
+		worth *= _taste[elements[i]]
 		out.append({"choice": elements[i], "worth": worth, "lives": lives})
 	if sim.elements.can_pick(SimElements.INTEREST):
 		var worth := _interest_gold(next - sim.wave) * open
 		out.append({"choice": SimElements.INTEREST, "worth": worth, "lives": 0})
+	var k := sim.elements.spent
+	if k < pick_order.size():
+		var forced := out.filter(func(o: Dictionary) -> bool: return o.choice == pick_order[k])
+		if forced:
+			out.assign(forced)
 	return out
 
 
@@ -513,8 +541,6 @@ func _tower_dps(id: StringName, lvl: int, foe: Dictionary) -> float:
 	# Splash, pierce and slows pay against a stream, hardly against a lone boss.
 	if foe.cap < INF:
 		base = base * KIND_BONUS.get(id, 1.0) + crater * 1.5
-	if id == &"runesmith" and foe.class in SHRED_CLASSES:
-		base *= 1.4
 	return base * mult * sim.elements.power(id, lvl)
 
 
@@ -538,20 +564,61 @@ func _ground_contact(tile: Vector2i, route: Dictionary) -> int:
 	return k
 
 
-## Per foe, the damage one creep takes passing a tower with these contacts,
-## before any Bard aura.
-func _raw(id: StringName, lvl: int, ground: int, air: int) -> PackedFloat32Array:
+## Per foe, the damage one creep takes passing a tower on `tile` with these
+## contacts, slows and shred included, before any Bard aura.
+func _raw(tile: Vector2i, id: StringName, lvl: int, ground: int, air: int) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	out.resize(_foes.size() * 2)
 	if TowerDefs.TOWERS[id].kind == &"aura":
 		return out
 	var row: PackedFloat32Array = _dps[id][lvl - 1]
 	var at := _foes.size() if TowerDefs.TOWERS[id].has("poison_dps") else 0
+	# A nova or a cloud hits every creep in it, so a stream doesn't share it out.
+	var shared: bool = not TowerDefs.TOWERS[id].kind in AREA_KINDS
 	for f in _foes.size():
 		var foe := _foes[f]
 		var contact := air if foe.air else ground
 		if contact > 0:
-			out[at + f] = row[f] * minf(contact * Grid.TILE / foe.speed, foe.cap)
+			var cap: float = foe.cap if shared else INF
+			out[at + f] = row[f] * minf(contact * Grid.TILE / foe.speed, cap)
+	var held := _support(tile, id, lvl, ground, air)
+	for f in held.size():
+		out[f] += held[f]
+	return out
+
+
+## Per foe, what this tower's slow or shred adds to the towers around `tile`.
+func _support(
+	tile: Vector2i, id: StringName, lvl: int, ground: int, air: int
+) -> PackedFloat32Array:
+	if not SupportPrice.supports(id):
+		return PackedFloat32Array()
+	if not _near.has(tile):
+		_near[tile] = SupportPrice.near_dps(
+			tile,
+			sim.towers,
+			_planned if _first_pick else {},
+			_foes,
+			_dps,
+			_aura_by,
+			_route,
+			sim.field,
+			_air_contact
+		)
+	var share := SupportPrice.LANE_SHARE if not sim.grid.lane.is_empty() else 1.0
+	return SupportPrice.added(id, lvl, _foes, ground, air, _near[tile], share)
+
+
+## The damage one creep of each foe takes from a tower of `id` at `lvl` on
+## `tile`, on the board as last read, poison included: what the bot reckons
+## that tower adds (tests/bots/support_value.gd sets it beside the sim's).
+func added(tile: Vector2i, id: StringName, lvl: int) -> PackedFloat32Array:
+	var raw := _raw(tile, id, lvl, _ground_contact(tile, _route), _air_contact.get(tile, 0))
+	var n := _foes.size()
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for f in n:
+		out[f] = (raw[f] + raw[n + f]) * (1.0 + _aura_at(tile))
 	return out
 
 
@@ -605,6 +672,7 @@ func _read_board() -> void:
 	_aura_by.clear()
 	_raw_by.clear()
 	_ground_by.clear()
+	_near.clear()
 	for b: Vector2i in sim.towers:
 		var bard: SimTower = sim.towers[b]
 		if bard.stat("kind") != &"aura":
@@ -632,7 +700,7 @@ func _read_board() -> void:
 			continue
 		var g := _ground_contact(tile, _route)
 		_ground_by[tile] = g
-		var raw := _raw(t.id, t.level, g, _air_contact.get(tile, 0))
+		var raw := _raw(tile, t.id, t.level, g, _air_contact.get(tile, 0))
 		_raw_by[tile] = raw
 		_totals = _plus(_totals, raw, 1.0 + _aura_by.get(tile, 0.0))
 
@@ -646,7 +714,7 @@ func _totals_on(route: Dictionary) -> PackedFloat32Array:
 			continue
 		var t: SimTower = sim.towers[tile]
 		var k: float = 1.0 + _aura_by.get(tile, 0.0)
-		var raw := _raw(t.id, t.level, g, _air_contact.get(tile, 0))
+		var raw := _raw(tile, t.id, t.level, g, _air_contact.get(tile, 0))
 		var old: PackedFloat32Array = _raw_by[tile]
 		for f in out.size():
 			out[f] += (raw[f] - old[f]) * k
@@ -671,7 +739,7 @@ func _evaluate() -> void:
 			gain = _bard_gain(tile, _aura_gain(t.id, t.level + 1), r, _totals)
 		else:
 			var g: int = _ground_by[tile]
-			var up := _raw(t.id, t.level + 1, g, _air_contact.get(tile, 0))
+			var up := _raw(tile, t.id, t.level + 1, g, _air_contact.get(tile, 0))
 			var old: PackedFloat32Array = _raw_by[tile]
 			for f in up.size():
 				up[f] -= old[f]
@@ -709,7 +777,7 @@ func _add_builds(tile: Vector2i, now: float) -> void:
 			var r: float = TowerDefs.stat(id, "range", 1)
 			gain += _bard_gain(tile, _aura_gain(id, 1), r, base)
 		elif g + a > 0:
-			gain = _value(_plus(base, _raw(id, 1, g, a), 1.0 + aura)) - now
+			gain = _value(_plus(base, _raw(tile, id, 1, g, a), 1.0 + aura)) - now
 		_push(&"build", tile, id, TowerDefs.build_cost(id), gain)
 
 
@@ -814,7 +882,7 @@ func _step_ratio(tiles: Array[Vector2i], route: Dictionary, now: float) -> float
 	for tile in tiles:
 		var id := _best_build(tile, route, base)
 		var a: int = _air_contact.get(tile, 0)
-		base = _plus(base, _raw(id, 1, _ground_contact(tile, route), a), 1.0 + _aura_at(tile))
+		base = _plus(base, _raw(tile, id, 1, _ground_contact(tile, route), a), 1.0 + _aura_at(tile))
 		total += TowerDefs.build_cost(id)
 	return (_value(base) - now) / total
 
@@ -830,7 +898,7 @@ func _best_build(tile: Vector2i, route: Dictionary, base: PackedFloat32Array) ->
 	for id in BUILDS:
 		if id == &"bard" or sim.elements.needs(id) != "":
 			continue
-		var gain := _value(_plus(base, _raw(id, 1, g, a), 1.0 + aura)) - before
+		var gain := _value(_plus(base, _raw(tile, id, 1, g, a), 1.0 + aura)) - before
 		if gain / TowerDefs.build_cost(id) > best:
 			best = gain / TowerDefs.build_cost(id)
 			pick = id
@@ -903,8 +971,8 @@ func _add_fusions(now: float) -> void:
 			t = _plus(t, _raw_by[tile], -1.0 - _aura_by.get(tile, 0.0))
 		var ak: int = _air_contact.get(keep, 0)
 		var af: int = _air_contact.get(free, 0)
-		t = _plus(t, _raw(epic, 1, _ground_by[keep], ak), 1.0 + _aura_by.get(keep, 0.0))
-		t = _plus(t, _raw(&"archer", 1, _ground_by[free], af), 1.0 + _aura_by.get(free, 0.0))
+		t = _plus(t, _raw(keep, epic, 1, _ground_by[keep], ak), 1.0 + _aura_by.get(keep, 0.0))
+		t = _plus(t, _raw(free, &"archer", 1, _ground_by[free], af), 1.0 + _aura_by.get(free, 0.0))
 		var gain := _value(t) - now
 		var cost: int = TowerDefs.TOWERS[epic].fuse_cost + refill
 		if gain > 0.0:
